@@ -18,7 +18,7 @@ class DashboardScreen extends ConsumerWidget {
         appBar: AppBar(
           title: Text(AppStrings.appName),
           actions: [
-            PopupMenuButton(
+            PopupMenuButton<String>(
               icon: CircleAvatar(
                 backgroundColor: AppColors.primary,
                 child: Text(
@@ -26,7 +26,7 @@ class DashboardScreen extends ConsumerWidget {
                   style: const TextStyle(color: Colors.white),
                 ),
               ),
-              itemBuilder: (context) => [
+              itemBuilder: (context) => <PopupMenuEntry<String>>[
                 PopupMenuItem(
                   enabled: false,
                   child: Column(
@@ -91,11 +91,45 @@ class DashboardScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'Dashboard coming soon...',
+                  'Quick Actions',
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                         color: AppColors.textSecondary,
                       ),
                   textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 32),
+                Wrap(
+                  spacing: 16,
+                  runSpacing: 16,
+                  alignment: WrapAlignment.center,
+                  children: [
+                    _QuickActionCard(
+                      icon: Icons.people_rounded,
+                      label: 'Customers',
+                      color: AppColors.primary,
+                      onTap: () => context.push('/customers'),
+                    ),
+                    _QuickActionCard(
+                      icon: Icons.inventory_2_rounded,
+                      label: 'Products',
+                      color: AppColors.secondary,
+                      onTap: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Products coming soon!')),
+                        );
+                      },
+                    ),
+                    _QuickActionCard(
+                      icon: Icons.shopping_cart_rounded,
+                      label: 'Orders',
+                      color: AppColors.warning,
+                      onTap: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Orders coming soon!')),
+                        );
+                      },
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 32),
                 Card(
@@ -134,6 +168,53 @@ class DashboardScreen extends ConsumerWidget {
       orElse: () => const Scaffold(
         body: Center(
           child: CircularProgressIndicator(),
+        ),
+      ),
+    );
+  }
+}
+
+class _QuickActionCard extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _QuickActionCard({
+    required this.icon,
+    required this.label,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          width: 140,
+          height: 120,
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                icon,
+                size: 48,
+                color: color,
+              ),
+              const SizedBox(height: 12),
+              Text(
+                label,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
         ),
       ),
     );

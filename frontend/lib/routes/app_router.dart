@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../features/auth/screens/login_screen.dart';
 import '../features/auth/screens/register_screen.dart';
 import '../features/dashboard/screens/dashboard_screen.dart';
+import '../features/customers/screens/customer_list_screen.dart';
 import '../features/auth/providers/auth_provider.dart';
 import '../features/auth/models/auth_state.dart';
 
@@ -13,7 +14,10 @@ final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     initialLocation: '/login',
     redirect: (context, state) {
-      final isAuthenticated = authState is _Authenticated;
+      final isAuthenticated = authState.maybeWhen(
+        authenticated: (_, __) => true,
+        orElse: () => false,
+      );
       final isAuthRoute = state.matchedLocation == '/login' ||
                           state.matchedLocation == '/register';
 
@@ -45,6 +49,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/dashboard',
         name: 'dashboard',
         builder: (context, state) => const DashboardScreen(),
+      ),
+      GoRoute(
+        path: '/customers',
+        name: 'customers',
+        builder: (context, state) => const CustomerListScreen(),
       ),
     ],
     errorBuilder: (context, state) => Scaffold(
