@@ -1,35 +1,157 @@
 import 'package:dio/dio.dart';
-import 'package:retrofit/retrofit.dart';
 import '../models/product_model.dart';
 
-part 'product_repository.g.dart';
+/// Product repository using Dio directly (without Retrofit)
+class ProductRepository {
+  final Dio _dio;
 
-@RestApi()
-abstract class ProductRepository {
-  factory ProductRepository(Dio dio, {String baseUrl}) = _ProductRepository;
+  ProductRepository(this._dio);
 
-  @GET('/products')
+  /// Get products with optional filters
   Future<List<ProductModel>> getProducts({
-    @Query('page') int? page,
-    @Query('limit') int? limit,
-    @Query('search') String? search,
-    @Query('category') String? category,
-    @Query('active') bool? active,
-    @Query('in_stock') bool? inStock,
-  });
+    int? page,
+    int? limit,
+    String? search,
+    String? category,
+    bool? active,
+    bool? inStock,
+  }) async {
+    try {
+      final queryParameters = <String, dynamic>{};
 
-  @GET('/products/{id}')
-  Future<ProductModel> getProductById(@Path('id') String id);
+      if (page != null) queryParameters['page'] = page;
+      if (limit != null) queryParameters['limit'] = limit;
+      if (search != null) queryParameters['search'] = search;
+      if (category != null) queryParameters['category'] = category;
+      if (active != null) queryParameters['active'] = active;
+      if (inStock != null) queryParameters['in_stock'] = inStock;
 
-  @POST('/products')
-  Future<ProductModel> createProduct(@Body() CreateProductRequest request);
+      final response = await _dio.get(
+        '/products',
+        queryParameters: queryParameters,
+      );
 
-  @PUT('/products/{id}')
+      final data = response.data is Map && response.data['data'] != null
+          ? response.data['data']
+          : response.data;
+
+      return (data as List)
+          .map((json) => ProductModel.fromJson(json as Map<String, dynamic>))
+          .toList();
+    } on DioException catch (e) {
+      throw _handleDioError(e);
+    }
+  }
+
+  /// Get product by ID
+  Future<ProductModel> getProductById(String id) async {
+    try {
+      final response = await _dio.get('/products/$id');
+
+      final data = response.data is Map && response.data['data'] != null
+          ? response.data['data']
+          : response.data;
+
+      return ProductModel.fromJson(data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      throw _handleDioError(e);
+    }
+  }
+
+  /// Create new product
+  Future<ProductModel> createProduct(CreateProductRequest request) async {
+    try {
+      final response = await _dio.post(
+        '/products',
+        data: request.toJson(),
+      );
+
+      final data = response.data is Map && response.data['data'] != null
+          ? response.data['data']
+          : response.data;
+
+      return ProductModel.fromJson(data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      throw _handleDioError(e);
+    }
+  }
+
+  /// Update product
   Future<ProductModel> updateProduct(
-    @Path('id') String id,
-    @Body() UpdateProductRequest request,
-  );
+    String id,
+    UpdateProductRequest request,
+  ) async {
+    try {
+      final response = await _dio.put(
+        '/products/$id',
+        data: request.toJson(),
+      );
 
-  @DELETE('/products/{id}')
-  Future<void> deleteProduct(@Path('id') String id);
+      final data = response.data is Map && response.data['data'] != null
+          ? response.data['data']
+          : response.data;
+
+      return ProductModel.fromJson(data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      throw _handleDioError(e);
+    }
+  }
+
+  /// Delete product
+  Future<void> deleteProduct(String id) async {
+    try {
+      await _dio.delete('/products/$id');
+    } on DioException catch (e) {
+      throw _handleDioError(e);
+    }
+  }
+
+  Exception _handleDioError(DioException error) {
+    switch (error.type) {
+      case DioExceptionType.connectionTimeout:
+      case DioExceptionType.sendTimeout:
+      case DioExceptionType.receiveTimeout:
+        return Exception('Connection timeout. Please check your internet connection.');
+
+      case DioExceptionType.badResponse:
+        final statusCode = error.response?.statusCode;
+        final message = _extractErrorMessage(error.response?.data);
+
+        switch (statusCode) {
+          case 400:
+            return Exception('Bad request: $message');
+          case 401:
+            return Exception('Unauthorized: Please login again');
+          case 403:
+            return Exception('Forbidden: You don\'t have permission');
+          case 404:
+            return Exception('Not found: $message');
+          case 500:
+            return Exception('Server error: $message');
+          default:
+            return Exception('Error ($statusCode): $message');
+        }
+
+      case DioExceptionType.cancel:
+        return Exception('Request cancelled');
+
+      case DioExceptionType.connectionError:
+        return Exception('No internet connection');
+
+      default:
+        return Exception('Unexpected error: ${error.message}');
+    }
+  }
+
+  String _extractErrorMessage(dynamic data) {
+    if (data == null) return 'Unknown error';
+
+    if (data is Map) {
+      if (data['error'] != null) return data['error'].toString();
+      if (data['message'] != null) return data['message'].toString();
+      if (data['detail'] != null) return data['detail'].toString();
+    }
+
+    return data.toString();
+  }
 }

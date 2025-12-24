@@ -54,13 +54,11 @@ class AuthNotifier extends StateNotifier<AuthState> {
     try {
       state = const AuthState.loading();
 
-      final request = LoginRequest(
+      final response = await _authRepository.login(
         tenantSlug: tenantSlug,
         email: email,
         password: password,
       );
-
-      final response = await _authRepository.login(request);
 
       // Save auth data
       await _storageService.saveToken(response.token);
@@ -87,15 +85,13 @@ class AuthNotifier extends StateNotifier<AuthState> {
     try {
       state = const AuthState.loading();
 
-      final request = RegisterRequest(
+      final response = await _authRepository.register(
         tenantSlug: tenantSlug,
         firstName: firstName,
         lastName: lastName,
         email: email,
         password: password,
       );
-
-      final response = await _authRepository.register(request);
 
       // Save auth data
       await _storageService.saveToken(response.token);
@@ -113,14 +109,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
   // Logout
   Future<void> logout() async {
-    try {
-      await _authRepository.logout();
-    } catch (_) {
-      // Ignore errors during logout
-    } finally {
-      await _storageService.clearAll();
-      state = const AuthState.unauthenticated();
-    }
+    // Logout is client-side only - just clear storage and reset state
+    await _storageService.clearAll();
+    state = const AuthState.unauthenticated();
   }
 
   // Extract error message from exception
