@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../repositories/auth_repository.dart';
 import '../repositories/customer_repository.dart';
+import '../repositories/product_repository.dart';
 import 'dio_provider.dart';
 
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
@@ -11,4 +12,9 @@ final authRepositoryProvider = Provider<AuthRepository>((ref) {
 final customerRepositoryProvider = Provider<CustomerRepository>((ref) {
   final dio = ref.watch(dioProvider);
   return CustomerRepository(dio);
+});
+
+final productRepositoryProvider = Provider<ProductRepository>((ref) {
+  final dio = ref.watch(dioProvider);
+  return ProductRepository(dio);
 });

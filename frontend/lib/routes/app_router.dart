@@ -5,6 +5,7 @@ import '../features/auth/screens/login_screen.dart';
 import '../features/auth/screens/register_screen.dart';
 import '../features/dashboard/screens/dashboard_screen.dart';
 import '../features/customers/screens/customer_list_screen.dart';
+import '../features/products/screens/product_list_screen.dart';
 import '../features/auth/providers/auth_provider.dart';
 import '../features/auth/models/auth_state.dart';
 
@@ -54,6 +55,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/customers',
         name: 'customers',
         builder: (context, state) => const CustomerListScreen(),
+      ),
+      GoRoute(
+        path: '/products',
+        name: 'products',
+        builder: (context, state) => const ProductListScreen(),
       ),
     ],
     errorBuilder: (context, state) => Scaffold(
