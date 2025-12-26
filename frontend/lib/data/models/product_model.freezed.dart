@@ -24,33 +24,32 @@ mixin _$ProductModel {
   @JsonKey(name: 'tenant_id')
   String get tenantId => throw _privateConstructorUsedError;
   String get name => throw _privateConstructorUsedError;
-  String get sku => throw _privateConstructorUsedError;
+  String? get slug => throw _privateConstructorUsedError;
   String? get description => throw _privateConstructorUsedError;
-  String? get category => throw _privateConstructorUsedError;
-  String? get brand => throw _privateConstructorUsedError;
-  @JsonKey(name: 'unit_price')
-  String get unitPrice => throw _privateConstructorUsedError;
-  @JsonKey(name: 'cost_price')
-  String? get costPrice => throw _privateConstructorUsedError;
-  @JsonKey(name: 'compare_at_price')
-  String? get compareAtPrice => throw _privateConstructorUsedError;
-  bool get taxable => throw _privateConstructorUsedError;
-  @JsonKey(name: 'tax_rate')
-  String? get taxRate => throw _privateConstructorUsedError;
+  @JsonKey(name: 'category_id')
+  String? get categoryId => throw _privateConstructorUsedError;
+  CategoryModel? get category => throw _privateConstructorUsedError;
+  String? get sku => throw _privateConstructorUsedError;
   String? get barcode => throw _privateConstructorUsedError;
+  @JsonKey(name: 'cost_price')
+  String get costPrice => throw _privateConstructorUsedError;
+  @JsonKey(name: 'selling_price')
+  String get sellingPrice => throw _privateConstructorUsedError;
+  @JsonKey(name: 'discount_price')
+  String? get discountPrice => throw _privateConstructorUsedError;
+  @JsonKey(name: 'stock_quantity')
+  int get stockQuantity => throw _privateConstructorUsedError;
+  @JsonKey(name: 'low_stock_threshold')
+  int get lowStockThreshold => throw _privateConstructorUsedError;
   @JsonKey(name: 'track_inventory')
   bool get trackInventory => throw _privateConstructorUsedError;
-  @JsonKey(name: 'stock_quantity')
-  int? get stockQuantity => throw _privateConstructorUsedError;
-  @JsonKey(name: 'low_stock_threshold')
-  int? get lowStockThreshold => throw _privateConstructorUsedError;
-  String? get unit => throw _privateConstructorUsedError;
+  String get status => throw _privateConstructorUsedError;
+  @JsonKey(name: 'is_featured')
+  bool get isFeatured => throw _privateConstructorUsedError;
   String? get weight => throw _privateConstructorUsedError;
-  String? get dimensions => throw _privateConstructorUsedError;
-  @JsonKey(name: 'image_url')
-  String? get imageUrl => throw _privateConstructorUsedError;
-  List<String>? get tags => throw _privateConstructorUsedError;
-  bool get active => throw _privateConstructorUsedError;
+  @JsonKey(name: 'weight_unit')
+  String get weightUnit => throw _privateConstructorUsedError;
+  String? get notes => throw _privateConstructorUsedError;
   @JsonKey(name: 'custom_fields')
   Map<String, dynamic>? get customFields => throw _privateConstructorUsedError;
   @JsonKey(name: 'created_at')
@@ -74,28 +73,28 @@ abstract class $ProductModelCopyWith<$Res> {
       {String id,
       @JsonKey(name: 'tenant_id') String tenantId,
       String name,
-      String sku,
+      String? slug,
       String? description,
-      String? category,
-      String? brand,
-      @JsonKey(name: 'unit_price') String unitPrice,
-      @JsonKey(name: 'cost_price') String? costPrice,
-      @JsonKey(name: 'compare_at_price') String? compareAtPrice,
-      bool taxable,
-      @JsonKey(name: 'tax_rate') String? taxRate,
+      @JsonKey(name: 'category_id') String? categoryId,
+      CategoryModel? category,
+      String? sku,
       String? barcode,
+      @JsonKey(name: 'cost_price') String costPrice,
+      @JsonKey(name: 'selling_price') String sellingPrice,
+      @JsonKey(name: 'discount_price') String? discountPrice,
+      @JsonKey(name: 'stock_quantity') int stockQuantity,
+      @JsonKey(name: 'low_stock_threshold') int lowStockThreshold,
       @JsonKey(name: 'track_inventory') bool trackInventory,
-      @JsonKey(name: 'stock_quantity') int? stockQuantity,
-      @JsonKey(name: 'low_stock_threshold') int? lowStockThreshold,
-      String? unit,
+      String status,
+      @JsonKey(name: 'is_featured') bool isFeatured,
       String? weight,
-      String? dimensions,
-      @JsonKey(name: 'image_url') String? imageUrl,
-      List<String>? tags,
-      bool active,
+      @JsonKey(name: 'weight_unit') String weightUnit,
+      String? notes,
       @JsonKey(name: 'custom_fields') Map<String, dynamic>? customFields,
       @JsonKey(name: 'created_at') DateTime? createdAt,
       @JsonKey(name: 'updated_at') DateTime? updatedAt});
+
+  $CategoryModelCopyWith<$Res>? get category;
 }
 
 /// @nodoc
@@ -114,25 +113,23 @@ class _$ProductModelCopyWithImpl<$Res, $Val extends ProductModel>
     Object? id = null,
     Object? tenantId = null,
     Object? name = null,
-    Object? sku = null,
+    Object? slug = freezed,
     Object? description = freezed,
+    Object? categoryId = freezed,
     Object? category = freezed,
-    Object? brand = freezed,
-    Object? unitPrice = null,
-    Object? costPrice = freezed,
-    Object? compareAtPrice = freezed,
-    Object? taxable = null,
-    Object? taxRate = freezed,
+    Object? sku = freezed,
     Object? barcode = freezed,
+    Object? costPrice = null,
+    Object? sellingPrice = null,
+    Object? discountPrice = freezed,
+    Object? stockQuantity = null,
+    Object? lowStockThreshold = null,
     Object? trackInventory = null,
-    Object? stockQuantity = freezed,
-    Object? lowStockThreshold = freezed,
-    Object? unit = freezed,
+    Object? status = null,
+    Object? isFeatured = null,
     Object? weight = freezed,
-    Object? dimensions = freezed,
-    Object? imageUrl = freezed,
-    Object? tags = freezed,
-    Object? active = null,
+    Object? weightUnit = null,
+    Object? notes = freezed,
     Object? customFields = freezed,
     Object? createdAt = freezed,
     Object? updatedAt = freezed,
@@ -150,82 +147,74 @@ class _$ProductModelCopyWithImpl<$Res, $Val extends ProductModel>
           ? _value.name
           : name // ignore: cast_nullable_to_non_nullable
               as String,
-      sku: null == sku
-          ? _value.sku
-          : sku // ignore: cast_nullable_to_non_nullable
-              as String,
+      slug: freezed == slug
+          ? _value.slug
+          : slug // ignore: cast_nullable_to_non_nullable
+              as String?,
       description: freezed == description
           ? _value.description
           : description // ignore: cast_nullable_to_non_nullable
               as String?,
+      categoryId: freezed == categoryId
+          ? _value.categoryId
+          : categoryId // ignore: cast_nullable_to_non_nullable
+              as String?,
       category: freezed == category
           ? _value.category
           : category // ignore: cast_nullable_to_non_nullable
-              as String?,
-      brand: freezed == brand
-          ? _value.brand
-          : brand // ignore: cast_nullable_to_non_nullable
-              as String?,
-      unitPrice: null == unitPrice
-          ? _value.unitPrice
-          : unitPrice // ignore: cast_nullable_to_non_nullable
-              as String,
-      costPrice: freezed == costPrice
-          ? _value.costPrice
-          : costPrice // ignore: cast_nullable_to_non_nullable
-              as String?,
-      compareAtPrice: freezed == compareAtPrice
-          ? _value.compareAtPrice
-          : compareAtPrice // ignore: cast_nullable_to_non_nullable
-              as String?,
-      taxable: null == taxable
-          ? _value.taxable
-          : taxable // ignore: cast_nullable_to_non_nullable
-              as bool,
-      taxRate: freezed == taxRate
-          ? _value.taxRate
-          : taxRate // ignore: cast_nullable_to_non_nullable
+              as CategoryModel?,
+      sku: freezed == sku
+          ? _value.sku
+          : sku // ignore: cast_nullable_to_non_nullable
               as String?,
       barcode: freezed == barcode
           ? _value.barcode
           : barcode // ignore: cast_nullable_to_non_nullable
               as String?,
+      costPrice: null == costPrice
+          ? _value.costPrice
+          : costPrice // ignore: cast_nullable_to_non_nullable
+              as String,
+      sellingPrice: null == sellingPrice
+          ? _value.sellingPrice
+          : sellingPrice // ignore: cast_nullable_to_non_nullable
+              as String,
+      discountPrice: freezed == discountPrice
+          ? _value.discountPrice
+          : discountPrice // ignore: cast_nullable_to_non_nullable
+              as String?,
+      stockQuantity: null == stockQuantity
+          ? _value.stockQuantity
+          : stockQuantity // ignore: cast_nullable_to_non_nullable
+              as int,
+      lowStockThreshold: null == lowStockThreshold
+          ? _value.lowStockThreshold
+          : lowStockThreshold // ignore: cast_nullable_to_non_nullable
+              as int,
       trackInventory: null == trackInventory
           ? _value.trackInventory
           : trackInventory // ignore: cast_nullable_to_non_nullable
               as bool,
-      stockQuantity: freezed == stockQuantity
-          ? _value.stockQuantity
-          : stockQuantity // ignore: cast_nullable_to_non_nullable
-              as int?,
-      lowStockThreshold: freezed == lowStockThreshold
-          ? _value.lowStockThreshold
-          : lowStockThreshold // ignore: cast_nullable_to_non_nullable
-              as int?,
-      unit: freezed == unit
-          ? _value.unit
-          : unit // ignore: cast_nullable_to_non_nullable
-              as String?,
+      status: null == status
+          ? _value.status
+          : status // ignore: cast_nullable_to_non_nullable
+              as String,
+      isFeatured: null == isFeatured
+          ? _value.isFeatured
+          : isFeatured // ignore: cast_nullable_to_non_nullable
+              as bool,
       weight: freezed == weight
           ? _value.weight
           : weight // ignore: cast_nullable_to_non_nullable
               as String?,
-      dimensions: freezed == dimensions
-          ? _value.dimensions
-          : dimensions // ignore: cast_nullable_to_non_nullable
+      weightUnit: null == weightUnit
+          ? _value.weightUnit
+          : weightUnit // ignore: cast_nullable_to_non_nullable
+              as String,
+      notes: freezed == notes
+          ? _value.notes
+          : notes // ignore: cast_nullable_to_non_nullable
               as String?,
-      imageUrl: freezed == imageUrl
-          ? _value.imageUrl
-          : imageUrl // ignore: cast_nullable_to_non_nullable
-              as String?,
-      tags: freezed == tags
-          ? _value.tags
-          : tags // ignore: cast_nullable_to_non_nullable
-              as List<String>?,
-      active: null == active
-          ? _value.active
-          : active // ignore: cast_nullable_to_non_nullable
-              as bool,
       customFields: freezed == customFields
           ? _value.customFields
           : customFields // ignore: cast_nullable_to_non_nullable
@@ -239,6 +228,18 @@ class _$ProductModelCopyWithImpl<$Res, $Val extends ProductModel>
           : updatedAt // ignore: cast_nullable_to_non_nullable
               as DateTime?,
     ) as $Val);
+  }
+
+  @override
+  @pragma('vm:prefer-inline')
+  $CategoryModelCopyWith<$Res>? get category {
+    if (_value.category == null) {
+      return null;
+    }
+
+    return $CategoryModelCopyWith<$Res>(_value.category!, (value) {
+      return _then(_value.copyWith(category: value) as $Val);
+    });
   }
 }
 
@@ -254,28 +255,29 @@ abstract class _$$ProductModelImplCopyWith<$Res>
       {String id,
       @JsonKey(name: 'tenant_id') String tenantId,
       String name,
-      String sku,
+      String? slug,
       String? description,
-      String? category,
-      String? brand,
-      @JsonKey(name: 'unit_price') String unitPrice,
-      @JsonKey(name: 'cost_price') String? costPrice,
-      @JsonKey(name: 'compare_at_price') String? compareAtPrice,
-      bool taxable,
-      @JsonKey(name: 'tax_rate') String? taxRate,
+      @JsonKey(name: 'category_id') String? categoryId,
+      CategoryModel? category,
+      String? sku,
       String? barcode,
+      @JsonKey(name: 'cost_price') String costPrice,
+      @JsonKey(name: 'selling_price') String sellingPrice,
+      @JsonKey(name: 'discount_price') String? discountPrice,
+      @JsonKey(name: 'stock_quantity') int stockQuantity,
+      @JsonKey(name: 'low_stock_threshold') int lowStockThreshold,
       @JsonKey(name: 'track_inventory') bool trackInventory,
-      @JsonKey(name: 'stock_quantity') int? stockQuantity,
-      @JsonKey(name: 'low_stock_threshold') int? lowStockThreshold,
-      String? unit,
+      String status,
+      @JsonKey(name: 'is_featured') bool isFeatured,
       String? weight,
-      String? dimensions,
-      @JsonKey(name: 'image_url') String? imageUrl,
-      List<String>? tags,
-      bool active,
+      @JsonKey(name: 'weight_unit') String weightUnit,
+      String? notes,
       @JsonKey(name: 'custom_fields') Map<String, dynamic>? customFields,
       @JsonKey(name: 'created_at') DateTime? createdAt,
       @JsonKey(name: 'updated_at') DateTime? updatedAt});
+
+  @override
+  $CategoryModelCopyWith<$Res>? get category;
 }
 
 /// @nodoc
@@ -292,25 +294,23 @@ class __$$ProductModelImplCopyWithImpl<$Res>
     Object? id = null,
     Object? tenantId = null,
     Object? name = null,
-    Object? sku = null,
+    Object? slug = freezed,
     Object? description = freezed,
+    Object? categoryId = freezed,
     Object? category = freezed,
-    Object? brand = freezed,
-    Object? unitPrice = null,
-    Object? costPrice = freezed,
-    Object? compareAtPrice = freezed,
-    Object? taxable = null,
-    Object? taxRate = freezed,
+    Object? sku = freezed,
     Object? barcode = freezed,
+    Object? costPrice = null,
+    Object? sellingPrice = null,
+    Object? discountPrice = freezed,
+    Object? stockQuantity = null,
+    Object? lowStockThreshold = null,
     Object? trackInventory = null,
-    Object? stockQuantity = freezed,
-    Object? lowStockThreshold = freezed,
-    Object? unit = freezed,
+    Object? status = null,
+    Object? isFeatured = null,
     Object? weight = freezed,
-    Object? dimensions = freezed,
-    Object? imageUrl = freezed,
-    Object? tags = freezed,
-    Object? active = null,
+    Object? weightUnit = null,
+    Object? notes = freezed,
     Object? customFields = freezed,
     Object? createdAt = freezed,
     Object? updatedAt = freezed,
@@ -328,82 +328,74 @@ class __$$ProductModelImplCopyWithImpl<$Res>
           ? _value.name
           : name // ignore: cast_nullable_to_non_nullable
               as String,
-      sku: null == sku
-          ? _value.sku
-          : sku // ignore: cast_nullable_to_non_nullable
-              as String,
+      slug: freezed == slug
+          ? _value.slug
+          : slug // ignore: cast_nullable_to_non_nullable
+              as String?,
       description: freezed == description
           ? _value.description
           : description // ignore: cast_nullable_to_non_nullable
               as String?,
+      categoryId: freezed == categoryId
+          ? _value.categoryId
+          : categoryId // ignore: cast_nullable_to_non_nullable
+              as String?,
       category: freezed == category
           ? _value.category
           : category // ignore: cast_nullable_to_non_nullable
-              as String?,
-      brand: freezed == brand
-          ? _value.brand
-          : brand // ignore: cast_nullable_to_non_nullable
-              as String?,
-      unitPrice: null == unitPrice
-          ? _value.unitPrice
-          : unitPrice // ignore: cast_nullable_to_non_nullable
-              as String,
-      costPrice: freezed == costPrice
-          ? _value.costPrice
-          : costPrice // ignore: cast_nullable_to_non_nullable
-              as String?,
-      compareAtPrice: freezed == compareAtPrice
-          ? _value.compareAtPrice
-          : compareAtPrice // ignore: cast_nullable_to_non_nullable
-              as String?,
-      taxable: null == taxable
-          ? _value.taxable
-          : taxable // ignore: cast_nullable_to_non_nullable
-              as bool,
-      taxRate: freezed == taxRate
-          ? _value.taxRate
-          : taxRate // ignore: cast_nullable_to_non_nullable
+              as CategoryModel?,
+      sku: freezed == sku
+          ? _value.sku
+          : sku // ignore: cast_nullable_to_non_nullable
               as String?,
       barcode: freezed == barcode
           ? _value.barcode
           : barcode // ignore: cast_nullable_to_non_nullable
               as String?,
+      costPrice: null == costPrice
+          ? _value.costPrice
+          : costPrice // ignore: cast_nullable_to_non_nullable
+              as String,
+      sellingPrice: null == sellingPrice
+          ? _value.sellingPrice
+          : sellingPrice // ignore: cast_nullable_to_non_nullable
+              as String,
+      discountPrice: freezed == discountPrice
+          ? _value.discountPrice
+          : discountPrice // ignore: cast_nullable_to_non_nullable
+              as String?,
+      stockQuantity: null == stockQuantity
+          ? _value.stockQuantity
+          : stockQuantity // ignore: cast_nullable_to_non_nullable
+              as int,
+      lowStockThreshold: null == lowStockThreshold
+          ? _value.lowStockThreshold
+          : lowStockThreshold // ignore: cast_nullable_to_non_nullable
+              as int,
       trackInventory: null == trackInventory
           ? _value.trackInventory
           : trackInventory // ignore: cast_nullable_to_non_nullable
               as bool,
-      stockQuantity: freezed == stockQuantity
-          ? _value.stockQuantity
-          : stockQuantity // ignore: cast_nullable_to_non_nullable
-              as int?,
-      lowStockThreshold: freezed == lowStockThreshold
-          ? _value.lowStockThreshold
-          : lowStockThreshold // ignore: cast_nullable_to_non_nullable
-              as int?,
-      unit: freezed == unit
-          ? _value.unit
-          : unit // ignore: cast_nullable_to_non_nullable
-              as String?,
+      status: null == status
+          ? _value.status
+          : status // ignore: cast_nullable_to_non_nullable
+              as String,
+      isFeatured: null == isFeatured
+          ? _value.isFeatured
+          : isFeatured // ignore: cast_nullable_to_non_nullable
+              as bool,
       weight: freezed == weight
           ? _value.weight
           : weight // ignore: cast_nullable_to_non_nullable
               as String?,
-      dimensions: freezed == dimensions
-          ? _value.dimensions
-          : dimensions // ignore: cast_nullable_to_non_nullable
+      weightUnit: null == weightUnit
+          ? _value.weightUnit
+          : weightUnit // ignore: cast_nullable_to_non_nullable
+              as String,
+      notes: freezed == notes
+          ? _value.notes
+          : notes // ignore: cast_nullable_to_non_nullable
               as String?,
-      imageUrl: freezed == imageUrl
-          ? _value.imageUrl
-          : imageUrl // ignore: cast_nullable_to_non_nullable
-              as String?,
-      tags: freezed == tags
-          ? _value._tags
-          : tags // ignore: cast_nullable_to_non_nullable
-              as List<String>?,
-      active: null == active
-          ? _value.active
-          : active // ignore: cast_nullable_to_non_nullable
-              as bool,
       customFields: freezed == customFields
           ? _value._customFields
           : customFields // ignore: cast_nullable_to_non_nullable
@@ -427,30 +419,27 @@ class _$ProductModelImpl extends _ProductModel {
       {required this.id,
       @JsonKey(name: 'tenant_id') required this.tenantId,
       required this.name,
-      required this.sku,
+      this.slug,
       this.description,
+      @JsonKey(name: 'category_id') this.categoryId,
       this.category,
-      this.brand,
-      @JsonKey(name: 'unit_price') required this.unitPrice,
-      @JsonKey(name: 'cost_price') this.costPrice,
-      @JsonKey(name: 'compare_at_price') this.compareAtPrice,
-      required this.taxable,
-      @JsonKey(name: 'tax_rate') this.taxRate,
+      this.sku,
       this.barcode,
+      @JsonKey(name: 'cost_price') required this.costPrice,
+      @JsonKey(name: 'selling_price') required this.sellingPrice,
+      @JsonKey(name: 'discount_price') this.discountPrice,
+      @JsonKey(name: 'stock_quantity') required this.stockQuantity,
+      @JsonKey(name: 'low_stock_threshold') required this.lowStockThreshold,
       @JsonKey(name: 'track_inventory') required this.trackInventory,
-      @JsonKey(name: 'stock_quantity') this.stockQuantity,
-      @JsonKey(name: 'low_stock_threshold') this.lowStockThreshold,
-      this.unit,
+      required this.status,
+      @JsonKey(name: 'is_featured') required this.isFeatured,
       this.weight,
-      this.dimensions,
-      @JsonKey(name: 'image_url') this.imageUrl,
-      final List<String>? tags,
-      required this.active,
+      @JsonKey(name: 'weight_unit') required this.weightUnit,
+      this.notes,
       @JsonKey(name: 'custom_fields') final Map<String, dynamic>? customFields,
       @JsonKey(name: 'created_at') this.createdAt,
       @JsonKey(name: 'updated_at') this.updatedAt})
-      : _tags = tags,
-        _customFields = customFields,
+      : _customFields = customFields,
         super._();
 
   factory _$ProductModelImpl.fromJson(Map<String, dynamic> json) =>
@@ -464,59 +453,48 @@ class _$ProductModelImpl extends _ProductModel {
   @override
   final String name;
   @override
-  final String sku;
+  final String? slug;
   @override
   final String? description;
   @override
-  final String? category;
+  @JsonKey(name: 'category_id')
+  final String? categoryId;
   @override
-  final String? brand;
+  final CategoryModel? category;
   @override
-  @JsonKey(name: 'unit_price')
-  final String unitPrice;
-  @override
-  @JsonKey(name: 'cost_price')
-  final String? costPrice;
-  @override
-  @JsonKey(name: 'compare_at_price')
-  final String? compareAtPrice;
-  @override
-  final bool taxable;
-  @override
-  @JsonKey(name: 'tax_rate')
-  final String? taxRate;
+  final String? sku;
   @override
   final String? barcode;
+  @override
+  @JsonKey(name: 'cost_price')
+  final String costPrice;
+  @override
+  @JsonKey(name: 'selling_price')
+  final String sellingPrice;
+  @override
+  @JsonKey(name: 'discount_price')
+  final String? discountPrice;
+  @override
+  @JsonKey(name: 'stock_quantity')
+  final int stockQuantity;
+  @override
+  @JsonKey(name: 'low_stock_threshold')
+  final int lowStockThreshold;
   @override
   @JsonKey(name: 'track_inventory')
   final bool trackInventory;
   @override
-  @JsonKey(name: 'stock_quantity')
-  final int? stockQuantity;
+  final String status;
   @override
-  @JsonKey(name: 'low_stock_threshold')
-  final int? lowStockThreshold;
-  @override
-  final String? unit;
+  @JsonKey(name: 'is_featured')
+  final bool isFeatured;
   @override
   final String? weight;
   @override
-  final String? dimensions;
+  @JsonKey(name: 'weight_unit')
+  final String weightUnit;
   @override
-  @JsonKey(name: 'image_url')
-  final String? imageUrl;
-  final List<String>? _tags;
-  @override
-  List<String>? get tags {
-    final value = _tags;
-    if (value == null) return null;
-    if (_tags is EqualUnmodifiableListView) return _tags;
-    // ignore: implicit_dynamic_type
-    return EqualUnmodifiableListView(value);
-  }
-
-  @override
-  final bool active;
+  final String? notes;
   final Map<String, dynamic>? _customFields;
   @override
   @JsonKey(name: 'custom_fields')
@@ -537,7 +515,7 @@ class _$ProductModelImpl extends _ProductModel {
 
   @override
   String toString() {
-    return 'ProductModel(id: $id, tenantId: $tenantId, name: $name, sku: $sku, description: $description, category: $category, brand: $brand, unitPrice: $unitPrice, costPrice: $costPrice, compareAtPrice: $compareAtPrice, taxable: $taxable, taxRate: $taxRate, barcode: $barcode, trackInventory: $trackInventory, stockQuantity: $stockQuantity, lowStockThreshold: $lowStockThreshold, unit: $unit, weight: $weight, dimensions: $dimensions, imageUrl: $imageUrl, tags: $tags, active: $active, customFields: $customFields, createdAt: $createdAt, updatedAt: $updatedAt)';
+    return 'ProductModel(id: $id, tenantId: $tenantId, name: $name, slug: $slug, description: $description, categoryId: $categoryId, category: $category, sku: $sku, barcode: $barcode, costPrice: $costPrice, sellingPrice: $sellingPrice, discountPrice: $discountPrice, stockQuantity: $stockQuantity, lowStockThreshold: $lowStockThreshold, trackInventory: $trackInventory, status: $status, isFeatured: $isFeatured, weight: $weight, weightUnit: $weightUnit, notes: $notes, customFields: $customFields, createdAt: $createdAt, updatedAt: $updatedAt)';
   }
 
   @override
@@ -549,35 +527,34 @@ class _$ProductModelImpl extends _ProductModel {
             (identical(other.tenantId, tenantId) ||
                 other.tenantId == tenantId) &&
             (identical(other.name, name) || other.name == name) &&
-            (identical(other.sku, sku) || other.sku == sku) &&
+            (identical(other.slug, slug) || other.slug == slug) &&
             (identical(other.description, description) ||
                 other.description == description) &&
+            (identical(other.categoryId, categoryId) ||
+                other.categoryId == categoryId) &&
             (identical(other.category, category) ||
                 other.category == category) &&
-            (identical(other.brand, brand) || other.brand == brand) &&
-            (identical(other.unitPrice, unitPrice) ||
-                other.unitPrice == unitPrice) &&
+            (identical(other.sku, sku) || other.sku == sku) &&
+            (identical(other.barcode, barcode) || other.barcode == barcode) &&
             (identical(other.costPrice, costPrice) ||
                 other.costPrice == costPrice) &&
-            (identical(other.compareAtPrice, compareAtPrice) ||
-                other.compareAtPrice == compareAtPrice) &&
-            (identical(other.taxable, taxable) || other.taxable == taxable) &&
-            (identical(other.taxRate, taxRate) || other.taxRate == taxRate) &&
-            (identical(other.barcode, barcode) || other.barcode == barcode) &&
-            (identical(other.trackInventory, trackInventory) ||
-                other.trackInventory == trackInventory) &&
+            (identical(other.sellingPrice, sellingPrice) ||
+                other.sellingPrice == sellingPrice) &&
+            (identical(other.discountPrice, discountPrice) ||
+                other.discountPrice == discountPrice) &&
             (identical(other.stockQuantity, stockQuantity) ||
                 other.stockQuantity == stockQuantity) &&
             (identical(other.lowStockThreshold, lowStockThreshold) ||
                 other.lowStockThreshold == lowStockThreshold) &&
-            (identical(other.unit, unit) || other.unit == unit) &&
+            (identical(other.trackInventory, trackInventory) ||
+                other.trackInventory == trackInventory) &&
+            (identical(other.status, status) || other.status == status) &&
+            (identical(other.isFeatured, isFeatured) ||
+                other.isFeatured == isFeatured) &&
             (identical(other.weight, weight) || other.weight == weight) &&
-            (identical(other.dimensions, dimensions) ||
-                other.dimensions == dimensions) &&
-            (identical(other.imageUrl, imageUrl) ||
-                other.imageUrl == imageUrl) &&
-            const DeepCollectionEquality().equals(other._tags, _tags) &&
-            (identical(other.active, active) || other.active == active) &&
+            (identical(other.weightUnit, weightUnit) ||
+                other.weightUnit == weightUnit) &&
+            (identical(other.notes, notes) || other.notes == notes) &&
             const DeepCollectionEquality()
                 .equals(other._customFields, _customFields) &&
             (identical(other.createdAt, createdAt) ||
@@ -593,25 +570,23 @@ class _$ProductModelImpl extends _ProductModel {
         id,
         tenantId,
         name,
-        sku,
+        slug,
         description,
+        categoryId,
         category,
-        brand,
-        unitPrice,
-        costPrice,
-        compareAtPrice,
-        taxable,
-        taxRate,
+        sku,
         barcode,
-        trackInventory,
+        costPrice,
+        sellingPrice,
+        discountPrice,
         stockQuantity,
         lowStockThreshold,
-        unit,
+        trackInventory,
+        status,
+        isFeatured,
         weight,
-        dimensions,
-        imageUrl,
-        const DeepCollectionEquality().hash(_tags),
-        active,
+        weightUnit,
+        notes,
         const DeepCollectionEquality().hash(_customFields),
         createdAt,
         updatedAt
@@ -636,25 +611,24 @@ abstract class _ProductModel extends ProductModel {
       {required final String id,
       @JsonKey(name: 'tenant_id') required final String tenantId,
       required final String name,
-      required final String sku,
+      final String? slug,
       final String? description,
-      final String? category,
-      final String? brand,
-      @JsonKey(name: 'unit_price') required final String unitPrice,
-      @JsonKey(name: 'cost_price') final String? costPrice,
-      @JsonKey(name: 'compare_at_price') final String? compareAtPrice,
-      required final bool taxable,
-      @JsonKey(name: 'tax_rate') final String? taxRate,
+      @JsonKey(name: 'category_id') final String? categoryId,
+      final CategoryModel? category,
+      final String? sku,
       final String? barcode,
+      @JsonKey(name: 'cost_price') required final String costPrice,
+      @JsonKey(name: 'selling_price') required final String sellingPrice,
+      @JsonKey(name: 'discount_price') final String? discountPrice,
+      @JsonKey(name: 'stock_quantity') required final int stockQuantity,
+      @JsonKey(name: 'low_stock_threshold')
+      required final int lowStockThreshold,
       @JsonKey(name: 'track_inventory') required final bool trackInventory,
-      @JsonKey(name: 'stock_quantity') final int? stockQuantity,
-      @JsonKey(name: 'low_stock_threshold') final int? lowStockThreshold,
-      final String? unit,
+      required final String status,
+      @JsonKey(name: 'is_featured') required final bool isFeatured,
       final String? weight,
-      final String? dimensions,
-      @JsonKey(name: 'image_url') final String? imageUrl,
-      final List<String>? tags,
-      required final bool active,
+      @JsonKey(name: 'weight_unit') required final String weightUnit,
+      final String? notes,
       @JsonKey(name: 'custom_fields') final Map<String, dynamic>? customFields,
       @JsonKey(name: 'created_at') final DateTime? createdAt,
       @JsonKey(name: 'updated_at')
@@ -672,51 +646,48 @@ abstract class _ProductModel extends ProductModel {
   @override
   String get name;
   @override
-  String get sku;
+  String? get slug;
   @override
   String? get description;
   @override
-  String? get category;
+  @JsonKey(name: 'category_id')
+  String? get categoryId;
   @override
-  String? get brand;
+  CategoryModel? get category;
   @override
-  @JsonKey(name: 'unit_price')
-  String get unitPrice;
-  @override
-  @JsonKey(name: 'cost_price')
-  String? get costPrice;
-  @override
-  @JsonKey(name: 'compare_at_price')
-  String? get compareAtPrice;
-  @override
-  bool get taxable;
-  @override
-  @JsonKey(name: 'tax_rate')
-  String? get taxRate;
+  String? get sku;
   @override
   String? get barcode;
+  @override
+  @JsonKey(name: 'cost_price')
+  String get costPrice;
+  @override
+  @JsonKey(name: 'selling_price')
+  String get sellingPrice;
+  @override
+  @JsonKey(name: 'discount_price')
+  String? get discountPrice;
+  @override
+  @JsonKey(name: 'stock_quantity')
+  int get stockQuantity;
+  @override
+  @JsonKey(name: 'low_stock_threshold')
+  int get lowStockThreshold;
   @override
   @JsonKey(name: 'track_inventory')
   bool get trackInventory;
   @override
-  @JsonKey(name: 'stock_quantity')
-  int? get stockQuantity;
+  String get status;
   @override
-  @JsonKey(name: 'low_stock_threshold')
-  int? get lowStockThreshold;
-  @override
-  String? get unit;
+  @JsonKey(name: 'is_featured')
+  bool get isFeatured;
   @override
   String? get weight;
   @override
-  String? get dimensions;
+  @JsonKey(name: 'weight_unit')
+  String get weightUnit;
   @override
-  @JsonKey(name: 'image_url')
-  String? get imageUrl;
-  @override
-  List<String>? get tags;
-  @override
-  bool get active;
+  String? get notes;
   @override
   @JsonKey(name: 'custom_fields')
   Map<String, dynamic>? get customFields;
@@ -738,34 +709,28 @@ CreateProductRequest _$CreateProductRequestFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$CreateProductRequest {
+  @JsonKey(name: 'category_id')
+  String? get categoryId => throw _privateConstructorUsedError;
   String get name => throw _privateConstructorUsedError;
-  String get sku => throw _privateConstructorUsedError;
   String? get description => throw _privateConstructorUsedError;
-  String? get category => throw _privateConstructorUsedError;
-  String? get brand => throw _privateConstructorUsedError;
-  @JsonKey(name: 'unit_price')
-  String get unitPrice => throw _privateConstructorUsedError;
+  String? get sku => throw _privateConstructorUsedError;
+  String? get barcode => throw _privateConstructorUsedError;
   @JsonKey(name: 'cost_price')
   String? get costPrice => throw _privateConstructorUsedError;
-  @JsonKey(name: 'compare_at_price')
-  String? get compareAtPrice => throw _privateConstructorUsedError;
-  bool? get taxable => throw _privateConstructorUsedError;
-  @JsonKey(name: 'tax_rate')
-  String? get taxRate => throw _privateConstructorUsedError;
-  String? get barcode => throw _privateConstructorUsedError;
-  @JsonKey(name: 'track_inventory')
-  bool? get trackInventory => throw _privateConstructorUsedError;
+  @JsonKey(name: 'selling_price')
+  String get sellingPrice => throw _privateConstructorUsedError;
+  @JsonKey(name: 'discount_price')
+  String? get discountPrice => throw _privateConstructorUsedError;
   @JsonKey(name: 'stock_quantity')
   int? get stockQuantity => throw _privateConstructorUsedError;
   @JsonKey(name: 'low_stock_threshold')
   int? get lowStockThreshold => throw _privateConstructorUsedError;
-  String? get unit => throw _privateConstructorUsedError;
+  @JsonKey(name: 'track_inventory')
+  bool? get trackInventory => throw _privateConstructorUsedError;
   String? get weight => throw _privateConstructorUsedError;
-  String? get dimensions => throw _privateConstructorUsedError;
-  @JsonKey(name: 'image_url')
-  String? get imageUrl => throw _privateConstructorUsedError;
-  List<String>? get tags => throw _privateConstructorUsedError;
-  bool? get active => throw _privateConstructorUsedError;
+  @JsonKey(name: 'weight_unit')
+  String? get weightUnit => throw _privateConstructorUsedError;
+  String? get notes => throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
@@ -780,26 +745,20 @@ abstract class $CreateProductRequestCopyWith<$Res> {
       _$CreateProductRequestCopyWithImpl<$Res, CreateProductRequest>;
   @useResult
   $Res call(
-      {String name,
-      String sku,
+      {@JsonKey(name: 'category_id') String? categoryId,
+      String name,
       String? description,
-      String? category,
-      String? brand,
-      @JsonKey(name: 'unit_price') String unitPrice,
-      @JsonKey(name: 'cost_price') String? costPrice,
-      @JsonKey(name: 'compare_at_price') String? compareAtPrice,
-      bool? taxable,
-      @JsonKey(name: 'tax_rate') String? taxRate,
+      String? sku,
       String? barcode,
-      @JsonKey(name: 'track_inventory') bool? trackInventory,
+      @JsonKey(name: 'cost_price') String? costPrice,
+      @JsonKey(name: 'selling_price') String sellingPrice,
+      @JsonKey(name: 'discount_price') String? discountPrice,
       @JsonKey(name: 'stock_quantity') int? stockQuantity,
       @JsonKey(name: 'low_stock_threshold') int? lowStockThreshold,
-      String? unit,
+      @JsonKey(name: 'track_inventory') bool? trackInventory,
       String? weight,
-      String? dimensions,
-      @JsonKey(name: 'image_url') String? imageUrl,
-      List<String>? tags,
-      bool? active});
+      @JsonKey(name: 'weight_unit') String? weightUnit,
+      String? notes});
 }
 
 /// @nodoc
@@ -816,76 +775,54 @@ class _$CreateProductRequestCopyWithImpl<$Res,
   @pragma('vm:prefer-inline')
   @override
   $Res call({
+    Object? categoryId = freezed,
     Object? name = null,
-    Object? sku = null,
     Object? description = freezed,
-    Object? category = freezed,
-    Object? brand = freezed,
-    Object? unitPrice = null,
-    Object? costPrice = freezed,
-    Object? compareAtPrice = freezed,
-    Object? taxable = freezed,
-    Object? taxRate = freezed,
+    Object? sku = freezed,
     Object? barcode = freezed,
-    Object? trackInventory = freezed,
+    Object? costPrice = freezed,
+    Object? sellingPrice = null,
+    Object? discountPrice = freezed,
     Object? stockQuantity = freezed,
     Object? lowStockThreshold = freezed,
-    Object? unit = freezed,
+    Object? trackInventory = freezed,
     Object? weight = freezed,
-    Object? dimensions = freezed,
-    Object? imageUrl = freezed,
-    Object? tags = freezed,
-    Object? active = freezed,
+    Object? weightUnit = freezed,
+    Object? notes = freezed,
   }) {
     return _then(_value.copyWith(
+      categoryId: freezed == categoryId
+          ? _value.categoryId
+          : categoryId // ignore: cast_nullable_to_non_nullable
+              as String?,
       name: null == name
           ? _value.name
           : name // ignore: cast_nullable_to_non_nullable
-              as String,
-      sku: null == sku
-          ? _value.sku
-          : sku // ignore: cast_nullable_to_non_nullable
               as String,
       description: freezed == description
           ? _value.description
           : description // ignore: cast_nullable_to_non_nullable
               as String?,
-      category: freezed == category
-          ? _value.category
-          : category // ignore: cast_nullable_to_non_nullable
-              as String?,
-      brand: freezed == brand
-          ? _value.brand
-          : brand // ignore: cast_nullable_to_non_nullable
-              as String?,
-      unitPrice: null == unitPrice
-          ? _value.unitPrice
-          : unitPrice // ignore: cast_nullable_to_non_nullable
-              as String,
-      costPrice: freezed == costPrice
-          ? _value.costPrice
-          : costPrice // ignore: cast_nullable_to_non_nullable
-              as String?,
-      compareAtPrice: freezed == compareAtPrice
-          ? _value.compareAtPrice
-          : compareAtPrice // ignore: cast_nullable_to_non_nullable
-              as String?,
-      taxable: freezed == taxable
-          ? _value.taxable
-          : taxable // ignore: cast_nullable_to_non_nullable
-              as bool?,
-      taxRate: freezed == taxRate
-          ? _value.taxRate
-          : taxRate // ignore: cast_nullable_to_non_nullable
+      sku: freezed == sku
+          ? _value.sku
+          : sku // ignore: cast_nullable_to_non_nullable
               as String?,
       barcode: freezed == barcode
           ? _value.barcode
           : barcode // ignore: cast_nullable_to_non_nullable
               as String?,
-      trackInventory: freezed == trackInventory
-          ? _value.trackInventory
-          : trackInventory // ignore: cast_nullable_to_non_nullable
-              as bool?,
+      costPrice: freezed == costPrice
+          ? _value.costPrice
+          : costPrice // ignore: cast_nullable_to_non_nullable
+              as String?,
+      sellingPrice: null == sellingPrice
+          ? _value.sellingPrice
+          : sellingPrice // ignore: cast_nullable_to_non_nullable
+              as String,
+      discountPrice: freezed == discountPrice
+          ? _value.discountPrice
+          : discountPrice // ignore: cast_nullable_to_non_nullable
+              as String?,
       stockQuantity: freezed == stockQuantity
           ? _value.stockQuantity
           : stockQuantity // ignore: cast_nullable_to_non_nullable
@@ -894,30 +831,22 @@ class _$CreateProductRequestCopyWithImpl<$Res,
           ? _value.lowStockThreshold
           : lowStockThreshold // ignore: cast_nullable_to_non_nullable
               as int?,
-      unit: freezed == unit
-          ? _value.unit
-          : unit // ignore: cast_nullable_to_non_nullable
-              as String?,
+      trackInventory: freezed == trackInventory
+          ? _value.trackInventory
+          : trackInventory // ignore: cast_nullable_to_non_nullable
+              as bool?,
       weight: freezed == weight
           ? _value.weight
           : weight // ignore: cast_nullable_to_non_nullable
               as String?,
-      dimensions: freezed == dimensions
-          ? _value.dimensions
-          : dimensions // ignore: cast_nullable_to_non_nullable
+      weightUnit: freezed == weightUnit
+          ? _value.weightUnit
+          : weightUnit // ignore: cast_nullable_to_non_nullable
               as String?,
-      imageUrl: freezed == imageUrl
-          ? _value.imageUrl
-          : imageUrl // ignore: cast_nullable_to_non_nullable
+      notes: freezed == notes
+          ? _value.notes
+          : notes // ignore: cast_nullable_to_non_nullable
               as String?,
-      tags: freezed == tags
-          ? _value.tags
-          : tags // ignore: cast_nullable_to_non_nullable
-              as List<String>?,
-      active: freezed == active
-          ? _value.active
-          : active // ignore: cast_nullable_to_non_nullable
-              as bool?,
     ) as $Val);
   }
 }
@@ -931,26 +860,20 @@ abstract class _$$CreateProductRequestImplCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {String name,
-      String sku,
+      {@JsonKey(name: 'category_id') String? categoryId,
+      String name,
       String? description,
-      String? category,
-      String? brand,
-      @JsonKey(name: 'unit_price') String unitPrice,
-      @JsonKey(name: 'cost_price') String? costPrice,
-      @JsonKey(name: 'compare_at_price') String? compareAtPrice,
-      bool? taxable,
-      @JsonKey(name: 'tax_rate') String? taxRate,
+      String? sku,
       String? barcode,
-      @JsonKey(name: 'track_inventory') bool? trackInventory,
+      @JsonKey(name: 'cost_price') String? costPrice,
+      @JsonKey(name: 'selling_price') String sellingPrice,
+      @JsonKey(name: 'discount_price') String? discountPrice,
       @JsonKey(name: 'stock_quantity') int? stockQuantity,
       @JsonKey(name: 'low_stock_threshold') int? lowStockThreshold,
-      String? unit,
+      @JsonKey(name: 'track_inventory') bool? trackInventory,
       String? weight,
-      String? dimensions,
-      @JsonKey(name: 'image_url') String? imageUrl,
-      List<String>? tags,
-      bool? active});
+      @JsonKey(name: 'weight_unit') String? weightUnit,
+      String? notes});
 }
 
 /// @nodoc
@@ -964,76 +887,54 @@ class __$$CreateProductRequestImplCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
+    Object? categoryId = freezed,
     Object? name = null,
-    Object? sku = null,
     Object? description = freezed,
-    Object? category = freezed,
-    Object? brand = freezed,
-    Object? unitPrice = null,
-    Object? costPrice = freezed,
-    Object? compareAtPrice = freezed,
-    Object? taxable = freezed,
-    Object? taxRate = freezed,
+    Object? sku = freezed,
     Object? barcode = freezed,
-    Object? trackInventory = freezed,
+    Object? costPrice = freezed,
+    Object? sellingPrice = null,
+    Object? discountPrice = freezed,
     Object? stockQuantity = freezed,
     Object? lowStockThreshold = freezed,
-    Object? unit = freezed,
+    Object? trackInventory = freezed,
     Object? weight = freezed,
-    Object? dimensions = freezed,
-    Object? imageUrl = freezed,
-    Object? tags = freezed,
-    Object? active = freezed,
+    Object? weightUnit = freezed,
+    Object? notes = freezed,
   }) {
     return _then(_$CreateProductRequestImpl(
+      categoryId: freezed == categoryId
+          ? _value.categoryId
+          : categoryId // ignore: cast_nullable_to_non_nullable
+              as String?,
       name: null == name
           ? _value.name
           : name // ignore: cast_nullable_to_non_nullable
-              as String,
-      sku: null == sku
-          ? _value.sku
-          : sku // ignore: cast_nullable_to_non_nullable
               as String,
       description: freezed == description
           ? _value.description
           : description // ignore: cast_nullable_to_non_nullable
               as String?,
-      category: freezed == category
-          ? _value.category
-          : category // ignore: cast_nullable_to_non_nullable
-              as String?,
-      brand: freezed == brand
-          ? _value.brand
-          : brand // ignore: cast_nullable_to_non_nullable
-              as String?,
-      unitPrice: null == unitPrice
-          ? _value.unitPrice
-          : unitPrice // ignore: cast_nullable_to_non_nullable
-              as String,
-      costPrice: freezed == costPrice
-          ? _value.costPrice
-          : costPrice // ignore: cast_nullable_to_non_nullable
-              as String?,
-      compareAtPrice: freezed == compareAtPrice
-          ? _value.compareAtPrice
-          : compareAtPrice // ignore: cast_nullable_to_non_nullable
-              as String?,
-      taxable: freezed == taxable
-          ? _value.taxable
-          : taxable // ignore: cast_nullable_to_non_nullable
-              as bool?,
-      taxRate: freezed == taxRate
-          ? _value.taxRate
-          : taxRate // ignore: cast_nullable_to_non_nullable
+      sku: freezed == sku
+          ? _value.sku
+          : sku // ignore: cast_nullable_to_non_nullable
               as String?,
       barcode: freezed == barcode
           ? _value.barcode
           : barcode // ignore: cast_nullable_to_non_nullable
               as String?,
-      trackInventory: freezed == trackInventory
-          ? _value.trackInventory
-          : trackInventory // ignore: cast_nullable_to_non_nullable
-              as bool?,
+      costPrice: freezed == costPrice
+          ? _value.costPrice
+          : costPrice // ignore: cast_nullable_to_non_nullable
+              as String?,
+      sellingPrice: null == sellingPrice
+          ? _value.sellingPrice
+          : sellingPrice // ignore: cast_nullable_to_non_nullable
+              as String,
+      discountPrice: freezed == discountPrice
+          ? _value.discountPrice
+          : discountPrice // ignore: cast_nullable_to_non_nullable
+              as String?,
       stockQuantity: freezed == stockQuantity
           ? _value.stockQuantity
           : stockQuantity // ignore: cast_nullable_to_non_nullable
@@ -1042,30 +943,22 @@ class __$$CreateProductRequestImplCopyWithImpl<$Res>
           ? _value.lowStockThreshold
           : lowStockThreshold // ignore: cast_nullable_to_non_nullable
               as int?,
-      unit: freezed == unit
-          ? _value.unit
-          : unit // ignore: cast_nullable_to_non_nullable
-              as String?,
+      trackInventory: freezed == trackInventory
+          ? _value.trackInventory
+          : trackInventory // ignore: cast_nullable_to_non_nullable
+              as bool?,
       weight: freezed == weight
           ? _value.weight
           : weight // ignore: cast_nullable_to_non_nullable
               as String?,
-      dimensions: freezed == dimensions
-          ? _value.dimensions
-          : dimensions // ignore: cast_nullable_to_non_nullable
+      weightUnit: freezed == weightUnit
+          ? _value.weightUnit
+          : weightUnit // ignore: cast_nullable_to_non_nullable
               as String?,
-      imageUrl: freezed == imageUrl
-          ? _value.imageUrl
-          : imageUrl // ignore: cast_nullable_to_non_nullable
+      notes: freezed == notes
+          ? _value.notes
+          : notes // ignore: cast_nullable_to_non_nullable
               as String?,
-      tags: freezed == tags
-          ? _value._tags
-          : tags // ignore: cast_nullable_to_non_nullable
-              as List<String>?,
-      active: freezed == active
-          ? _value.active
-          : active // ignore: cast_nullable_to_non_nullable
-              as bool?,
     ));
   }
 }
@@ -1074,60 +967,44 @@ class __$$CreateProductRequestImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$CreateProductRequestImpl implements _CreateProductRequest {
   const _$CreateProductRequestImpl(
-      {required this.name,
-      required this.sku,
+      {@JsonKey(name: 'category_id') this.categoryId,
+      required this.name,
       this.description,
-      this.category,
-      this.brand,
-      @JsonKey(name: 'unit_price') required this.unitPrice,
-      @JsonKey(name: 'cost_price') this.costPrice,
-      @JsonKey(name: 'compare_at_price') this.compareAtPrice,
-      this.taxable,
-      @JsonKey(name: 'tax_rate') this.taxRate,
+      this.sku,
       this.barcode,
-      @JsonKey(name: 'track_inventory') this.trackInventory,
+      @JsonKey(name: 'cost_price') this.costPrice,
+      @JsonKey(name: 'selling_price') required this.sellingPrice,
+      @JsonKey(name: 'discount_price') this.discountPrice,
       @JsonKey(name: 'stock_quantity') this.stockQuantity,
       @JsonKey(name: 'low_stock_threshold') this.lowStockThreshold,
-      this.unit,
+      @JsonKey(name: 'track_inventory') this.trackInventory,
       this.weight,
-      this.dimensions,
-      @JsonKey(name: 'image_url') this.imageUrl,
-      final List<String>? tags,
-      this.active})
-      : _tags = tags;
+      @JsonKey(name: 'weight_unit') this.weightUnit,
+      this.notes});
 
   factory _$CreateProductRequestImpl.fromJson(Map<String, dynamic> json) =>
       _$$CreateProductRequestImplFromJson(json);
 
   @override
-  final String name;
+  @JsonKey(name: 'category_id')
+  final String? categoryId;
   @override
-  final String sku;
+  final String name;
   @override
   final String? description;
   @override
-  final String? category;
+  final String? sku;
   @override
-  final String? brand;
-  @override
-  @JsonKey(name: 'unit_price')
-  final String unitPrice;
+  final String? barcode;
   @override
   @JsonKey(name: 'cost_price')
   final String? costPrice;
   @override
-  @JsonKey(name: 'compare_at_price')
-  final String? compareAtPrice;
+  @JsonKey(name: 'selling_price')
+  final String sellingPrice;
   @override
-  final bool? taxable;
-  @override
-  @JsonKey(name: 'tax_rate')
-  final String? taxRate;
-  @override
-  final String? barcode;
-  @override
-  @JsonKey(name: 'track_inventory')
-  final bool? trackInventory;
+  @JsonKey(name: 'discount_price')
+  final String? discountPrice;
   @override
   @JsonKey(name: 'stock_quantity')
   final int? stockQuantity;
@@ -1135,30 +1012,19 @@ class _$CreateProductRequestImpl implements _CreateProductRequest {
   @JsonKey(name: 'low_stock_threshold')
   final int? lowStockThreshold;
   @override
-  final String? unit;
+  @JsonKey(name: 'track_inventory')
+  final bool? trackInventory;
   @override
   final String? weight;
   @override
-  final String? dimensions;
+  @JsonKey(name: 'weight_unit')
+  final String? weightUnit;
   @override
-  @JsonKey(name: 'image_url')
-  final String? imageUrl;
-  final List<String>? _tags;
-  @override
-  List<String>? get tags {
-    final value = _tags;
-    if (value == null) return null;
-    if (_tags is EqualUnmodifiableListView) return _tags;
-    // ignore: implicit_dynamic_type
-    return EqualUnmodifiableListView(value);
-  }
-
-  @override
-  final bool? active;
+  final String? notes;
 
   @override
   String toString() {
-    return 'CreateProductRequest(name: $name, sku: $sku, description: $description, category: $category, brand: $brand, unitPrice: $unitPrice, costPrice: $costPrice, compareAtPrice: $compareAtPrice, taxable: $taxable, taxRate: $taxRate, barcode: $barcode, trackInventory: $trackInventory, stockQuantity: $stockQuantity, lowStockThreshold: $lowStockThreshold, unit: $unit, weight: $weight, dimensions: $dimensions, imageUrl: $imageUrl, tags: $tags, active: $active)';
+    return 'CreateProductRequest(categoryId: $categoryId, name: $name, description: $description, sku: $sku, barcode: $barcode, costPrice: $costPrice, sellingPrice: $sellingPrice, discountPrice: $discountPrice, stockQuantity: $stockQuantity, lowStockThreshold: $lowStockThreshold, trackInventory: $trackInventory, weight: $weight, weightUnit: $weightUnit, notes: $notes)';
   }
 
   @override
@@ -1166,63 +1032,49 @@ class _$CreateProductRequestImpl implements _CreateProductRequest {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$CreateProductRequestImpl &&
+            (identical(other.categoryId, categoryId) ||
+                other.categoryId == categoryId) &&
             (identical(other.name, name) || other.name == name) &&
-            (identical(other.sku, sku) || other.sku == sku) &&
             (identical(other.description, description) ||
                 other.description == description) &&
-            (identical(other.category, category) ||
-                other.category == category) &&
-            (identical(other.brand, brand) || other.brand == brand) &&
-            (identical(other.unitPrice, unitPrice) ||
-                other.unitPrice == unitPrice) &&
+            (identical(other.sku, sku) || other.sku == sku) &&
+            (identical(other.barcode, barcode) || other.barcode == barcode) &&
             (identical(other.costPrice, costPrice) ||
                 other.costPrice == costPrice) &&
-            (identical(other.compareAtPrice, compareAtPrice) ||
-                other.compareAtPrice == compareAtPrice) &&
-            (identical(other.taxable, taxable) || other.taxable == taxable) &&
-            (identical(other.taxRate, taxRate) || other.taxRate == taxRate) &&
-            (identical(other.barcode, barcode) || other.barcode == barcode) &&
-            (identical(other.trackInventory, trackInventory) ||
-                other.trackInventory == trackInventory) &&
+            (identical(other.sellingPrice, sellingPrice) ||
+                other.sellingPrice == sellingPrice) &&
+            (identical(other.discountPrice, discountPrice) ||
+                other.discountPrice == discountPrice) &&
             (identical(other.stockQuantity, stockQuantity) ||
                 other.stockQuantity == stockQuantity) &&
             (identical(other.lowStockThreshold, lowStockThreshold) ||
                 other.lowStockThreshold == lowStockThreshold) &&
-            (identical(other.unit, unit) || other.unit == unit) &&
+            (identical(other.trackInventory, trackInventory) ||
+                other.trackInventory == trackInventory) &&
             (identical(other.weight, weight) || other.weight == weight) &&
-            (identical(other.dimensions, dimensions) ||
-                other.dimensions == dimensions) &&
-            (identical(other.imageUrl, imageUrl) ||
-                other.imageUrl == imageUrl) &&
-            const DeepCollectionEquality().equals(other._tags, _tags) &&
-            (identical(other.active, active) || other.active == active));
+            (identical(other.weightUnit, weightUnit) ||
+                other.weightUnit == weightUnit) &&
+            (identical(other.notes, notes) || other.notes == notes));
   }
 
   @JsonKey(ignore: true)
   @override
-  int get hashCode => Object.hashAll([
-        runtimeType,
-        name,
-        sku,
-        description,
-        category,
-        brand,
-        unitPrice,
-        costPrice,
-        compareAtPrice,
-        taxable,
-        taxRate,
-        barcode,
-        trackInventory,
-        stockQuantity,
-        lowStockThreshold,
-        unit,
-        weight,
-        dimensions,
-        imageUrl,
-        const DeepCollectionEquality().hash(_tags),
-        active
-      ]);
+  int get hashCode => Object.hash(
+      runtimeType,
+      categoryId,
+      name,
+      description,
+      sku,
+      barcode,
+      costPrice,
+      sellingPrice,
+      discountPrice,
+      stockQuantity,
+      lowStockThreshold,
+      trackInventory,
+      weight,
+      weightUnit,
+      notes);
 
   @JsonKey(ignore: true)
   @override
@@ -1242,59 +1094,44 @@ class _$CreateProductRequestImpl implements _CreateProductRequest {
 
 abstract class _CreateProductRequest implements CreateProductRequest {
   const factory _CreateProductRequest(
-      {required final String name,
-      required final String sku,
+      {@JsonKey(name: 'category_id') final String? categoryId,
+      required final String name,
       final String? description,
-      final String? category,
-      final String? brand,
-      @JsonKey(name: 'unit_price') required final String unitPrice,
-      @JsonKey(name: 'cost_price') final String? costPrice,
-      @JsonKey(name: 'compare_at_price') final String? compareAtPrice,
-      final bool? taxable,
-      @JsonKey(name: 'tax_rate') final String? taxRate,
+      final String? sku,
       final String? barcode,
-      @JsonKey(name: 'track_inventory') final bool? trackInventory,
+      @JsonKey(name: 'cost_price') final String? costPrice,
+      @JsonKey(name: 'selling_price') required final String sellingPrice,
+      @JsonKey(name: 'discount_price') final String? discountPrice,
       @JsonKey(name: 'stock_quantity') final int? stockQuantity,
       @JsonKey(name: 'low_stock_threshold') final int? lowStockThreshold,
-      final String? unit,
+      @JsonKey(name: 'track_inventory') final bool? trackInventory,
       final String? weight,
-      final String? dimensions,
-      @JsonKey(name: 'image_url') final String? imageUrl,
-      final List<String>? tags,
-      final bool? active}) = _$CreateProductRequestImpl;
+      @JsonKey(name: 'weight_unit') final String? weightUnit,
+      final String? notes}) = _$CreateProductRequestImpl;
 
   factory _CreateProductRequest.fromJson(Map<String, dynamic> json) =
       _$CreateProductRequestImpl.fromJson;
 
   @override
-  String get name;
+  @JsonKey(name: 'category_id')
+  String? get categoryId;
   @override
-  String get sku;
+  String get name;
   @override
   String? get description;
   @override
-  String? get category;
+  String? get sku;
   @override
-  String? get brand;
-  @override
-  @JsonKey(name: 'unit_price')
-  String get unitPrice;
+  String? get barcode;
   @override
   @JsonKey(name: 'cost_price')
   String? get costPrice;
   @override
-  @JsonKey(name: 'compare_at_price')
-  String? get compareAtPrice;
+  @JsonKey(name: 'selling_price')
+  String get sellingPrice;
   @override
-  bool? get taxable;
-  @override
-  @JsonKey(name: 'tax_rate')
-  String? get taxRate;
-  @override
-  String? get barcode;
-  @override
-  @JsonKey(name: 'track_inventory')
-  bool? get trackInventory;
+  @JsonKey(name: 'discount_price')
+  String? get discountPrice;
   @override
   @JsonKey(name: 'stock_quantity')
   int? get stockQuantity;
@@ -1302,18 +1139,15 @@ abstract class _CreateProductRequest implements CreateProductRequest {
   @JsonKey(name: 'low_stock_threshold')
   int? get lowStockThreshold;
   @override
-  String? get unit;
+  @JsonKey(name: 'track_inventory')
+  bool? get trackInventory;
   @override
   String? get weight;
   @override
-  String? get dimensions;
+  @JsonKey(name: 'weight_unit')
+  String? get weightUnit;
   @override
-  @JsonKey(name: 'image_url')
-  String? get imageUrl;
-  @override
-  List<String>? get tags;
-  @override
-  bool? get active;
+  String? get notes;
   @override
   @JsonKey(ignore: true)
   _$$CreateProductRequestImplCopyWith<_$CreateProductRequestImpl>
@@ -1326,34 +1160,31 @@ UpdateProductRequest _$UpdateProductRequestFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$UpdateProductRequest {
+  @JsonKey(name: 'category_id')
+  String? get categoryId => throw _privateConstructorUsedError;
   String? get name => throw _privateConstructorUsedError;
-  String? get sku => throw _privateConstructorUsedError;
   String? get description => throw _privateConstructorUsedError;
-  String? get category => throw _privateConstructorUsedError;
-  String? get brand => throw _privateConstructorUsedError;
-  @JsonKey(name: 'unit_price')
-  String? get unitPrice => throw _privateConstructorUsedError;
+  String? get sku => throw _privateConstructorUsedError;
+  String? get barcode => throw _privateConstructorUsedError;
   @JsonKey(name: 'cost_price')
   String? get costPrice => throw _privateConstructorUsedError;
-  @JsonKey(name: 'compare_at_price')
-  String? get compareAtPrice => throw _privateConstructorUsedError;
-  bool? get taxable => throw _privateConstructorUsedError;
-  @JsonKey(name: 'tax_rate')
-  String? get taxRate => throw _privateConstructorUsedError;
-  String? get barcode => throw _privateConstructorUsedError;
-  @JsonKey(name: 'track_inventory')
-  bool? get trackInventory => throw _privateConstructorUsedError;
+  @JsonKey(name: 'selling_price')
+  String? get sellingPrice => throw _privateConstructorUsedError;
+  @JsonKey(name: 'discount_price')
+  String? get discountPrice => throw _privateConstructorUsedError;
   @JsonKey(name: 'stock_quantity')
   int? get stockQuantity => throw _privateConstructorUsedError;
   @JsonKey(name: 'low_stock_threshold')
   int? get lowStockThreshold => throw _privateConstructorUsedError;
-  String? get unit => throw _privateConstructorUsedError;
+  @JsonKey(name: 'track_inventory')
+  bool? get trackInventory => throw _privateConstructorUsedError;
+  String? get status => throw _privateConstructorUsedError;
+  @JsonKey(name: 'is_featured')
+  bool? get isFeatured => throw _privateConstructorUsedError;
   String? get weight => throw _privateConstructorUsedError;
-  String? get dimensions => throw _privateConstructorUsedError;
-  @JsonKey(name: 'image_url')
-  String? get imageUrl => throw _privateConstructorUsedError;
-  List<String>? get tags => throw _privateConstructorUsedError;
-  bool? get active => throw _privateConstructorUsedError;
+  @JsonKey(name: 'weight_unit')
+  String? get weightUnit => throw _privateConstructorUsedError;
+  String? get notes => throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
@@ -1368,26 +1199,22 @@ abstract class $UpdateProductRequestCopyWith<$Res> {
       _$UpdateProductRequestCopyWithImpl<$Res, UpdateProductRequest>;
   @useResult
   $Res call(
-      {String? name,
-      String? sku,
+      {@JsonKey(name: 'category_id') String? categoryId,
+      String? name,
       String? description,
-      String? category,
-      String? brand,
-      @JsonKey(name: 'unit_price') String? unitPrice,
-      @JsonKey(name: 'cost_price') String? costPrice,
-      @JsonKey(name: 'compare_at_price') String? compareAtPrice,
-      bool? taxable,
-      @JsonKey(name: 'tax_rate') String? taxRate,
+      String? sku,
       String? barcode,
-      @JsonKey(name: 'track_inventory') bool? trackInventory,
+      @JsonKey(name: 'cost_price') String? costPrice,
+      @JsonKey(name: 'selling_price') String? sellingPrice,
+      @JsonKey(name: 'discount_price') String? discountPrice,
       @JsonKey(name: 'stock_quantity') int? stockQuantity,
       @JsonKey(name: 'low_stock_threshold') int? lowStockThreshold,
-      String? unit,
+      @JsonKey(name: 'track_inventory') bool? trackInventory,
+      String? status,
+      @JsonKey(name: 'is_featured') bool? isFeatured,
       String? weight,
-      String? dimensions,
-      @JsonKey(name: 'image_url') String? imageUrl,
-      List<String>? tags,
-      bool? active});
+      @JsonKey(name: 'weight_unit') String? weightUnit,
+      String? notes});
 }
 
 /// @nodoc
@@ -1404,76 +1231,56 @@ class _$UpdateProductRequestCopyWithImpl<$Res,
   @pragma('vm:prefer-inline')
   @override
   $Res call({
+    Object? categoryId = freezed,
     Object? name = freezed,
-    Object? sku = freezed,
     Object? description = freezed,
-    Object? category = freezed,
-    Object? brand = freezed,
-    Object? unitPrice = freezed,
-    Object? costPrice = freezed,
-    Object? compareAtPrice = freezed,
-    Object? taxable = freezed,
-    Object? taxRate = freezed,
+    Object? sku = freezed,
     Object? barcode = freezed,
-    Object? trackInventory = freezed,
+    Object? costPrice = freezed,
+    Object? sellingPrice = freezed,
+    Object? discountPrice = freezed,
     Object? stockQuantity = freezed,
     Object? lowStockThreshold = freezed,
-    Object? unit = freezed,
+    Object? trackInventory = freezed,
+    Object? status = freezed,
+    Object? isFeatured = freezed,
     Object? weight = freezed,
-    Object? dimensions = freezed,
-    Object? imageUrl = freezed,
-    Object? tags = freezed,
-    Object? active = freezed,
+    Object? weightUnit = freezed,
+    Object? notes = freezed,
   }) {
     return _then(_value.copyWith(
+      categoryId: freezed == categoryId
+          ? _value.categoryId
+          : categoryId // ignore: cast_nullable_to_non_nullable
+              as String?,
       name: freezed == name
           ? _value.name
           : name // ignore: cast_nullable_to_non_nullable
-              as String?,
-      sku: freezed == sku
-          ? _value.sku
-          : sku // ignore: cast_nullable_to_non_nullable
               as String?,
       description: freezed == description
           ? _value.description
           : description // ignore: cast_nullable_to_non_nullable
               as String?,
-      category: freezed == category
-          ? _value.category
-          : category // ignore: cast_nullable_to_non_nullable
-              as String?,
-      brand: freezed == brand
-          ? _value.brand
-          : brand // ignore: cast_nullable_to_non_nullable
-              as String?,
-      unitPrice: freezed == unitPrice
-          ? _value.unitPrice
-          : unitPrice // ignore: cast_nullable_to_non_nullable
-              as String?,
-      costPrice: freezed == costPrice
-          ? _value.costPrice
-          : costPrice // ignore: cast_nullable_to_non_nullable
-              as String?,
-      compareAtPrice: freezed == compareAtPrice
-          ? _value.compareAtPrice
-          : compareAtPrice // ignore: cast_nullable_to_non_nullable
-              as String?,
-      taxable: freezed == taxable
-          ? _value.taxable
-          : taxable // ignore: cast_nullable_to_non_nullable
-              as bool?,
-      taxRate: freezed == taxRate
-          ? _value.taxRate
-          : taxRate // ignore: cast_nullable_to_non_nullable
+      sku: freezed == sku
+          ? _value.sku
+          : sku // ignore: cast_nullable_to_non_nullable
               as String?,
       barcode: freezed == barcode
           ? _value.barcode
           : barcode // ignore: cast_nullable_to_non_nullable
               as String?,
-      trackInventory: freezed == trackInventory
-          ? _value.trackInventory
-          : trackInventory // ignore: cast_nullable_to_non_nullable
-              as bool?,
+      costPrice: freezed == costPrice
+          ? _value.costPrice
+          : costPrice // ignore: cast_nullable_to_non_nullable
+              as String?,
+      sellingPrice: freezed == sellingPrice
+          ? _value.sellingPrice
+          : sellingPrice // ignore: cast_nullable_to_non_nullable
+              as String?,
+      discountPrice: freezed == discountPrice
+          ? _value.discountPrice
+          : discountPrice // ignore: cast_nullable_to_non_nullable
+              as String?,
       stockQuantity: freezed == stockQuantity
           ? _value.stockQuantity
           : stockQuantity // ignore: cast_nullable_to_non_nullable
@@ -1482,30 +1289,30 @@ class _$UpdateProductRequestCopyWithImpl<$Res,
           ? _value.lowStockThreshold
           : lowStockThreshold // ignore: cast_nullable_to_non_nullable
               as int?,
-      unit: freezed == unit
-          ? _value.unit
-          : unit // ignore: cast_nullable_to_non_nullable
+      trackInventory: freezed == trackInventory
+          ? _value.trackInventory
+          : trackInventory // ignore: cast_nullable_to_non_nullable
+              as bool?,
+      status: freezed == status
+          ? _value.status
+          : status // ignore: cast_nullable_to_non_nullable
               as String?,
+      isFeatured: freezed == isFeatured
+          ? _value.isFeatured
+          : isFeatured // ignore: cast_nullable_to_non_nullable
+              as bool?,
       weight: freezed == weight
           ? _value.weight
           : weight // ignore: cast_nullable_to_non_nullable
               as String?,
-      dimensions: freezed == dimensions
-          ? _value.dimensions
-          : dimensions // ignore: cast_nullable_to_non_nullable
+      weightUnit: freezed == weightUnit
+          ? _value.weightUnit
+          : weightUnit // ignore: cast_nullable_to_non_nullable
               as String?,
-      imageUrl: freezed == imageUrl
-          ? _value.imageUrl
-          : imageUrl // ignore: cast_nullable_to_non_nullable
+      notes: freezed == notes
+          ? _value.notes
+          : notes // ignore: cast_nullable_to_non_nullable
               as String?,
-      tags: freezed == tags
-          ? _value.tags
-          : tags // ignore: cast_nullable_to_non_nullable
-              as List<String>?,
-      active: freezed == active
-          ? _value.active
-          : active // ignore: cast_nullable_to_non_nullable
-              as bool?,
     ) as $Val);
   }
 }
@@ -1519,26 +1326,22 @@ abstract class _$$UpdateProductRequestImplCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {String? name,
-      String? sku,
+      {@JsonKey(name: 'category_id') String? categoryId,
+      String? name,
       String? description,
-      String? category,
-      String? brand,
-      @JsonKey(name: 'unit_price') String? unitPrice,
-      @JsonKey(name: 'cost_price') String? costPrice,
-      @JsonKey(name: 'compare_at_price') String? compareAtPrice,
-      bool? taxable,
-      @JsonKey(name: 'tax_rate') String? taxRate,
+      String? sku,
       String? barcode,
-      @JsonKey(name: 'track_inventory') bool? trackInventory,
+      @JsonKey(name: 'cost_price') String? costPrice,
+      @JsonKey(name: 'selling_price') String? sellingPrice,
+      @JsonKey(name: 'discount_price') String? discountPrice,
       @JsonKey(name: 'stock_quantity') int? stockQuantity,
       @JsonKey(name: 'low_stock_threshold') int? lowStockThreshold,
-      String? unit,
+      @JsonKey(name: 'track_inventory') bool? trackInventory,
+      String? status,
+      @JsonKey(name: 'is_featured') bool? isFeatured,
       String? weight,
-      String? dimensions,
-      @JsonKey(name: 'image_url') String? imageUrl,
-      List<String>? tags,
-      bool? active});
+      @JsonKey(name: 'weight_unit') String? weightUnit,
+      String? notes});
 }
 
 /// @nodoc
@@ -1552,76 +1355,56 @@ class __$$UpdateProductRequestImplCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
+    Object? categoryId = freezed,
     Object? name = freezed,
-    Object? sku = freezed,
     Object? description = freezed,
-    Object? category = freezed,
-    Object? brand = freezed,
-    Object? unitPrice = freezed,
-    Object? costPrice = freezed,
-    Object? compareAtPrice = freezed,
-    Object? taxable = freezed,
-    Object? taxRate = freezed,
+    Object? sku = freezed,
     Object? barcode = freezed,
-    Object? trackInventory = freezed,
+    Object? costPrice = freezed,
+    Object? sellingPrice = freezed,
+    Object? discountPrice = freezed,
     Object? stockQuantity = freezed,
     Object? lowStockThreshold = freezed,
-    Object? unit = freezed,
+    Object? trackInventory = freezed,
+    Object? status = freezed,
+    Object? isFeatured = freezed,
     Object? weight = freezed,
-    Object? dimensions = freezed,
-    Object? imageUrl = freezed,
-    Object? tags = freezed,
-    Object? active = freezed,
+    Object? weightUnit = freezed,
+    Object? notes = freezed,
   }) {
     return _then(_$UpdateProductRequestImpl(
+      categoryId: freezed == categoryId
+          ? _value.categoryId
+          : categoryId // ignore: cast_nullable_to_non_nullable
+              as String?,
       name: freezed == name
           ? _value.name
           : name // ignore: cast_nullable_to_non_nullable
-              as String?,
-      sku: freezed == sku
-          ? _value.sku
-          : sku // ignore: cast_nullable_to_non_nullable
               as String?,
       description: freezed == description
           ? _value.description
           : description // ignore: cast_nullable_to_non_nullable
               as String?,
-      category: freezed == category
-          ? _value.category
-          : category // ignore: cast_nullable_to_non_nullable
-              as String?,
-      brand: freezed == brand
-          ? _value.brand
-          : brand // ignore: cast_nullable_to_non_nullable
-              as String?,
-      unitPrice: freezed == unitPrice
-          ? _value.unitPrice
-          : unitPrice // ignore: cast_nullable_to_non_nullable
-              as String?,
-      costPrice: freezed == costPrice
-          ? _value.costPrice
-          : costPrice // ignore: cast_nullable_to_non_nullable
-              as String?,
-      compareAtPrice: freezed == compareAtPrice
-          ? _value.compareAtPrice
-          : compareAtPrice // ignore: cast_nullable_to_non_nullable
-              as String?,
-      taxable: freezed == taxable
-          ? _value.taxable
-          : taxable // ignore: cast_nullable_to_non_nullable
-              as bool?,
-      taxRate: freezed == taxRate
-          ? _value.taxRate
-          : taxRate // ignore: cast_nullable_to_non_nullable
+      sku: freezed == sku
+          ? _value.sku
+          : sku // ignore: cast_nullable_to_non_nullable
               as String?,
       barcode: freezed == barcode
           ? _value.barcode
           : barcode // ignore: cast_nullable_to_non_nullable
               as String?,
-      trackInventory: freezed == trackInventory
-          ? _value.trackInventory
-          : trackInventory // ignore: cast_nullable_to_non_nullable
-              as bool?,
+      costPrice: freezed == costPrice
+          ? _value.costPrice
+          : costPrice // ignore: cast_nullable_to_non_nullable
+              as String?,
+      sellingPrice: freezed == sellingPrice
+          ? _value.sellingPrice
+          : sellingPrice // ignore: cast_nullable_to_non_nullable
+              as String?,
+      discountPrice: freezed == discountPrice
+          ? _value.discountPrice
+          : discountPrice // ignore: cast_nullable_to_non_nullable
+              as String?,
       stockQuantity: freezed == stockQuantity
           ? _value.stockQuantity
           : stockQuantity // ignore: cast_nullable_to_non_nullable
@@ -1630,30 +1413,30 @@ class __$$UpdateProductRequestImplCopyWithImpl<$Res>
           ? _value.lowStockThreshold
           : lowStockThreshold // ignore: cast_nullable_to_non_nullable
               as int?,
-      unit: freezed == unit
-          ? _value.unit
-          : unit // ignore: cast_nullable_to_non_nullable
+      trackInventory: freezed == trackInventory
+          ? _value.trackInventory
+          : trackInventory // ignore: cast_nullable_to_non_nullable
+              as bool?,
+      status: freezed == status
+          ? _value.status
+          : status // ignore: cast_nullable_to_non_nullable
               as String?,
+      isFeatured: freezed == isFeatured
+          ? _value.isFeatured
+          : isFeatured // ignore: cast_nullable_to_non_nullable
+              as bool?,
       weight: freezed == weight
           ? _value.weight
           : weight // ignore: cast_nullable_to_non_nullable
               as String?,
-      dimensions: freezed == dimensions
-          ? _value.dimensions
-          : dimensions // ignore: cast_nullable_to_non_nullable
+      weightUnit: freezed == weightUnit
+          ? _value.weightUnit
+          : weightUnit // ignore: cast_nullable_to_non_nullable
               as String?,
-      imageUrl: freezed == imageUrl
-          ? _value.imageUrl
-          : imageUrl // ignore: cast_nullable_to_non_nullable
+      notes: freezed == notes
+          ? _value.notes
+          : notes // ignore: cast_nullable_to_non_nullable
               as String?,
-      tags: freezed == tags
-          ? _value._tags
-          : tags // ignore: cast_nullable_to_non_nullable
-              as List<String>?,
-      active: freezed == active
-          ? _value.active
-          : active // ignore: cast_nullable_to_non_nullable
-              as bool?,
     ));
   }
 }
@@ -1662,60 +1445,46 @@ class __$$UpdateProductRequestImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$UpdateProductRequestImpl implements _UpdateProductRequest {
   const _$UpdateProductRequestImpl(
-      {this.name,
-      this.sku,
+      {@JsonKey(name: 'category_id') this.categoryId,
+      this.name,
       this.description,
-      this.category,
-      this.brand,
-      @JsonKey(name: 'unit_price') this.unitPrice,
-      @JsonKey(name: 'cost_price') this.costPrice,
-      @JsonKey(name: 'compare_at_price') this.compareAtPrice,
-      this.taxable,
-      @JsonKey(name: 'tax_rate') this.taxRate,
+      this.sku,
       this.barcode,
-      @JsonKey(name: 'track_inventory') this.trackInventory,
+      @JsonKey(name: 'cost_price') this.costPrice,
+      @JsonKey(name: 'selling_price') this.sellingPrice,
+      @JsonKey(name: 'discount_price') this.discountPrice,
       @JsonKey(name: 'stock_quantity') this.stockQuantity,
       @JsonKey(name: 'low_stock_threshold') this.lowStockThreshold,
-      this.unit,
+      @JsonKey(name: 'track_inventory') this.trackInventory,
+      this.status,
+      @JsonKey(name: 'is_featured') this.isFeatured,
       this.weight,
-      this.dimensions,
-      @JsonKey(name: 'image_url') this.imageUrl,
-      final List<String>? tags,
-      this.active})
-      : _tags = tags;
+      @JsonKey(name: 'weight_unit') this.weightUnit,
+      this.notes});
 
   factory _$UpdateProductRequestImpl.fromJson(Map<String, dynamic> json) =>
       _$$UpdateProductRequestImplFromJson(json);
 
   @override
-  final String? name;
+  @JsonKey(name: 'category_id')
+  final String? categoryId;
   @override
-  final String? sku;
+  final String? name;
   @override
   final String? description;
   @override
-  final String? category;
+  final String? sku;
   @override
-  final String? brand;
-  @override
-  @JsonKey(name: 'unit_price')
-  final String? unitPrice;
+  final String? barcode;
   @override
   @JsonKey(name: 'cost_price')
   final String? costPrice;
   @override
-  @JsonKey(name: 'compare_at_price')
-  final String? compareAtPrice;
+  @JsonKey(name: 'selling_price')
+  final String? sellingPrice;
   @override
-  final bool? taxable;
-  @override
-  @JsonKey(name: 'tax_rate')
-  final String? taxRate;
-  @override
-  final String? barcode;
-  @override
-  @JsonKey(name: 'track_inventory')
-  final bool? trackInventory;
+  @JsonKey(name: 'discount_price')
+  final String? discountPrice;
   @override
   @JsonKey(name: 'stock_quantity')
   final int? stockQuantity;
@@ -1723,30 +1492,24 @@ class _$UpdateProductRequestImpl implements _UpdateProductRequest {
   @JsonKey(name: 'low_stock_threshold')
   final int? lowStockThreshold;
   @override
-  final String? unit;
+  @JsonKey(name: 'track_inventory')
+  final bool? trackInventory;
+  @override
+  final String? status;
+  @override
+  @JsonKey(name: 'is_featured')
+  final bool? isFeatured;
   @override
   final String? weight;
   @override
-  final String? dimensions;
+  @JsonKey(name: 'weight_unit')
+  final String? weightUnit;
   @override
-  @JsonKey(name: 'image_url')
-  final String? imageUrl;
-  final List<String>? _tags;
-  @override
-  List<String>? get tags {
-    final value = _tags;
-    if (value == null) return null;
-    if (_tags is EqualUnmodifiableListView) return _tags;
-    // ignore: implicit_dynamic_type
-    return EqualUnmodifiableListView(value);
-  }
-
-  @override
-  final bool? active;
+  final String? notes;
 
   @override
   String toString() {
-    return 'UpdateProductRequest(name: $name, sku: $sku, description: $description, category: $category, brand: $brand, unitPrice: $unitPrice, costPrice: $costPrice, compareAtPrice: $compareAtPrice, taxable: $taxable, taxRate: $taxRate, barcode: $barcode, trackInventory: $trackInventory, stockQuantity: $stockQuantity, lowStockThreshold: $lowStockThreshold, unit: $unit, weight: $weight, dimensions: $dimensions, imageUrl: $imageUrl, tags: $tags, active: $active)';
+    return 'UpdateProductRequest(categoryId: $categoryId, name: $name, description: $description, sku: $sku, barcode: $barcode, costPrice: $costPrice, sellingPrice: $sellingPrice, discountPrice: $discountPrice, stockQuantity: $stockQuantity, lowStockThreshold: $lowStockThreshold, trackInventory: $trackInventory, status: $status, isFeatured: $isFeatured, weight: $weight, weightUnit: $weightUnit, notes: $notes)';
   }
 
   @override
@@ -1754,63 +1517,54 @@ class _$UpdateProductRequestImpl implements _UpdateProductRequest {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$UpdateProductRequestImpl &&
+            (identical(other.categoryId, categoryId) ||
+                other.categoryId == categoryId) &&
             (identical(other.name, name) || other.name == name) &&
-            (identical(other.sku, sku) || other.sku == sku) &&
             (identical(other.description, description) ||
                 other.description == description) &&
-            (identical(other.category, category) ||
-                other.category == category) &&
-            (identical(other.brand, brand) || other.brand == brand) &&
-            (identical(other.unitPrice, unitPrice) ||
-                other.unitPrice == unitPrice) &&
+            (identical(other.sku, sku) || other.sku == sku) &&
+            (identical(other.barcode, barcode) || other.barcode == barcode) &&
             (identical(other.costPrice, costPrice) ||
                 other.costPrice == costPrice) &&
-            (identical(other.compareAtPrice, compareAtPrice) ||
-                other.compareAtPrice == compareAtPrice) &&
-            (identical(other.taxable, taxable) || other.taxable == taxable) &&
-            (identical(other.taxRate, taxRate) || other.taxRate == taxRate) &&
-            (identical(other.barcode, barcode) || other.barcode == barcode) &&
-            (identical(other.trackInventory, trackInventory) ||
-                other.trackInventory == trackInventory) &&
+            (identical(other.sellingPrice, sellingPrice) ||
+                other.sellingPrice == sellingPrice) &&
+            (identical(other.discountPrice, discountPrice) ||
+                other.discountPrice == discountPrice) &&
             (identical(other.stockQuantity, stockQuantity) ||
                 other.stockQuantity == stockQuantity) &&
             (identical(other.lowStockThreshold, lowStockThreshold) ||
                 other.lowStockThreshold == lowStockThreshold) &&
-            (identical(other.unit, unit) || other.unit == unit) &&
+            (identical(other.trackInventory, trackInventory) ||
+                other.trackInventory == trackInventory) &&
+            (identical(other.status, status) || other.status == status) &&
+            (identical(other.isFeatured, isFeatured) ||
+                other.isFeatured == isFeatured) &&
             (identical(other.weight, weight) || other.weight == weight) &&
-            (identical(other.dimensions, dimensions) ||
-                other.dimensions == dimensions) &&
-            (identical(other.imageUrl, imageUrl) ||
-                other.imageUrl == imageUrl) &&
-            const DeepCollectionEquality().equals(other._tags, _tags) &&
-            (identical(other.active, active) || other.active == active));
+            (identical(other.weightUnit, weightUnit) ||
+                other.weightUnit == weightUnit) &&
+            (identical(other.notes, notes) || other.notes == notes));
   }
 
   @JsonKey(ignore: true)
   @override
-  int get hashCode => Object.hashAll([
-        runtimeType,
-        name,
-        sku,
-        description,
-        category,
-        brand,
-        unitPrice,
-        costPrice,
-        compareAtPrice,
-        taxable,
-        taxRate,
-        barcode,
-        trackInventory,
-        stockQuantity,
-        lowStockThreshold,
-        unit,
-        weight,
-        dimensions,
-        imageUrl,
-        const DeepCollectionEquality().hash(_tags),
-        active
-      ]);
+  int get hashCode => Object.hash(
+      runtimeType,
+      categoryId,
+      name,
+      description,
+      sku,
+      barcode,
+      costPrice,
+      sellingPrice,
+      discountPrice,
+      stockQuantity,
+      lowStockThreshold,
+      trackInventory,
+      status,
+      isFeatured,
+      weight,
+      weightUnit,
+      notes);
 
   @JsonKey(ignore: true)
   @override
@@ -1830,59 +1584,46 @@ class _$UpdateProductRequestImpl implements _UpdateProductRequest {
 
 abstract class _UpdateProductRequest implements UpdateProductRequest {
   const factory _UpdateProductRequest(
-      {final String? name,
-      final String? sku,
+      {@JsonKey(name: 'category_id') final String? categoryId,
+      final String? name,
       final String? description,
-      final String? category,
-      final String? brand,
-      @JsonKey(name: 'unit_price') final String? unitPrice,
-      @JsonKey(name: 'cost_price') final String? costPrice,
-      @JsonKey(name: 'compare_at_price') final String? compareAtPrice,
-      final bool? taxable,
-      @JsonKey(name: 'tax_rate') final String? taxRate,
+      final String? sku,
       final String? barcode,
-      @JsonKey(name: 'track_inventory') final bool? trackInventory,
+      @JsonKey(name: 'cost_price') final String? costPrice,
+      @JsonKey(name: 'selling_price') final String? sellingPrice,
+      @JsonKey(name: 'discount_price') final String? discountPrice,
       @JsonKey(name: 'stock_quantity') final int? stockQuantity,
       @JsonKey(name: 'low_stock_threshold') final int? lowStockThreshold,
-      final String? unit,
+      @JsonKey(name: 'track_inventory') final bool? trackInventory,
+      final String? status,
+      @JsonKey(name: 'is_featured') final bool? isFeatured,
       final String? weight,
-      final String? dimensions,
-      @JsonKey(name: 'image_url') final String? imageUrl,
-      final List<String>? tags,
-      final bool? active}) = _$UpdateProductRequestImpl;
+      @JsonKey(name: 'weight_unit') final String? weightUnit,
+      final String? notes}) = _$UpdateProductRequestImpl;
 
   factory _UpdateProductRequest.fromJson(Map<String, dynamic> json) =
       _$UpdateProductRequestImpl.fromJson;
 
   @override
-  String? get name;
+  @JsonKey(name: 'category_id')
+  String? get categoryId;
   @override
-  String? get sku;
+  String? get name;
   @override
   String? get description;
   @override
-  String? get category;
+  String? get sku;
   @override
-  String? get brand;
-  @override
-  @JsonKey(name: 'unit_price')
-  String? get unitPrice;
+  String? get barcode;
   @override
   @JsonKey(name: 'cost_price')
   String? get costPrice;
   @override
-  @JsonKey(name: 'compare_at_price')
-  String? get compareAtPrice;
+  @JsonKey(name: 'selling_price')
+  String? get sellingPrice;
   @override
-  bool? get taxable;
-  @override
-  @JsonKey(name: 'tax_rate')
-  String? get taxRate;
-  @override
-  String? get barcode;
-  @override
-  @JsonKey(name: 'track_inventory')
-  bool? get trackInventory;
+  @JsonKey(name: 'discount_price')
+  String? get discountPrice;
   @override
   @JsonKey(name: 'stock_quantity')
   int? get stockQuantity;
@@ -1890,18 +1631,20 @@ abstract class _UpdateProductRequest implements UpdateProductRequest {
   @JsonKey(name: 'low_stock_threshold')
   int? get lowStockThreshold;
   @override
-  String? get unit;
+  @JsonKey(name: 'track_inventory')
+  bool? get trackInventory;
+  @override
+  String? get status;
+  @override
+  @JsonKey(name: 'is_featured')
+  bool? get isFeatured;
   @override
   String? get weight;
   @override
-  String? get dimensions;
+  @JsonKey(name: 'weight_unit')
+  String? get weightUnit;
   @override
-  @JsonKey(name: 'image_url')
-  String? get imageUrl;
-  @override
-  List<String>? get tags;
-  @override
-  bool? get active;
+  String? get notes;
   @override
   @JsonKey(ignore: true)
   _$$UpdateProductRequestImplCopyWith<_$UpdateProductRequestImpl>

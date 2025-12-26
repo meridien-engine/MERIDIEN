@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'category_model.dart';
 
 part 'product_model.freezed.dart';
 part 'product_model.g.dart';
@@ -9,25 +10,23 @@ class ProductModel with _$ProductModel {
     required String id,
     @JsonKey(name: 'tenant_id') required String tenantId,
     required String name,
-    required String sku,
+    String? slug,
     String? description,
-    String? category,
-    String? brand,
-    @JsonKey(name: 'unit_price') required String unitPrice,
-    @JsonKey(name: 'cost_price') String? costPrice,
-    @JsonKey(name: 'compare_at_price') String? compareAtPrice,
-    required bool taxable,
-    @JsonKey(name: 'tax_rate') String? taxRate,
+    @JsonKey(name: 'category_id') String? categoryId,
+    CategoryModel? category,
+    String? sku,
     String? barcode,
+    @JsonKey(name: 'cost_price') required String costPrice,
+    @JsonKey(name: 'selling_price') required String sellingPrice,
+    @JsonKey(name: 'discount_price') String? discountPrice,
+    @JsonKey(name: 'stock_quantity') required int stockQuantity,
+    @JsonKey(name: 'low_stock_threshold') required int lowStockThreshold,
     @JsonKey(name: 'track_inventory') required bool trackInventory,
-    @JsonKey(name: 'stock_quantity') int? stockQuantity,
-    @JsonKey(name: 'low_stock_threshold') int? lowStockThreshold,
-    String? unit,
+    required String status,
+    @JsonKey(name: 'is_featured') required bool isFeatured,
     String? weight,
-    String? dimensions,
-    @JsonKey(name: 'image_url') String? imageUrl,
-    List<String>? tags,
-    required bool active,
+    @JsonKey(name: 'weight_unit') required String weightUnit,
+    String? notes,
     @JsonKey(name: 'custom_fields') Map<String, dynamic>? customFields,
     @JsonKey(name: 'created_at') DateTime? createdAt,
     @JsonKey(name: 'updated_at') DateTime? updatedAt,
@@ -38,50 +37,52 @@ class ProductModel with _$ProductModel {
   factory ProductModel.fromJson(Map<String, dynamic> json) =>
       _$ProductModelFromJson(json);
 
+  bool get isActive => status == 'active';
+
   String get stockStatus {
     if (!trackInventory) return 'Not tracked';
-    if (stockQuantity == null || stockQuantity! <= 0) return 'Out of stock';
-    if (lowStockThreshold != null && stockQuantity! <= lowStockThreshold!) {
+    if (stockQuantity <= 0) return 'Out of stock';
+    if (stockQuantity <= lowStockThreshold) {
       return 'Low stock';
     }
     return 'In stock';
   }
 
   bool get isLowStock {
-    if (!trackInventory || stockQuantity == null) return false;
-    if (lowStockThreshold == null) return stockQuantity! < 10;
-    return stockQuantity! <= lowStockThreshold!;
+    if (!trackInventory) return false;
+    return stockQuantity <= lowStockThreshold && stockQuantity > 0;
   }
 
   bool get isOutOfStock {
     if (!trackInventory) return false;
-    return stockQuantity == null || stockQuantity! <= 0;
+    return stockQuantity <= 0;
+  }
+
+  String get displayPrice {
+    if (discountPrice != null && discountPrice!.isNotEmpty) {
+      return discountPrice!;
+    }
+    return sellingPrice;
   }
 }
 
 @freezed
 class CreateProductRequest with _$CreateProductRequest {
   const factory CreateProductRequest({
+    @JsonKey(name: 'category_id') String? categoryId,
     required String name,
-    required String sku,
     String? description,
-    String? category,
-    String? brand,
-    @JsonKey(name: 'unit_price') required String unitPrice,
-    @JsonKey(name: 'cost_price') String? costPrice,
-    @JsonKey(name: 'compare_at_price') String? compareAtPrice,
-    bool? taxable,
-    @JsonKey(name: 'tax_rate') String? taxRate,
+    String? sku,
     String? barcode,
-    @JsonKey(name: 'track_inventory') bool? trackInventory,
+    @JsonKey(name: 'cost_price') String? costPrice,
+    @JsonKey(name: 'selling_price') required String sellingPrice,
+    @JsonKey(name: 'discount_price') String? discountPrice,
     @JsonKey(name: 'stock_quantity') int? stockQuantity,
     @JsonKey(name: 'low_stock_threshold') int? lowStockThreshold,
-    String? unit,
+    @JsonKey(name: 'track_inventory') bool? trackInventory,
     String? weight,
-    String? dimensions,
-    @JsonKey(name: 'image_url') String? imageUrl,
-    List<String>? tags,
-    bool? active,
+    @JsonKey(name: 'weight_unit') String? weightUnit,
+    String? notes,
   }) = _CreateProductRequest;
 
   factory CreateProductRequest.fromJson(Map<String, dynamic> json) =>
@@ -91,26 +92,22 @@ class CreateProductRequest with _$CreateProductRequest {
 @freezed
 class UpdateProductRequest with _$UpdateProductRequest {
   const factory UpdateProductRequest({
+    @JsonKey(name: 'category_id') String? categoryId,
     String? name,
-    String? sku,
     String? description,
-    String? category,
-    String? brand,
-    @JsonKey(name: 'unit_price') String? unitPrice,
-    @JsonKey(name: 'cost_price') String? costPrice,
-    @JsonKey(name: 'compare_at_price') String? compareAtPrice,
-    bool? taxable,
-    @JsonKey(name: 'tax_rate') String? taxRate,
+    String? sku,
     String? barcode,
-    @JsonKey(name: 'track_inventory') bool? trackInventory,
+    @JsonKey(name: 'cost_price') String? costPrice,
+    @JsonKey(name: 'selling_price') String? sellingPrice,
+    @JsonKey(name: 'discount_price') String? discountPrice,
     @JsonKey(name: 'stock_quantity') int? stockQuantity,
     @JsonKey(name: 'low_stock_threshold') int? lowStockThreshold,
-    String? unit,
+    @JsonKey(name: 'track_inventory') bool? trackInventory,
+    String? status,
+    @JsonKey(name: 'is_featured') bool? isFeatured,
     String? weight,
-    String? dimensions,
-    @JsonKey(name: 'image_url') String? imageUrl,
-    List<String>? tags,
-    bool? active,
+    @JsonKey(name: 'weight_unit') String? weightUnit,
+    String? notes,
   }) = _UpdateProductRequest;
 
   factory UpdateProductRequest.fromJson(Map<String, dynamic> json) =>
