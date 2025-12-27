@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
-import '../../../core/constants/app_strings.dart';
+import '../../../core/localization/localization_extension.dart';
 import '../providers/customer_provider.dart';
 import '../widgets/customer_card.dart';
 
@@ -50,7 +50,7 @@ class _CustomerListScreenState extends ConsumerState<CustomerListScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Customers'),
+        title: Text(context.loc.customers),
         actions: [
           IconButton(
             icon: const Icon(Icons.filter_list_rounded),
@@ -66,7 +66,7 @@ class _CustomerListScreenState extends ConsumerState<CustomerListScreen> {
             child: TextField(
               controller: _searchController,
               decoration: InputDecoration(
-                hintText: 'Search customers...',
+                hintText: context.loc.searchCustomers,
                 prefixIcon: const Icon(Icons.search_rounded),
                 suffixIcon: _searchController.text.isNotEmpty
                     ? IconButton(

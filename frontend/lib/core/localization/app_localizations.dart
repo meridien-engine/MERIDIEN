@@ -174,6 +174,40 @@ class AppLocalizations {
   String get passwordTooShort => translate('passwordTooShort');
   String get passwordMismatch => translate('passwordMismatch');
   String get invalidNumber => translate('invalidNumber');
+
+  // Additional UI strings
+  String get searchCustomers => translate('searchCustomers');
+  String get searchProducts => translate('searchProducts');
+  String get searchOrders => translate('searchOrders');
+  String get newCustomer => translate('newCustomer');
+  String get newProduct => translate('newProduct');
+  String get newOrder => translate('newOrder');
+  String get basicInformation => translate('basicInformation');
+  String get billingAddress => translate('billingAddress');
+  String get shippingAddress => translate('shippingAddress');
+  String get sameAsBilling => translate('sameAsBilling');
+  String get customerType => translate('customerType');
+  String get status => translate('status');
+  String get streetAddress => translate('streetAddress');
+  String get postalCodeShort => translate('postalCodeShort');
+  String get name => translate('name');
+  String get description => translate('description');
+  String get created => translate('created');
+  String get pricing => translate('pricing');
+  String get inventory => translate('inventory');
+  String get stockStatus => translate('stockStatus');
+  String get discountPriceShort => translate('discountPriceShort');
+  String get trackInventory => translate('trackInventory');
+  String get lowStockThreshold => translate('lowStockThreshold');
+  String get selectCustomer => translate('selectCustomer');
+  String get selectProduct => translate('selectProduct');
+  String get addItem => translate('addItem');
+  String get notes => translate('notes');
+  String get orderSummary => translate('orderSummary');
+  String get balanceDue => translate('balanceDue');
+  String get filters => translate('filters');
+  String get clearFilters => translate('clearFilters');
+  String get applyFilters => translate('applyFilters');
 }
 
 /// English translations
@@ -328,6 +362,40 @@ const Map<String, String> _enTranslations = {
   'passwordTooShort': 'Password must be at least 8 characters',
   'passwordMismatch': 'Passwords do not match',
   'invalidNumber': 'Please enter a valid number',
+
+  // Additional UI strings
+  'searchCustomers': 'Search customers...',
+  'searchProducts': 'Search products...',
+  'searchOrders': 'Search orders...',
+  'newCustomer': 'New Customer',
+  'newProduct': 'New Product',
+  'newOrder': 'New Order',
+  'basicInformation': 'Basic Information',
+  'billingAddress': 'Billing Address',
+  'shippingAddress': 'Shipping Address',
+  'sameAsBilling': 'Same as billing',
+  'customerType': 'Customer Type',
+  'status': 'Status',
+  'streetAddress': 'Street Address',
+  'postalCodeShort': 'Postal Code',
+  'name': 'Name',
+  'description': 'Description',
+  'created': 'Created',
+  'pricing': 'Pricing',
+  'inventory': 'Inventory',
+  'stockStatus': 'Stock Status',
+  'discountPriceShort': 'Discount Price',
+  'trackInventory': 'Track Inventory',
+  'lowStockThreshold': 'Low Stock Threshold',
+  'selectCustomer': 'Select Customer',
+  'selectProduct': 'Select Product',
+  'addItem': 'Add Item',
+  'notes': 'Notes',
+  'orderSummary': 'Order Summary',
+  'balanceDue': 'Balance Due',
+  'filters': 'Filters',
+  'clearFilters': 'Clear Filters',
+  'applyFilters': 'Apply Filters',
 };
 
 /// Arabic translations
@@ -482,4 +550,38 @@ const Map<String, String> _arTranslations = {
   'passwordTooShort': 'يجب أن تكون كلمة المرور 8 أحرف على الأقل',
   'passwordMismatch': 'كلمات المرور غير متطابقة',
   'invalidNumber': 'الرجاء إدخال رقم صحيح',
+
+  // Additional UI strings
+  'searchCustomers': 'البحث عن العملاء...',
+  'searchProducts': 'البحث عن المنتجات...',
+  'searchOrders': 'البحث عن الطلبات...',
+  'newCustomer': 'عميل جديد',
+  'newProduct': 'منتج جديد',
+  'newOrder': 'طلب جديد',
+  'basicInformation': 'المعلومات الأساسية',
+  'billingAddress': 'عنوان الفواتير',
+  'shippingAddress': 'عنوان الشحن',
+  'sameAsBilling': 'نفس عنوان الفواتير',
+  'customerType': 'نوع العميل',
+  'status': 'الحالة',
+  'streetAddress': 'عنوان الشارع',
+  'postalCodeShort': 'الرمز البريدي',
+  'name': 'الاسم',
+  'description': 'الوصف',
+  'created': 'تاريخ الإنشاء',
+  'pricing': 'التسعير',
+  'inventory': 'المخزون',
+  'stockStatus': 'حالة المخزون',
+  'discountPriceShort': 'السعر المخفض',
+  'trackInventory': 'تتبع المخزون',
+  'lowStockThreshold': 'حد المخزون المنخفض',
+  'selectCustomer': 'اختر عميل',
+  'selectProduct': 'اختر منتج',
+  'addItem': 'إضافة عنصر',
+  'notes': 'ملاحظات',
+  'orderSummary': 'ملخص الطلب',
+  'balanceDue': 'الرصيد المستحق',
+  'filters': 'الفلاتر',
+  'clearFilters': 'مسح الفلاتر',
+  'applyFilters': 'تطبيق الفلاتر',
 };
