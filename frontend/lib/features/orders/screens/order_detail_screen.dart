@@ -118,21 +118,21 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
                     'Order Date',
                     dateFormat.format(order.orderDate),
                   ),
-                  if (order.customerName != null) ...[
+                  if (order.customer != null) ...[
                     const SizedBox(height: 8),
                     _buildInfoRow(
                       Icons.person_outline_rounded,
                       'Customer',
-                      order.customerName!,
+                      '${order.customer!.firstName ?? ''} ${order.customer!.lastName ?? ''}'.trim(),
                     ),
-                  ],
-                  if (order.customerEmail != null) ...[
-                    const SizedBox(height: 8),
-                    _buildInfoRow(
-                      Icons.email_outlined,
-                      'Email',
-                      order.customerEmail!,
-                    ),
+                    if (order.customer!.email != null) ...[
+                      const SizedBox(height: 8),
+                      _buildInfoRow(
+                        Icons.email_outlined,
+                        'Email',
+                        order.customer!.email!,
+                      ),
+                    ],
                   ],
                 ],
               ),
@@ -220,9 +220,9 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
                   _buildSummaryRow('Subtotal', '\$${order.subtotal}'),
                   const SizedBox(height: 8),
                   _buildSummaryRow('Tax', '\$${order.taxAmount}'),
-                  if (order.shippingCost != null && order.shippingCost != '0') ...[
+                  if (order.shippingAmount != '0.00') ...[
                     const SizedBox(height: 8),
-                    _buildSummaryRow('Shipping', '\$${order.shippingCost}'),
+                    _buildSummaryRow('Shipping', '\$${order.shippingAmount}'),
                   ],
                   if (order.discountAmount != null && order.discountAmount != '0') ...[
                     const SizedBox(height: 8),
@@ -266,7 +266,7 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
                   const SizedBox(height: 16),
                   _buildSummaryRow('Total Amount', '\$${order.totalAmount}'),
                   const SizedBox(height: 8),
-                  _buildSummaryRow('Paid Amount', '\$${order.totalPaid.toStringAsFixed(2)}'),
+                  _buildSummaryRow('Paid Amount', '\$${order.paidAmount}'),
                   const SizedBox(height: 8),
                   _buildSummaryRow(
                     'Balance Due',
@@ -511,7 +511,8 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
   Widget _buildActionButtons(BuildContext context, OrderModel order) {
     return Column(
       children: [
-        if (order.status == 'pending')
+        // Draft orders can be confirmed
+        if (order.status == 'draft' || order.status == 'pending')
           SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(
@@ -551,9 +552,10 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
             ),
           ),
         ],
-        if (order.status != 'cancelled' &&
-            order.status != 'delivered' &&
-            order.status != 'shipped') ...[
+        // Cancel button for draft, pending, confirmed orders
+        if (order.status == 'draft' ||
+            order.status == 'pending' ||
+            order.status == 'confirmed') ...[
           const SizedBox(height: 12),
           SizedBox(
             width: double.infinity,
@@ -561,6 +563,40 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
               onPressed: () => _cancelOrder(order.id),
               icon: const Icon(Icons.cancel_outlined),
               label: const Text('Cancel Order'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.error,
+                side: BorderSide(color: AppColors.error),
+              ),
+            ),
+          ),
+        ],
+
+        // Reject button for shipped orders (receiver rejects delivery)
+        if (order.status == 'shipped') ...[
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () => _rejectOrder(order.id),
+              icon: const Icon(Icons.block_outlined),
+              label: const Text('Reject Delivery'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.warning,
+                side: BorderSide(color: AppColors.warning),
+              ),
+            ),
+          ),
+        ],
+
+        // Return button for delivered orders
+        if (order.status == 'delivered') ...[
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () => _returnOrder(order.id),
+              icon: const Icon(Icons.keyboard_return_outlined),
+              label: const Text('Return Order'),
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColors.error,
                 side: BorderSide(color: AppColors.error),
@@ -687,6 +723,117 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
         );
       }
     }
+  }
+
+  Future<void> _rejectOrder(String id) async {
+    final TextEditingController reasonController = TextEditingController();
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Reject Delivery'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Are you sure you want to reject this delivery?'),
+            const SizedBox(height: 16),
+            TextField(
+              controller: reasonController,
+              decoration: const InputDecoration(
+                labelText: 'Rejection Reason (Optional)',
+                hintText: 'e.g., Damaged package, incorrect items',
+                border: OutlineInputBorder(),
+              ),
+              maxLines: 3,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.warning),
+            child: const Text('Reject'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      final result = await ref.read(orderDetailProvider.notifier).cancelOrder(id);
+      if (result != null && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              reasonController.text.isEmpty
+                  ? 'Delivery rejected'
+                  : 'Delivery rejected: ${reasonController.text}',
+            ),
+            backgroundColor: AppColors.warning,
+          ),
+        );
+      }
+    }
+    reasonController.dispose();
+  }
+
+  Future<void> _returnOrder(String id) async {
+    final TextEditingController reasonController = TextEditingController();
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Return Order'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Are you sure you want to return this order?'),
+            const SizedBox(height: 16),
+            TextField(
+              controller: reasonController,
+              decoration: const InputDecoration(
+                labelText: 'Return Reason (Optional)',
+                hintText: 'e.g., Defective product, wrong item',
+                border: OutlineInputBorder(),
+              ),
+              maxLines: 3,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
+            child: const Text('Return'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      final result = await ref.read(orderDetailProvider.notifier).cancelOrder(id);
+      if (result != null && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              reasonController.text.isEmpty
+                  ? 'Order returned successfully'
+                  : 'Order returned: ${reasonController.text}',
+            ),
+          ),
+        );
+      }
+    }
+    reasonController.dispose();
   }
 
   void _showRecordPaymentDialog(BuildContext context, OrderModel order) {

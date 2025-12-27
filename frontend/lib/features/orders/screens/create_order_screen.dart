@@ -20,6 +20,15 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
   final List<OrderItemData> _items = [];
   bool _isSubmitting = false;
 
+  // Shipping address fields
+  final _shippingLine1Controller = TextEditingController();
+  final _shippingLine2Controller = TextEditingController();
+  final _shippingCityController = TextEditingController();
+  final _shippingStateController = TextEditingController();
+  final _shippingPostalCodeController = TextEditingController();
+  final _shippingCountryController = TextEditingController();
+  final _notesController = TextEditingController();
+
   @override
   void initState() {
     super.initState();
@@ -27,6 +36,18 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
       ref.read(customerListProvider.notifier).loadCustomers();
       ref.read(productListProvider.notifier).loadProducts();
     });
+  }
+
+  @override
+  void dispose() {
+    _shippingLine1Controller.dispose();
+    _shippingLine2Controller.dispose();
+    _shippingCityController.dispose();
+    _shippingStateController.dispose();
+    _shippingPostalCodeController.dispose();
+    _shippingCountryController.dispose();
+    _notesController.dispose();
+    super.dispose();
   }
 
   @override
@@ -142,6 +163,106 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
               ),
               const SizedBox(height: 16),
 
+              // Shipping Address (Optional)
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Shipping Address (Optional)',
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _shippingLine1Controller,
+                        decoration: const InputDecoration(
+                          labelText: 'Address Line 1',
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: _shippingLine2Controller,
+                        decoration: const InputDecoration(
+                          labelText: 'Address Line 2',
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextFormField(
+                              controller: _shippingCityController,
+                              decoration: const InputDecoration(
+                                labelText: 'City',
+                                border: OutlineInputBorder(),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: TextFormField(
+                              controller: _shippingStateController,
+                              decoration: const InputDecoration(
+                                labelText: 'State/Province',
+                                border: OutlineInputBorder(),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextFormField(
+                              controller: _shippingPostalCodeController,
+                              decoration: const InputDecoration(
+                                labelText: 'Postal Code',
+                                border: OutlineInputBorder(),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: TextFormField(
+                              controller: _shippingCountryController,
+                              decoration: const InputDecoration(
+                                labelText: 'Country',
+                                border: OutlineInputBorder(),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Notes (Optional)
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: TextFormField(
+                    controller: _notesController,
+                    decoration: const InputDecoration(
+                      labelText: 'Order Notes (Optional)',
+                      border: OutlineInputBorder(),
+                      hintText: 'Add any special instructions or notes',
+                    ),
+                    maxLines: 3,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+
               // Order Summary
               if (_items.isNotEmpty)
                 Card(
@@ -175,6 +296,9 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
                   onPressed: _isSubmitting || _items.isEmpty
                       ? null
                       : _submitOrder,
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                  ),
                   child: _isSubmitting
                       ? const SizedBox(
                           width: 20,
@@ -305,10 +429,10 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
                       labelText: 'Product',
                       border: OutlineInputBorder(),
                     ),
-                    items: products.map((product) {
-                      return DropdownMenuItem(
+                    items: products.map<DropdownMenuItem<String>>((product) {
+                      return DropdownMenuItem<String>(
                         value: product.id,
-                        child: Text('${product.name} (\$${product.unitPrice})'),
+                        child: Text('${product.name} (\$${product.displayPrice})'),
                       );
                     }).toList(),
                     onChanged: (value) {
@@ -336,20 +460,59 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
                 ),
                 ElevatedButton(
                   onPressed: () {
-                    if (selectedProductId != null) {
-                      final product = products.firstWhere(
-                        (p) => p.id == selectedProductId,
+                    if (selectedProductId == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Please select a product'),
+                          backgroundColor: Colors.red,
+                        ),
                       );
-                      setState(() {
-                        _items.add(OrderItemData(
-                          productId: product.id,
-                          productName: product.name,
-                          quantity: quantity,
-                          unitPrice: product.unitPrice,
-                        ));
-                      });
-                      Navigator.pop(dialogContext);
+                      return;
                     }
+
+                    if (quantity <= 0) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Quantity must be greater than 0'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                      return;
+                    }
+
+                    final product = products.firstWhere(
+                      (p) => p.id == selectedProductId,
+                    );
+
+                    // Check stock availability
+                    if (product.trackInventory && quantity > product.stockQuantity) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            'Insufficient stock! Available: ${product.stockQuantity}',
+                          ),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                      return;
+                    }
+
+                    setState(() {
+                      _items.add(OrderItemData(
+                        productId: product.id,
+                        productName: product.name,
+                        quantity: quantity,
+                        unitPrice: product.displayPrice,
+                      ));
+                    });
+                    Navigator.pop(dialogContext);
+
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('${product.name} added to order'),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
                   },
                   child: const Text('Add'),
                 ),
@@ -374,31 +537,78 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
 
     setState(() => _isSubmitting = true);
 
-    final subtotal = _calculateSubtotal();
-    final tax = _calculateTax();
+    final taxAmount = _calculateTax();
 
+    // Build shipping address if any field is filled
+    ShippingAddressRequest? shippingAddress;
+    if (_shippingLine1Controller.text.isNotEmpty ||
+        _shippingCityController.text.isNotEmpty) {
+      shippingAddress = ShippingAddressRequest(
+        addressLine1: _shippingLine1Controller.text.isEmpty
+            ? null
+            : _shippingLine1Controller.text,
+        addressLine2: _shippingLine2Controller.text.isEmpty
+            ? null
+            : _shippingLine2Controller.text,
+        city: _shippingCityController.text.isEmpty
+            ? null
+            : _shippingCityController.text,
+        state: _shippingStateController.text.isEmpty
+            ? null
+            : _shippingStateController.text,
+        postalCode: _shippingPostalCodeController.text.isEmpty
+            ? null
+            : _shippingPostalCodeController.text,
+        country: _shippingCountryController.text.isEmpty
+            ? null
+            : _shippingCountryController.text,
+      );
+    }
+
+    // Create request matching backend API exactly
     final request = CreateOrderRequest(
       customerId: _selectedCustomerId!,
-      status: 'draft',
-      orderDate: DateTime.now(),
       items: _items.map((item) {
         return CreateOrderItemRequest(
           productId: item.productId,
           quantity: item.quantity,
-          unitPrice: item.unitPrice,
+          // Backend calculates unit price from product
+          // Only send item-level discounts/tax if needed
+          discountAmount: '0.00',
+          taxAmount: '0.00',
         );
       }).toList(),
+      taxAmount: taxAmount,
+      discountAmount: '0.00',
+      shippingAmount: '0.00',
+      shippingAddress: shippingAddress,
+      notes: _notesController.text.isEmpty ? null : _notesController.text,
     );
 
-    final result = await ref.read(orderDetailProvider.notifier).createOrder(request);
+    try {
+      final result = await ref.read(orderDetailProvider.notifier).createOrder(request);
 
-    setState(() => _isSubmitting = false);
+      setState(() => _isSubmitting = false);
 
-    if (result != null && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Order created successfully')),
-      );
-      context.go('/orders/${result.id}');
+      if (result != null && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Order created successfully'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        context.go('/orders/${result.id}');
+      }
+    } catch (e) {
+      setState(() => _isSubmitting = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to create order: $e'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
     }
   }
 }

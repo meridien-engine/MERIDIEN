@@ -11,7 +11,7 @@
 | Metric | Value | Status |
 |--------|-------|--------|
 | **Current Phase** | Phase 1 MVP | ✅ Complete |
-| **Backend Progress** | 100% | ✅ |
+| **Backend Progress** | 95% | 🚧 |
 | **Frontend Progress** | 100% | ✅ |
 | **API Endpoints** | 26 endpoints | ✅ |
 | **Database Tables** | 8 tables | ✅ |
@@ -67,7 +67,7 @@
   - Featured products
 - **Status:** Production-ready ✅
 
-#### ✅ Order Management Module (Week 4)
+#### 🚧 Order Management Module (Week 4) - 90% Complete
 - **Backend API:** `/api/v1/orders/*`
   - Complete order lifecycle
   - Status workflow (7 states)
@@ -83,7 +83,15 @@
   - Partial payment support
   - Stock deduction on shipping
   - Financial calculations (subtotal, tax, discount, shipping)
-- **Status:** Production-ready ✅
+  - ✅ Reject delivery functionality (shipped orders)
+  - ✅ Return order functionality (delivered orders)
+  - ✅ Stock validation on order creation
+  - ✅ Proper error messaging
+- **Pending:**
+  - ⚠️ Backend: Separate return order endpoint (currently using cancel)
+  - ⚠️ Backend: Add 'cancelled_in_transit' status to differentiate preparation vs shipping cancellations
+  - ⚠️ Return order status tracking separate from cancellation
+- **Status:** Near Production-ready (90%) 🚧
 
 #### ✅ Dashboard (Basic)
 - **Frontend:** Dashboard screen with quick actions
@@ -287,7 +295,7 @@ PUT    /api/v1/products/:id     - Update product
 DELETE /api/v1/products/:id     - Soft delete
 ```
 
-### Orders (11 endpoints)
+### Orders (11 endpoints + 1 pending)
 ```
 GET    /api/v1/orders           - List with filters
 POST   /api/v1/orders           - Create order
@@ -300,6 +308,9 @@ POST   /api/v1/orders/:id/deliver   - Mark delivered
 POST   /api/v1/orders/:id/cancel    - Cancel order
 POST   /api/v1/orders/:id/payments  - Record payment
 GET    /api/v1/orders/:id/payments  - List payments
+
+⚠️  PENDING:
+POST   /api/v1/orders/:id/return    - Return order (separate from cancel)
 ```
 
 ---
@@ -671,18 +682,37 @@ Coverage Goal (Phase 2):
 
 ## Next Immediate Actions
 
+### Priority 0: Complete Order Module (90% → 100%)
+1. **Backend: Add Return Order Endpoint**
+   - Create `/api/v1/orders/:id/return` endpoint
+   - Add `returned` status to order workflow
+   - Separate from cancel logic (cancel = before/during prep, return = after delivery)
+   - Track return reasons in order metadata
+
+2. **Backend: Add Cancelled In Transit Status**
+   - Add `cancelled_in_transit` status
+   - Differentiate cancellations at preparation stage vs shipping stage
+   - Update status workflow validation
+   - Ensure proper inventory restoration for both cases
+
+3. **Update Frontend for New Statuses**
+   - Add UI support for `returned` status
+   - Add UI support for `cancelled_in_transit` status
+   - Update status badges and colors
+   - Update order detail screen to call return endpoint
+
 ### Priority 1: This Week
-1. **Implement RBAC Foundation**
+4. **Implement RBAC Foundation**
    - Create roles and permissions tables
    - Add permission middleware
    - Update user model
 
-2. **Set Up Testing Framework**
+5. **Set Up Testing Framework**
    - Configure Go testing suite
    - Set up Flutter test environment
    - Write first 10 unit tests
 
-3. **Create CI/CD Pipeline**
+6. **Create CI/CD Pipeline**
    - GitHub Actions workflow
    - Automated linting
    - Test runner

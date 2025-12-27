@@ -102,7 +102,7 @@ class OrderCard extends StatelessWidget {
               const SizedBox(height: 12),
 
               // Customer Info
-              if (order.customerName != null)
+              if (order.customer != null)
                 Row(
                   children: [
                     Icon(
@@ -113,14 +113,14 @@ class OrderCard extends StatelessWidget {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        order.customerName!,
+                        '${order.customer!.firstName ?? ''} ${order.customer!.lastName ?? ''}'.trim(),
                         style: Theme.of(context).textTheme.bodyMedium,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
                   ],
                 ),
-              if (order.customerName != null) const SizedBox(height: 8),
+              if (order.customer != null) const SizedBox(height: 8),
 
               // Order Date
               Row(

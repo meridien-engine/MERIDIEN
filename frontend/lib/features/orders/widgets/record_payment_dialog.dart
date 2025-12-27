@@ -24,12 +24,10 @@ class RecordPaymentDialog extends ConsumerStatefulWidget {
 class _RecordPaymentDialogState extends ConsumerState<RecordPaymentDialog> {
   final _formKey = GlobalKey<FormState>();
   final _amountController = TextEditingController();
-  final _transactionIdController = TextEditingController();
-  final _referenceController = TextEditingController();
+  final _transactionReferenceController = TextEditingController();
   final _notesController = TextEditingController();
 
   String _paymentMethod = 'cash';
-  DateTime _paymentDate = DateTime.now();
   bool _isSubmitting = false;
 
   @override
@@ -41,8 +39,7 @@ class _RecordPaymentDialogState extends ConsumerState<RecordPaymentDialog> {
   @override
   void dispose() {
     _amountController.dispose();
-    _transactionIdController.dispose();
-    _referenceController.dispose();
+    _transactionReferenceController.dispose();
     _notesController.dispose();
     super.dispose();
   }
@@ -55,13 +52,9 @@ class _RecordPaymentDialogState extends ConsumerState<RecordPaymentDialog> {
     final request = RecordPaymentRequest(
       amount: _amountController.text.trim(),
       paymentMethod: _paymentMethod,
-      paymentDate: _paymentDate,
-      transactionId: _transactionIdController.text.trim().isEmpty
+      transactionReference: _transactionReferenceController.text.trim().isEmpty
           ? null
-          : _transactionIdController.text.trim(),
-      reference: _referenceController.text.trim().isEmpty
-          ? null
-          : _referenceController.text.trim(),
+          : _transactionReferenceController.text.trim(),
       notes: _notesController.text.trim().isEmpty
           ? null
           : _notesController.text.trim(),
@@ -166,38 +159,12 @@ class _RecordPaymentDialogState extends ConsumerState<RecordPaymentDialog> {
               ),
               const SizedBox(height: 16),
 
-              // Payment Date
-              InkWell(
-                onTap: () => _selectDate(context),
-                child: InputDecorator(
-                  decoration: const InputDecoration(
-                    labelText: 'Payment Date *',
-                    border: OutlineInputBorder(),
-                    suffixIcon: Icon(Icons.calendar_today_outlined),
-                  ),
-                  child: Text(
-                    '${_paymentDate.year}-${_paymentDate.month.toString().padLeft(2, '0')}-${_paymentDate.day.toString().padLeft(2, '0')}',
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // Transaction ID
+              // Transaction Reference
               TextFormField(
-                controller: _transactionIdController,
+                controller: _transactionReferenceController,
                 decoration: const InputDecoration(
-                  labelText: 'Transaction ID',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // Reference
-              TextFormField(
-                controller: _referenceController,
-                decoration: const InputDecoration(
-                  labelText: 'Reference',
+                  labelText: 'Transaction Reference (Optional)',
+                  hintText: 'e.g., Check number, transaction ID',
                   border: OutlineInputBorder(),
                 ),
               ),
@@ -233,18 +200,5 @@ class _RecordPaymentDialogState extends ConsumerState<RecordPaymentDialog> {
         ),
       ],
     );
-  }
-
-  Future<void> _selectDate(BuildContext context) async {
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: _paymentDate,
-      firstDate: DateTime(2020),
-      lastDate: DateTime.now(),
-    );
-
-    if (picked != null) {
-      setState(() => _paymentDate = picked);
-    }
   }
 }

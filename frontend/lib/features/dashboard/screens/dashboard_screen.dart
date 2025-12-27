@@ -119,11 +119,7 @@ class DashboardScreen extends ConsumerWidget {
                       icon: Icons.shopping_cart_rounded,
                       label: 'Orders',
                       color: AppColors.warning,
-                      onTap: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Orders coming soon!')),
-                        );
-                      },
+                      onTap: () => context.push('/orders'),
                     ),
                   ],
                 ),
