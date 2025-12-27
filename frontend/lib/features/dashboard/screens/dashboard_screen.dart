@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
-import '../../../core/constants/app_strings.dart';
+import '../../../core/localization/localization_extension.dart';
+import '../../../shared/widgets/language_toggle_button.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../auth/models/auth_state.dart';
 
@@ -16,8 +17,10 @@ class DashboardScreen extends ConsumerWidget {
     return authState.maybeWhen(
       authenticated: (user, tenant) => Scaffold(
         appBar: AppBar(
-          title: Text(AppStrings.appName),
+          title: Text(context.loc.appName),
           actions: [
+            const LanguageToggleButton(),
+            const SizedBox(width: 8),
             PopupMenuButton<String>(
               icon: CircleAvatar(
                 backgroundColor: AppColors.primary,
@@ -51,11 +54,11 @@ class DashboardScreen extends ConsumerWidget {
                 ),
                 const PopupMenuDivider(),
                 PopupMenuItem(
-                  child: const Row(
+                  child: Row(
                     children: [
-                      Icon(Icons.logout_rounded),
-                      SizedBox(width: 8),
-                      Text('Logout'),
+                      const Icon(Icons.logout_rounded),
+                      const SizedBox(width: 8),
+                      Text(context.loc.logout),
                     ],
                   ),
                   onTap: () {
@@ -83,7 +86,7 @@ class DashboardScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 24),
                 Text(
-                  'Welcome to ${AppStrings.appName}!',
+                  '${context.loc.welcome} ${context.loc.appName}!',
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
@@ -91,7 +94,7 @@ class DashboardScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'Quick Actions',
+                  context.loc.quickActions,
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                         color: AppColors.textSecondary,
                       ),
@@ -105,19 +108,19 @@ class DashboardScreen extends ConsumerWidget {
                   children: [
                     _QuickActionCard(
                       icon: Icons.people_rounded,
-                      label: 'Customers',
+                      label: context.loc.customers,
                       color: AppColors.primary,
                       onTap: () => context.push('/customers'),
                     ),
                     _QuickActionCard(
                       icon: Icons.inventory_2_rounded,
-                      label: 'Products',
+                      label: context.loc.products,
                       color: AppColors.secondary,
                       onTap: () => context.push('/products'),
                     ),
                     _QuickActionCard(
                       icon: Icons.shopping_cart_rounded,
-                      label: 'Orders',
+                      label: context.loc.orders,
                       color: AppColors.warning,
                       onTap: () => context.push('/orders'),
                     ),

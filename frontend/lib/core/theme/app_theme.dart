@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../constants/app_colors.dart';
 
 /// App theme configuration for MERIDIEN
+/// Uses Tajawal font family for RTL (Arabic) and LTR support
 class AppTheme {
   AppTheme._();
 
@@ -27,7 +28,7 @@ class AppTheme {
         elevation: 0,
         centerTitle: false,
         iconTheme: const IconThemeData(color: AppColors.textPrimary),
-        titleTextStyle: GoogleFonts.inter(
+        titleTextStyle: GoogleFonts.tajawal(
           fontSize: 20,
           fontWeight: FontWeight.w600,
           color: AppColors.textPrimary,
@@ -50,7 +51,7 @@ class AppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(8),
           ),
-          textStyle: GoogleFonts.inter(
+          textStyle: GoogleFonts.tajawal(
             fontSize: 16,
             fontWeight: FontWeight.w600,
           ),
@@ -64,7 +65,7 @@ class AppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(8),
           ),
-          textStyle: GoogleFonts.inter(
+          textStyle: GoogleFonts.tajawal(
             fontSize: 16,
             fontWeight: FontWeight.w600,
           ),
@@ -74,7 +75,7 @@ class AppTheme {
         style: TextButton.styleFrom(
           foregroundColor: AppColors.primary,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          textStyle: GoogleFonts.inter(
+          textStyle: GoogleFonts.tajawal(
             fontSize: 14,
             fontWeight: FontWeight.w600,
           ),
@@ -104,76 +105,76 @@ class AppTheme {
           borderRadius: BorderRadius.circular(8),
           borderSide: const BorderSide(color: AppColors.error, width: 2),
         ),
-        labelStyle: GoogleFonts.inter(
+        labelStyle: GoogleFonts.tajawal(
           fontSize: 14,
           color: AppColors.textSecondary,
         ),
-        hintStyle: GoogleFonts.inter(
+        hintStyle: GoogleFonts.tajawal(
           fontSize: 14,
           color: AppColors.textDisabled,
         ),
-        errorStyle: GoogleFonts.inter(
+        errorStyle: GoogleFonts.tajawal(
           fontSize: 12,
           color: AppColors.error,
         ),
       ),
       textTheme: TextTheme(
-        displayLarge: GoogleFonts.inter(
+        displayLarge: GoogleFonts.tajawal(
           fontSize: 32,
           fontWeight: FontWeight.bold,
           color: AppColors.textPrimary,
         ),
-        displayMedium: GoogleFonts.inter(
+        displayMedium: GoogleFonts.tajawal(
           fontSize: 28,
           fontWeight: FontWeight.bold,
           color: AppColors.textPrimary,
         ),
-        displaySmall: GoogleFonts.inter(
+        displaySmall: GoogleFonts.tajawal(
           fontSize: 24,
           fontWeight: FontWeight.w600,
           color: AppColors.textPrimary,
         ),
-        headlineLarge: GoogleFonts.inter(
+        headlineLarge: GoogleFonts.tajawal(
           fontSize: 20,
           fontWeight: FontWeight.w600,
           color: AppColors.textPrimary,
         ),
-        headlineMedium: GoogleFonts.inter(
+        headlineMedium: GoogleFonts.tajawal(
           fontSize: 18,
           fontWeight: FontWeight.w600,
           color: AppColors.textPrimary,
         ),
-        headlineSmall: GoogleFonts.inter(
+        headlineSmall: GoogleFonts.tajawal(
           fontSize: 16,
           fontWeight: FontWeight.w600,
           color: AppColors.textPrimary,
         ),
-        bodyLarge: GoogleFonts.inter(
+        bodyLarge: GoogleFonts.tajawal(
           fontSize: 16,
           fontWeight: FontWeight.normal,
           color: AppColors.textPrimary,
         ),
-        bodyMedium: GoogleFonts.inter(
+        bodyMedium: GoogleFonts.tajawal(
           fontSize: 14,
           fontWeight: FontWeight.normal,
           color: AppColors.textPrimary,
         ),
-        bodySmall: GoogleFonts.inter(
+        bodySmall: GoogleFonts.tajawal(
           fontSize: 12,
           fontWeight: FontWeight.normal,
           color: AppColors.textSecondary,
         ),
-        labelLarge: GoogleFonts.inter(
+        labelLarge: GoogleFonts.tajawal(
           fontSize: 14,
           fontWeight: FontWeight.w600,
           color: AppColors.textPrimary,
         ),
-        labelMedium: GoogleFonts.inter(
+        labelMedium: GoogleFonts.tajawal(
           fontSize: 12,
           fontWeight: FontWeight.w500,
           color: AppColors.textPrimary,
         ),
-        labelSmall: GoogleFonts.inter(
+        labelSmall: GoogleFonts.tajawal(
           fontSize: 11,
           fontWeight: FontWeight.w500,
           color: AppColors.textSecondary,
@@ -191,7 +192,7 @@ class AppTheme {
       chipTheme: ChipThemeData(
         backgroundColor: AppColors.background,
         selectedColor: AppColors.primary,
-        labelStyle: GoogleFonts.inter(
+        labelStyle: GoogleFonts.tajawal(
           fontSize: 12,
           fontWeight: FontWeight.w500,
         ),
@@ -230,7 +231,7 @@ class AppTheme {
         elevation: 0,
         centerTitle: false,
         iconTheme: const IconThemeData(color: AppColors.textWhite),
-        titleTextStyle: GoogleFonts.inter(
+        titleTextStyle: GoogleFonts.tajawal(
           fontSize: 20,
           fontWeight: FontWeight.w600,
           color: AppColors.textWhite,
@@ -245,12 +246,12 @@ class AppTheme {
         margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
       ),
       textTheme: TextTheme(
-        displayLarge: GoogleFonts.inter(
+        displayLarge: GoogleFonts.tajawal(
           fontSize: 32,
           fontWeight: FontWeight.bold,
           color: AppColors.textWhite,
         ),
-        bodyLarge: GoogleFonts.inter(
+        bodyLarge: GoogleFonts.tajawal(
           fontSize: 16,
           fontWeight: FontWeight.normal,
           color: AppColors.textWhite,
