@@ -6,6 +6,8 @@
 .env.*.local
 *.env
 !.env.example
+!backend/configs/.env.example
+backend/configs/.env
 
 # OS
 .DS_Store
