@@ -1,10 +1,12 @@
 package services
 
 import (
+	"encoding/json"
 	"errors"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/mu7ammad-3li/MERIDIEN/backend/internal/database"
 	"github.com/mu7ammad-3li/MERIDIEN/backend/internal/models"
 	"github.com/mu7ammad-3li/MERIDIEN/backend/internal/repositories"
 	"github.com/shopspring/decimal"
@@ -35,15 +37,15 @@ func NewOrderService(
 
 // CreateOrderRequest represents the request to create an order
 type CreateOrderRequest struct {
-	TenantID     uuid.UUID
-	CustomerID   uuid.UUID
-	Items        []OrderItemRequest
-	TaxAmount    string
-	DiscountAmount string
-	ShippingAmount string
+	TenantID        uuid.UUID
+	CustomerID      uuid.UUID
+	Items           []OrderItemRequest
+	TaxAmount       string
+	DiscountAmount  string
+	ShippingAmount  string
 	ShippingAddress ShippingAddressRequest
-	Notes        string
-	InternalNotes string
+	Notes           string
+	InternalNotes   string
 }
 
 // OrderItemRequest represents an item in the order request
@@ -67,12 +69,12 @@ type ShippingAddressRequest struct {
 
 // UpdateOrderRequest represents the request to update an order
 type UpdateOrderRequest struct {
-	TaxAmount      *string
-	DiscountAmount *string
-	ShippingAmount *string
+	TaxAmount       *string
+	DiscountAmount  *string
+	ShippingAmount  *string
 	ShippingAddress *ShippingAddressRequest
-	Notes          *string
-	InternalNotes  *string
+	Notes           *string
+	InternalNotes   *string
 }
 
 // Create creates a new order
@@ -190,25 +192,25 @@ func (s *OrderService) Create(req *CreateOrderRequest) (*models.Order, error) {
 
 	// Create order
 	order := &models.Order{
-		TenantID:    req.TenantID,
-		CustomerID:  req.CustomerID,
-		OrderNumber: orderNumber,
-		OrderDate:   time.Now(),
-		Status:      models.OrderStatusDraft,
-		PaymentStatus: models.PaymentStatusUnpaid,
-		Subtotal:    subtotal,
-		TaxAmount:   taxAmount,
-		DiscountAmount: discountAmount,
-		ShippingAmount: shippingAmount,
+		TenantID:             req.TenantID,
+		CustomerID:           req.CustomerID,
+		OrderNumber:          orderNumber,
+		OrderDate:            time.Now(),
+		Status:               models.OrderStatusDraft,
+		PaymentStatus:        models.PaymentStatusUnpaid,
+		Subtotal:             subtotal,
+		TaxAmount:            taxAmount,
+		DiscountAmount:       discountAmount,
+		ShippingAmount:       shippingAmount,
 		ShippingAddressLine1: req.ShippingAddress.AddressLine1,
 		ShippingAddressLine2: req.ShippingAddress.AddressLine2,
 		ShippingCity:         req.ShippingAddress.City,
 		ShippingState:        req.ShippingAddress.State,
 		ShippingPostalCode:   req.ShippingAddress.PostalCode,
 		ShippingCountry:      req.ShippingAddress.Country,
-		Notes:         req.Notes,
-		InternalNotes: req.InternalNotes,
-		Items:         orderItems,
+		Notes:                req.Notes,
+		InternalNotes:        req.InternalNotes,
+		Items:                orderItems,
 	}
 
 	// Calculate total
@@ -366,9 +368,9 @@ func (s *OrderService) ShipOrder(id uuid.UUID, tenantID uuid.UUID) (*models.Orde
 		return nil, errors.New("order not found")
 	}
 
-	// Validate status transition
-	if order.Status != models.OrderStatusProcessing && order.Status != models.OrderStatusConfirmed {
-		return nil, errors.New("only processing or confirmed orders can be shipped")
+	// Validate status transition: allow shipping only from confirmed/processing/pending/draft
+	if !(order.IsConfirmed() || order.IsProcessing() || order.IsPending() || order.IsDraft()) {
+		return nil, errors.New("order cannot be shipped from current status")
 	}
 
 	// Deduct inventory
@@ -389,9 +391,17 @@ func (s *OrderService) ShipOrder(id uuid.UUID, tenantID uuid.UUID) (*models.Orde
 	}
 
 	// Update status
+	oldStatus := order.Status
 	order.Status = models.OrderStatusShipped
 	if err := s.orderRepo.Update(order); err != nil {
 		return nil, errors.New("failed to ship order")
+	}
+
+	// Record audit log
+	if db := database.GetDB(); db != nil {
+		oldVal, _ := json.Marshal(map[string]string{"status": oldStatus})
+		newVal, _ := json.Marshal(map[string]string{"status": order.Status})
+		_ = db.Exec("INSERT INTO audit_logs (tenant_id, user_id, order_id, action, old_value, new_value) VALUES (?,?,?,?,?::jsonb,?::jsonb)", tenantID, nil, order.ID, "STATUS_CHANGE", string(oldVal), string(newVal))
 	}
 
 	return order, nil
@@ -404,15 +414,24 @@ func (s *OrderService) DeliverOrder(id uuid.UUID, tenantID uuid.UUID) (*models.O
 		return nil, errors.New("order not found")
 	}
 
-	// Validate status transition
+	// Validate status transition: only shipped -> delivered
 	if !order.IsShipped() {
 		return nil, errors.New("only shipped orders can be marked as delivered")
 	}
+
+	oldStatus := order.Status
 
 	// Update status
 	order.Status = models.OrderStatusDelivered
 	if err := s.orderRepo.Update(order); err != nil {
 		return nil, errors.New("failed to deliver order")
+	}
+
+	// Audit
+	if db := database.GetDB(); db != nil {
+		oldVal, _ := json.Marshal(map[string]string{"status": oldStatus})
+		newVal, _ := json.Marshal(map[string]string{"status": order.Status})
+		_ = db.Exec("INSERT INTO audit_logs (tenant_id, user_id, order_id, action, old_value, new_value) VALUES (?,?,?,?,?::jsonb,?::jsonb)", tenantID, nil, order.ID, "STATUS_CHANGE", string(oldVal), string(newVal))
 	}
 
 	return order, nil
@@ -430,10 +449,48 @@ func (s *OrderService) CancelOrder(id uuid.UUID, tenantID uuid.UUID) (*models.Or
 		return nil, errors.New("order cannot be cancelled in current status")
 	}
 
+	oldStatus := order.Status
+
 	// Update status
 	order.Status = models.OrderStatusCancelled
 	if err := s.orderRepo.Update(order); err != nil {
 		return nil, errors.New("failed to cancel order")
+	}
+
+	// If charge shipping on cancel is set, record ledger impact elsewhere (placeholder)
+
+	// Audit
+	if db := database.GetDB(); db != nil {
+		oldVal, _ := json.Marshal(map[string]string{"status": oldStatus})
+		newVal, _ := json.Marshal(map[string]string{"status": order.Status})
+		_ = db.Exec("INSERT INTO audit_logs (tenant_id, user_id, order_id, action, old_value, new_value) VALUES (?,?,?,?,?::jsonb,?::jsonb)", tenantID, nil, order.ID, "STATUS_CHANGE", string(oldVal), string(newVal))
+	}
+
+	return order, nil
+}
+
+// CollectOrder marks a delivered order as collected (delivered -> collected)
+func (s *OrderService) CollectOrder(id uuid.UUID, tenantID uuid.UUID) (*models.Order, error) {
+	order, err := s.orderRepo.FindByID(id, tenantID)
+	if err != nil {
+		return nil, errors.New("order not found")
+	}
+
+	if !order.IsDelivered() {
+		return nil, errors.New("only delivered orders can be marked as collected")
+	}
+
+	oldStatus := order.Status
+	order.Status = models.OrderStatusCollected
+
+	if err := s.orderRepo.Update(order); err != nil {
+		return nil, errors.New("failed to mark order as collected")
+	}
+
+	if db := database.GetDB(); db != nil {
+		oldVal, _ := json.Marshal(map[string]string{"status": oldStatus})
+		newVal, _ := json.Marshal(map[string]string{"status": order.Status})
+		_ = db.Exec("INSERT INTO audit_logs (tenant_id, user_id, order_id, action, old_value, new_value) VALUES (?,?,?,?,?::jsonb,?::jsonb)", tenantID, nil, order.ID, "STATUS_CHANGE", string(oldVal), string(newVal))
 	}
 
 	return order, nil

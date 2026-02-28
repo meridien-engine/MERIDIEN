@@ -1,16 +1,16 @@
 # Project Status
 
-**Last Updated:** December 27, 2025  
-**Current Phase:** Phase 1 MVP Complete → Phase 2 Production Ready (35%)
+**Last Updated:** February 28, 2026  
+**Current Phase:** Phase 1 MVP Complete → Phase 2 Production Ready (65%)
 
 ## Quick Stats
 
 | Metric | Value |
 |--------|-------|
 | Phase 1 MVP | ✅ 100% |
-| Production Ready | 🚧 35% |
-| API Endpoints | 26 |
-| Database Tables | 8 |
+| Production Ready | 🚧 65% |
+| API Endpoints | 32 |
+| Database Tables | 11 |
 | Frontend Screens | 14 |
 | Test Coverage | 0% (manual only) |
 
@@ -36,7 +36,7 @@
 - Multi-level pricing (cost, selling, discount)
 - **Endpoints:** `/api/v1/products/*`
 
-### Order Management
+-### Order Management
 - 7-state workflow: draft → pending → confirmed → processing → shipped → delivered (+ cancelled)
 - Auto-generated order numbers (ORD-YYYYMMDD-XXXX)
 - Line items with product snapshots
@@ -51,14 +51,18 @@
 - Tajawal font
 - 34+ translations
 
-## Phase 2 - In Progress (35%)
+## Phase 2 - In Progress (42%)
 
 ### Critical (Blocking Production)
 
-**Multi-User & RBAC** ❌
-- Roles and permissions system
-- User management UI
-- Role-based feature access
+**Multi-Tenant & RBAC** ✅ (90% complete)
+- Tenant isolation: request + per-transaction tenant context (middleware + SET LOCAL in repositories)
+- RBAC roles: operator, collector, owner with endpoint enforcement (role bypass for owner)
+- Unit tests: 14/14 RBAC tests passing (middleware, auth, handlers)
+- Courier reconciliation report: GET `/api/v1/reports/courier-reconciliation` (owner-only)
+- Locations CRUD: Full city/zone/shipping_fee management endpoints
+- PostgreSQL RLS policies still required for full isolation (defense-in-depth)
+- **Next:** RLS policies
 - **Priority:** Critical | **Complexity:** Medium
 
 **Automated Testing** ❌
@@ -144,9 +148,12 @@ users             -- Authentication
 customers         -- CRM with addresses
 categories        -- Hierarchical product categories
 products          -- Inventory with SKU
-orders            -- Order lifecycle
+orders            -- Order lifecycle (now includes logistics fields, optimistic locking)
 order_items       -- Line items with snapshots
 payments          -- Payment tracking
+audit_logs        -- Immutable audit trail for status/price changes
+couriers          -- Tenant couriers catalog
+locations         -- Cities/zones and shipping fees
 ```
 
 All tables include: `id`, `tenant_id`, `created_at`, `updated_at`, `deleted_at`
@@ -154,40 +161,51 @@ All tables include: `id`, `tenant_id`, `created_at`, `updated_at`, `deleted_at`
 ## Current Gaps
 
 ### Critical
-1. **No automated testing** - High regression risk
-2. **Single user per tenant** - Cannot support real businesses
-3. **No production deployment** - No CI/CD or monitoring
-4. **No email system** - No password reset or notifications
+1. **Automated testing** - RBAC tests added (14 tests passing); backend unit coverage needs expansion to 80%
+2. **RLS policies** - middleware + per-transaction tenant variable complete; RLS policies (defense-in-depth) not yet applied
+3. **Production deployment** - CI/CD (GitHub Actions), monitoring (Prometheus), automated backups still required
+4. **Redis integration** - Refresh token caching and rate limiting not yet implemented
 
 ### Important
-5. **Limited reporting** - No analytics or exports
-6. **No file uploads** - No product images
-7. **No invoice generation** - Manual invoicing required
+5. **Limited reporting** - Basic logistics reconciliation done; analytics/exports still needed
+6. **No file uploads** - No product images or document storage
+7. **No invoice generation** - PDF invoice templates not yet implemented
 8. **Basic dashboard** - No charts or KPIs
 
 ## Next Actions
 
-### This Week
-1. Complete order return endpoint (separate from cancel)
-2. Setup testing framework (Go + Flutter)
-3. Create CI/CD pipeline (GitHub Actions)
+### This Week (Current Sprint - COMPLETE) ✅
+✅ Completed:
+1. ✅ Wire `TenantMiddleware` into router (per-transaction SET LOCAL)
+2. ✅ Email-based workspace discovery on login (DiscoverTenants, returns tenant list)
+3. ✅ RBAC roles (OPERATOR, COLLECTOR, OWNER) with handler enforcement and owner bypass
+4. ✅ Unit tests for RBAC behavior (14 tests passing)
+5. ✅ Courier reconciliation report endpoint (`GET /api/v1/reports/courier-reconciliation`)
+   - Query: SUM(orders.delivered) - SUM(orders.collected) per courier
+   - Response: Cash reconciliation showing amount stuck with each courier
+6. ✅ Locations CRUD endpoints (POST, GET, PUT, DELETE):
+   - City/zone/shipping_fee management
+   - Pagination support with tenant filtering
+   - Decimal precision for shipping fees
 
-### Next 2 Weeks
-4. Implement RBAC foundation
-5. Redis for token management
-6. Rate limiting middleware
+### Next 2 Weeks (Phase 2 Continuation)
+7. RLS policies for multi-tenant database isolation (defense-in-depth)
+8. Redis for token management and rate limiting middleware
+9. Enhanced backend error handling and validation
 
-### Next Month
-7. Reports module (revenue, analytics)
-8. Invoice generation (PDF)
-9. Production infrastructure (Docker, monitoring)
+### Next Month (Phase 2 Sprint 2)
+10. Reports module (revenue, analytics)
+11. Invoice generation (PDF)
+12. Automated testing expansion (target 80% backend, 70% frontend)
 
 ## Code Metrics
 
 ```
-Backend (Go):        ~8,000 LOC in 29 files
+Backend (Go):        ~9,500 LOC in 35 files (added location_* + report_* + courier_*)
 Frontend (Flutter):  ~6,000 LOC in 28+ files (excluding generated)
-Database:            8 tables, 4 migrations
+Database:            11 tables, 5 migrations
+API Endpoints:       32 total (CRUD: customers, products, orders, locations; reports, auth)
+Unit Tests:          14/14 RBAC tests passing; expanding coverage
 ```
 
 ## Resources
@@ -199,4 +217,4 @@ Database:            8 tables, 4 migrations
 
 ---
 
-**Next Review:** January 10, 2026
+**Next Review:** March 7, 2026 (RLS policies + Redis implementation)

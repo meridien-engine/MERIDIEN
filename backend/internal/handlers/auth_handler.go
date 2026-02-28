@@ -34,7 +34,7 @@ type RegisterRequest struct {
 
 // LoginRequest represents the login request body
 type LoginRequest struct {
-	TenantSlug string `json:"tenant_slug" binding:"required"`
+	TenantSlug string `json:"tenant_slug"`
 	Email      string `json:"email" binding:"required"`
 	Password   string `json:"password" binding:"required"`
 }
@@ -111,12 +111,34 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
-	// For MVP, we'll use the demo tenant
-	tenantID := uuid.MustParse("bae1577c-1b95-4a0e-8eae-9a44654278b2") // Demo tenant ID
+	// If tenant slug is not provided, attempt workspace discovery by email/password
+	if req.TenantSlug == "" {
+		tenants, err := h.authService.DiscoverTenants(req.Email, req.Password)
+		if err != nil {
+			utils.ErrorResponse(c, http.StatusUnauthorized, err.Error())
+			return
+		}
+
+		// Return tenant list (id, slug, name) for the client to choose
+		result := make([]gin.H, 0, len(tenants))
+		for _, t := range tenants {
+			result = append(result, gin.H{"id": t.ID, "slug": t.Slug, "name": t.Name})
+		}
+
+		utils.SuccessResponse(c, http.StatusOK, "Workspaces found", gin.H{"workspaces": result})
+		return
+	}
+
+	// Tenant slug provided: perform normal login for that tenant
+	tenant, err := h.authService.GetTenantBySlug(req.TenantSlug)
+	if err != nil {
+		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid tenant")
+		return
+	}
 
 	// Create service request
 	serviceReq := &services.LoginRequest{
-		TenantID: tenantID,
+		TenantID: tenant.ID,
 		Email:    req.Email,
 		Password: req.Password,
 	}

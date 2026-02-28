@@ -27,14 +27,14 @@ func NewOrderHandler(orderService *services.OrderService) *OrderHandler {
 
 // CreateOrderRequest represents the HTTP request body for creating an order
 type CreateOrderHTTPRequest struct {
-	CustomerID      string                      `json:"customer_id" binding:"required"`
-	Items           []OrderItemHTTPRequest      `json:"items" binding:"required,min=1"`
-	TaxAmount       string                      `json:"tax_amount"`
-	DiscountAmount  string                      `json:"discount_amount"`
-	ShippingAmount  string                      `json:"shipping_amount"`
-	ShippingAddress ShippingAddressHTTPRequest  `json:"shipping_address"`
-	Notes           string                      `json:"notes"`
-	InternalNotes   string                      `json:"internal_notes"`
+	CustomerID      string                     `json:"customer_id" binding:"required"`
+	Items           []OrderItemHTTPRequest     `json:"items" binding:"required,min=1"`
+	TaxAmount       string                     `json:"tax_amount"`
+	DiscountAmount  string                     `json:"discount_amount"`
+	ShippingAmount  string                     `json:"shipping_amount"`
+	ShippingAddress ShippingAddressHTTPRequest `json:"shipping_address"`
+	Notes           string                     `json:"notes"`
+	InternalNotes   string                     `json:"internal_notes"`
 }
 
 // OrderItemHTTPRequest represents an item in the order request
@@ -397,6 +397,33 @@ func (h *OrderHandler) Deliver(c *gin.Context) {
 	}
 
 	utils.SuccessResponse(c, http.StatusOK, "Order delivered successfully", order)
+}
+
+// Collect handles marking a delivered order as collected
+// POST /api/v1/orders/:id/collect
+func (h *OrderHandler) Collect(c *gin.Context) {
+	// Get tenant ID from context
+	tenantID, err := middleware.GetTenantID(c)
+	if err != nil {
+		utils.UnauthorizedResponse(c, "Tenant not found")
+		return
+	}
+
+	// Parse order ID
+	orderID, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid order ID")
+		return
+	}
+
+	// Collect order
+	order, err := h.orderService.CollectOrder(orderID, tenantID)
+	if err != nil {
+		utils.ErrorResponse(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	utils.SuccessResponse(c, http.StatusOK, "Order collected successfully", order)
 }
 
 // Cancel handles cancelling an order

@@ -159,6 +159,51 @@ func (s *AuthService) Login(req *LoginRequest) (*AuthResponse, error) {
 	}, nil
 }
 
+// DiscoverTenants authenticates the email/password across all tenants and returns matching tenants.
+func (s *AuthService) DiscoverTenants(email, password string) ([]*models.Tenant, error) {
+	if err := utils.ValidateEmail(email); err != nil {
+		return nil, err
+	}
+	if password == "" {
+		return nil, errors.New("password is required")
+	}
+
+	users, err := s.userRepo.FindAllByEmail(strings.ToLower(strings.TrimSpace(email)))
+	if err != nil {
+		return nil, errors.New("invalid email or password")
+	}
+
+	var tenants []*models.Tenant
+	for _, u := range users {
+		// Check password for each user record (per-tenant credentials)
+		if !u.IsActive {
+			continue
+		}
+
+		if u.CheckPassword(password) {
+			if u.Tenant != nil {
+				tenants = append(tenants, u.Tenant)
+			} else {
+				t, terr := s.tenantRepo.FindByID(u.TenantID)
+				if terr == nil {
+					tenants = append(tenants, t)
+				}
+			}
+		}
+	}
+
+	if len(tenants) == 0 {
+		return nil, errors.New("invalid email or password")
+	}
+
+	return tenants, nil
+}
+
+// GetTenantBySlug returns tenant by slug via repository
+func (s *AuthService) GetTenantBySlug(slug string) (*models.Tenant, error) {
+	return s.tenantRepo.FindBySlug(slug)
+}
+
 // GetCurrentUser retrieves the current user by ID
 func (s *AuthService) GetCurrentUser(userID, tenantID uuid.UUID) (*models.User, error) {
 	user, err := s.userRepo.FindByID(userID, tenantID)

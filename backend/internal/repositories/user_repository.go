@@ -130,3 +130,15 @@ func (r *UserRepository) ExistsByEmail(email string, tenantID uuid.UUID) (bool, 
 		Count(&count).Error
 	return count > 0, err
 }
+
+// FindAllByEmail finds all users with the given email across tenants
+func (r *UserRepository) FindAllByEmail(email string) ([]models.User, error) {
+	var users []models.User
+	err := r.db.Where("email = ?", email).
+		Preload("Tenant").
+		Find(&users).Error
+	if err != nil {
+		return nil, err
+	}
+	return users, nil
+}

@@ -44,6 +44,8 @@ func main() {
 	categoryRepo := repositories.NewCategoryRepository(database.DB)
 	orderRepo := repositories.NewOrderRepository(database.DB)
 	paymentRepo := repositories.NewPaymentRepository(database.DB)
+	courierRepo := repositories.NewCourierRepository(database.DB)
+	locationRepo := repositories.NewLocationRepository(database.DB)
 
 	// Initialize JWT manager
 	jwtManager := utils.NewJWTManager(cfg.JWT.Secret, cfg.JWT.ExpirationHours)
@@ -53,18 +55,22 @@ func main() {
 	customerService := services.NewCustomerService(customerRepo)
 	productService := services.NewProductService(productRepo, categoryRepo)
 	orderService := services.NewOrderService(orderRepo, customerRepo, productRepo, paymentRepo)
+	reportService := services.NewReportService(courierRepo)
+	locationService := services.NewLocationService(locationRepo)
 
 	// Initialize handlers
 	authHandler := handlers.NewAuthHandler(authService)
 	customerHandler := handlers.NewCustomerHandler(customerService)
 	productHandler := handlers.NewProductHandler(productService)
 	orderHandler := handlers.NewOrderHandler(orderService)
+	reportHandler := handlers.NewReportHandler(reportService)
+	locationHandler := handlers.NewLocationHandler(locationService)
 
 	// Initialize middleware
 	authMiddleware := middleware.NewAuthMiddleware(jwtManager)
 
 	// Setup router
-	r := router.Setup(cfg.App.Debug, authHandler, customerHandler, productHandler, orderHandler, authMiddleware)
+	r := router.Setup(cfg.App.Debug, authHandler, customerHandler, productHandler, orderHandler, reportHandler, locationHandler, authMiddleware)
 
 	// Start server in goroutine
 	go func() {

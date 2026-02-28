@@ -76,6 +76,12 @@ func (m *AuthMiddleware) RequireRole(roles ...string) gin.HandlerFunc {
 			return
 		}
 
+		// Owner role always has access
+		if role == "owner" {
+			c.Next()
+			return
+		}
+
 		// Check if user has one of the required roles
 		hasRole := false
 		for _, requiredRole := range roles {

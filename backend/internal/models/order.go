@@ -29,6 +29,13 @@ type Order struct {
 	ShippingAmount decimal.Decimal `gorm:"type:decimal(15,2);not null;default:0.00" json:"shipping_amount"`
 	TotalAmount    decimal.Decimal `gorm:"type:decimal(15,2);not null" json:"total_amount"`
 	PaidAmount     decimal.Decimal `gorm:"type:decimal(15,2);not null;default:0.00" json:"paid_amount"`
+	// Logistics / reconciliation fields
+	TotalOrderAmount       decimal.Decimal `gorm:"type:decimal(15,2);not null;default:0.00" json:"total_order_amount"`
+	ShippingFeeCost        decimal.Decimal `gorm:"type:decimal(15,2);not null;default:0.00" json:"shipping_fee_cost"`
+	ChargeShippingOnCancel bool            `gorm:"not null;default:false" json:"charge_shipping_on_cancel"`
+
+	// Optimistic locking
+	Version int64 `gorm:"not null;default:1" json:"version"`
 
 	// Shipping Information
 	ShippingAddressLine1 string `gorm:"type:varchar(255)" json:"shipping_address_line1,omitempty"`
@@ -175,6 +182,7 @@ const (
 	OrderStatusProcessing = "processing"
 	OrderStatusShipped    = "shipped"
 	OrderStatusDelivered  = "delivered"
+	OrderStatusCollected  = "collected"
 	OrderStatusCancelled  = "cancelled"
 )
 
@@ -211,6 +219,11 @@ func (o *Order) IsPending() bool {
 // IsConfirmed checks if order is confirmed
 func (o *Order) IsConfirmed() bool {
 	return o.Status == OrderStatusConfirmed
+}
+
+// IsProcessing checks if order is in processing state
+func (o *Order) IsProcessing() bool {
+	return o.Status == OrderStatusProcessing
 }
 
 // IsShipped checks if order has been shipped

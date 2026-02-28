@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -36,6 +37,13 @@ type OrderListFilters struct {
 // Create creates a new order with items
 func (r *OrderRepository) Create(order *models.Order) error {
 	return r.db.Transaction(func(tx *gorm.DB) error {
+		// Set tenant for this transaction at LOCAL scope so it applies to this tx only
+		if order.TenantID != uuid.Nil {
+			if err := tx.Exec("SET LOCAL app.current_tenant = ?", order.TenantID).Error; err != nil {
+				return err
+			}
+		}
+
 		// Create the order
 		if err := tx.Create(order).Error; err != nil {
 			return err
@@ -153,7 +161,33 @@ func (r *OrderRepository) List(tenantID uuid.UUID, filters OrderListFilters) ([]
 
 // Update updates an order
 func (r *OrderRepository) Update(order *models.Order) error {
-	return r.db.Save(order).Error
+	// Use optimistic locking: only update when version matches, then increment version
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		if order.TenantID != uuid.Nil {
+			if err := tx.Exec("SET LOCAL app.current_tenant = ?", order.TenantID).Error; err != nil {
+				return err
+			}
+		}
+
+		// store current version and increment
+		prevVersion := order.Version
+		order.Version = prevVersion + 1
+
+		res := tx.Model(&models.Order{}).
+			Where("id = ? AND tenant_id = ? AND version = ?", order.ID, order.TenantID, prevVersion).
+			Select("*").
+			Updates(order)
+
+		if res.Error != nil {
+			return res.Error
+		}
+
+		if res.RowsAffected == 0 {
+			return errors.New("optimistic locking failure")
+		}
+
+		return nil
+	})
 }
 
 // Delete soft deletes an order
@@ -195,19 +229,39 @@ func (r *OrderRepository) GenerateOrderNumber(tenantID uuid.UUID) (string, error
 
 // UpdateStatus updates the order status
 func (r *OrderRepository) UpdateStatus(id uuid.UUID, tenantID uuid.UUID, status string) error {
-	return r.db.Model(&models.Order{}).
-		Where("id = ? AND tenant_id = ?", id, tenantID).
-		Update("status", status).Error
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		if tenantID != uuid.Nil {
+			if err := tx.Exec("SET LOCAL app.current_tenant = ?", tenantID).Error; err != nil {
+				return err
+			}
+		}
+
+		res := tx.Model(&models.Order{}).
+			Where("id = ? AND tenant_id = ?", id, tenantID).
+			Update("status", status)
+
+		return res.Error
+	})
 }
 
 // UpdatePaymentStatus updates the payment status and paid amount
 func (r *OrderRepository) UpdatePaymentStatus(id uuid.UUID, tenantID uuid.UUID, paymentStatus string, paidAmount string) error {
-	return r.db.Model(&models.Order{}).
-		Where("id = ? AND tenant_id = ?", id, tenantID).
-		Updates(map[string]interface{}{
-			"payment_status": paymentStatus,
-			"paid_amount":    paidAmount,
-		}).Error
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		if tenantID != uuid.Nil {
+			if err := tx.Exec("SET LOCAL app.current_tenant = ?", tenantID).Error; err != nil {
+				return err
+			}
+		}
+
+		res := tx.Model(&models.Order{}).
+			Where("id = ? AND tenant_id = ?", id, tenantID).
+			Updates(map[string]interface{}{
+				"payment_status": paymentStatus,
+				"paid_amount":    paidAmount,
+			})
+
+		return res.Error
+	})
 }
 
 // CountByTenant returns the total number of orders for a tenant

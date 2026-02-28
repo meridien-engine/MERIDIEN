@@ -6,12 +6,13 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	rbac "github.com/mu7ammad-3li/MERIDIEN/backend/internal/auth"
 	"github.com/mu7ammad-3li/MERIDIEN/backend/internal/handlers"
 	"github.com/mu7ammad-3li/MERIDIEN/backend/internal/middleware"
 )
 
 // Setup configures and returns the router
-func Setup(debug bool, authHandler *handlers.AuthHandler, customerHandler *handlers.CustomerHandler, productHandler *handlers.ProductHandler, orderHandler *handlers.OrderHandler, authMiddleware *middleware.AuthMiddleware) *gin.Engine {
+func Setup(debug bool, authHandler *handlers.AuthHandler, customerHandler *handlers.CustomerHandler, productHandler *handlers.ProductHandler, orderHandler *handlers.OrderHandler, reportHandler *handlers.ReportHandler, locationHandler *handlers.LocationHandler, authMiddleware *middleware.AuthMiddleware) *gin.Engine {
 	// Set Gin mode
 	if !debug {
 		gin.SetMode(gin.ReleaseMode)
@@ -64,7 +65,7 @@ func Setup(debug bool, authHandler *handlers.AuthHandler, customerHandler *handl
 
 		// Protected auth routes
 		authProtected := v1.Group("/auth")
-		authProtected.Use(authMiddleware.RequireAuth())
+		authProtected.Use(authMiddleware.RequireAuth(), middleware.TenantMiddleware())
 		{
 			authProtected.GET("/me", authHandler.GetCurrentUser)
 			authProtected.POST("/logout", authHandler.Logout)
@@ -72,7 +73,7 @@ func Setup(debug bool, authHandler *handlers.AuthHandler, customerHandler *handl
 
 		// Protected routes (require authentication)
 		protected := v1.Group("")
-		protected.Use(authMiddleware.RequireAuth())
+		protected.Use(authMiddleware.RequireAuth(), middleware.TenantMiddleware())
 		{
 			// Customer routes
 			customers := protected.Group("/customers")
@@ -97,7 +98,7 @@ func Setup(debug bool, authHandler *handlers.AuthHandler, customerHandler *handl
 			// Order routes
 			orders := protected.Group("/orders")
 			{
-				orders.POST("", orderHandler.Create)
+				orders.POST("", authMiddleware.RequireRole(rbac.RoleOperator, rbac.RoleOwner), orderHandler.Create)
 				orders.GET("", orderHandler.List)
 				orders.GET("/:id", orderHandler.GetByID)
 				orders.PUT("/:id", orderHandler.Update)
@@ -105,16 +106,31 @@ func Setup(debug bool, authHandler *handlers.AuthHandler, customerHandler *handl
 
 				// Order status transitions
 				orders.POST("/:id/confirm", orderHandler.Confirm)
-				orders.POST("/:id/ship", orderHandler.Ship)
-				orders.POST("/:id/deliver", orderHandler.Deliver)
+				orders.POST("/:id/ship", authMiddleware.RequireRole(rbac.RoleOperator, rbac.RoleOwner), orderHandler.Ship)
+				orders.POST("/:id/deliver", authMiddleware.RequireRole(rbac.RoleOperator, rbac.RoleOwner), orderHandler.Deliver)
 				orders.POST("/:id/cancel", orderHandler.Cancel)
+				orders.POST("/:id/collect", authMiddleware.RequireRole(rbac.RoleCollector, rbac.RoleOwner), orderHandler.Collect)
 
 				// Order payments
 				orders.POST("/:id/payments", orderHandler.RecordPayment)
 				orders.GET("/:id/payments", orderHandler.ListPayments)
 			}
 
-			// Future: Report routes
+			// Location routes
+			locations := protected.Group("/locations")
+			{
+				locations.POST("", locationHandler.Create)
+				locations.GET("", locationHandler.List)
+				locations.GET("/:id", locationHandler.GetByID)
+				locations.PUT("/:id", locationHandler.Update)
+				locations.DELETE("/:id", locationHandler.Delete)
+			}
+
+			// Report routes (owner-only)
+			reports := protected.Group("/reports")
+			{
+				reports.GET("/courier-reconciliation", authMiddleware.RequireRole(rbac.RoleOwner), reportHandler.GetCourierReconciliation)
+			}
 		}
 	}
 
