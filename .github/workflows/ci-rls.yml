@@ -1,0 +1,61 @@
+name: CI - RLS Integration
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  integration:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+    env:
+      MERIDIEN_DB_DSN: user=postgres password=postgres dbname=meridien_ci sslmode=disable
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Wait for Postgres
+        run: |
+          until pg_isready -h localhost -p 5432 -U postgres; do sleep 1; done
+
+      - name: Create test database
+        run: |
+          PGPASSWORD=postgres psql -h localhost -U postgres -d postgres -c "DROP DATABASE IF EXISTS meridien_ci;"
+          PGPASSWORD=postgres psql -h localhost -U postgres -d postgres -c "CREATE DATABASE meridien_ci;"
+
+      - name: Apply migrations
+        run: |
+          for f in backend/migrations/*.up.sql; do
+            echo "Applying $f"
+            PGPASSWORD=postgres psql -h localhost -U postgres -d meridien_ci -f "$f"
+          done
+
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'
+
+      - name: Install backend deps
+        run: |
+          cd backend
+          go mod download
+
+      - name: Run RLS integration test
+        run: |
+          cd backend
+          go test ./internal/integration -run TestRLS_Enforcement -v
+        env:
+          MERIDIEN_DB_DSN: ${{ env.MERIDIEN_DB_DSN }}
