@@ -145,6 +145,30 @@ flutter build web             # Production web build
 flutter pub run build_runner build --delete-conflicting-outputs  # Generate models
 ```
 
+### Integration tests (RLS)
+
+Run the RLS enforcement integration test locally to verify database row-level security behavior.
+
+- Requirements: a running Postgres instance with the project migrations applied (see `./scripts/run-migrations.sh`). The test will skip if it cannot connect using the configured DSN.
+- Configure a DSN via `MERIDIEN_DB_DSN` (optional). Example DSN:
+
+```bash
+export MERIDIEN_DB_DSN="user=postgres dbname=meridien_dev sslmode=disable"
+```
+
+- Run the single integration test (skips when DB access/auth fails):
+
+```bash
+cd backend
+go test ./internal/integration -run TestRLS_Enforcement -v
+```
+
+- Notes:
+    - The test inserts temporary tenants and orders inside a transaction and uses `SET LOCAL app.current_tenant` to verify access.
+    - If your Postgres user requires a password, set the DSN accordingly (for example, `user=postgres password=secret dbname=meridien_dev sslmode=disable`).
+    - The test cleans up via transaction rollback so it is safe to run against a dev database.
+
+
 ### Conventions
 
 **Go:** snake_case files, PascalCase exports, camelCase unexported  
