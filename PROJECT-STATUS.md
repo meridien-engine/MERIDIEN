@@ -61,8 +61,8 @@
 - Unit tests: 14/14 RBAC tests passing (middleware, auth, handlers)
 - Courier reconciliation report: GET `/api/v1/reports/courier-reconciliation` (owner-only)
 - Locations CRUD: Full city/zone/shipping_fee management endpoints
-- PostgreSQL RLS policies still required for full isolation (defense-in-depth)
-- **Next:** RLS policies
+- PostgreSQL RLS policies applied (see migration `000006_enable_rls`) for tenant-scoped tables (defense-in-depth)
+- **Next:** monitor and extend policies if new tenant-scoped tables are added
 - **Priority:** Critical | **Complexity:** Medium
 
 **Automated Testing** ❌
@@ -162,7 +162,7 @@ All tables include: `id`, `tenant_id`, `created_at`, `updated_at`, `deleted_at`
 
 ### Critical
 1. **Automated testing** - RBAC tests added (14 tests passing); backend unit coverage needs expansion to 80%
-2. **RLS policies** - middleware + per-transaction tenant variable complete; RLS policies (defense-in-depth) not yet applied
+2. **RLS policies** - middleware + per-transaction tenant variable complete; RLS policies applied and verified against `meridien_dev` using migration `000006_enable_rls`
 3. **Production deployment** - CI/CD (GitHub Actions), monitoring (Prometheus), automated backups still required
 4. **Redis integration** - Refresh token caching and rate limiting not yet implemented
 
@@ -187,11 +187,12 @@ All tables include: `id`, `tenant_id`, `created_at`, `updated_at`, `deleted_at`
    - City/zone/shipping_fee management
    - Pagination support with tenant filtering
    - Decimal precision for shipping fees
+7. ✅ PostgreSQL RLS policies applied for tenant-scoped tables (migration `000006_enable_rls`)
+8. ✅ RLS integration test added (`backend/internal/integration/rls_test.go`) — skips when DB DSN is not configured
 
 ### Next 2 Weeks (Phase 2 Continuation)
-7. RLS policies for multi-tenant database isolation (defense-in-depth)
-8. Redis for token management and rate limiting middleware
-9. Enhanced backend error handling and validation
+7. Redis for token management and rate limiting middleware
+8. Enhanced backend error handling and validation
 
 ### Next Month (Phase 2 Sprint 2)
 10. Reports module (revenue, analytics)
