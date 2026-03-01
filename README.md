@@ -7,236 +7,214 @@ Enterprise SaaS platform for retail operations and inventory management. Built w
 [![Go](https://img.shields.io/badge/Go-1.21+-00ADD8.svg)](https://golang.org/)
 [![Flutter](https://img.shields.io/badge/Flutter-3.24+-02569B.svg)](https://flutter.dev/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15+-336791.svg)](https://www.postgresql.org/)
+[![Redis](https://img.shields.io/badge/Redis-7+-DC382D.svg)](https://redis.io/)
 
-## Status
+---
 
-**Phase 1 MVP:** ✅ Complete (100%)
-**Current Focus:** Phase 2 - Production Ready (55%)
+## What It Does
 
-### Implemented
-- Multi-tenant architecture with JWT auth and workspace discovery login
-- Customer management (CRM, addresses, financials)
-- Product catalog (SKU, categories, inventory)
-- Order processing (7-state workflow, payments, shipping fees)
-- Location management (city/zone shipping zones)
-- Courier management and cash reconciliation reports
-- Row-level security (RLS) enforcement on all tenant tables
-- Role-based UI guards (owner / operator / collector)
-- Internationalization (AR/EN, RTL support)
+MERIDIEN manages the full retail operations cycle across isolated business tenants:
 
-### Key Metrics
-- 33 RESTful API endpoints
-- 8+ multi-tenant database tables
-- 17 Flutter screens
-- RLS enforced at database level via PostgreSQL policies
+- **Auth** — JWT login with workspace discovery, role-based access (owner / operator / collector)
+- **Customers** — CRM with multi-level addresses, business profiles, credit limits
+- **Products** — SKU/barcode catalog, hierarchical categories, inventory tracking, low-stock alerts
+- **Orders** — 7-state lifecycle (draft → delivered), line items, payment tracking, shipping fees
+- **Locations** — City/zone shipping configuration with fee management
+- **Couriers** — Courier catalog, cash-on-delivery reconciliation reports
+
+---
 
 ## Tech Stack
 
-**Backend:** Go 1.21+ · Gin · GORM · PostgreSQL 15+ · JWT
-**Frontend:** Flutter 3.24+ · Riverpod · Dio · Freezed
-**Architecture:** Clean architecture with tenant isolation
+| Layer | Tech |
+|---|---|
+| Backend | Go 1.21+, Gin, GORM |
+| Frontend | Flutter 3.24+, Riverpod, Dio, Freezed |
+| Database | PostgreSQL 15+ with Row-Level Security |
+| Cache | Redis 7+ (token blacklist, rate limiting) |
+| Auth | JWT HS256, 24h expiry, JTI-based revocation |
+
+---
 
 ## Quick Start
 
 ### Prerequisites
-- Go 1.21+
-- Flutter 3.24+
-- PostgreSQL 15+
+- Go 1.21+, Flutter 3.24+, PostgreSQL 15+
+- Redis 7+ *(optional — app runs without it)*
 
 ### Backend
 
 ```bash
 cd backend
-
-# Setup database
 ./scripts/create-database.sh
 ./scripts/run-migrations.sh
+./scripts/start-server.sh       # starts on :8080
+```
 
-# Start server (localhost:8080)
-./scripts/start-server.sh
+**Environment** (`backend/configs/.env`):
+
+```env
+DB_HOST=localhost
+DB_PORT=5432
+DB_USER=postgres
+DB_PASSWORD=postgres
+DB_NAME=meridien_dev
+
+JWT_SECRET=change-this-in-production
+JWT_EXPIRATION_HOURS=24
+
+# Optional
+REDIS_HOST=localhost
+REDIS_PORT=6379
+REDIS_PASSWORD=
+REDIS_DB=0
 ```
 
 ### Frontend
 
 ```bash
 cd frontend
-
-# Install and generate models
 flutter pub get
 flutter pub run build_runner build --delete-conflicting-outputs
-
-# Run web
 flutter run -d chrome
 ```
 
-### Login
+### Demo credentials
 
-The login screen uses a **workspace discovery** flow — no need to know your tenant slug upfront:
+Email: `admin@meridien.com` · Password: `Admin123`
 
-1. Enter your email and password
-2. Choose your workspace from the list
-3. You're in
+The login screen uses workspace discovery — enter credentials, then select your workspace from the list.
 
-**Demo credentials:**
-- Email: `admin@meridien.com`
-- Password: `Admin123`
+---
 
 ## Architecture
 
 ```
-Flutter (Web/Mobile/Desktop)
-    ↓ REST API
-Gin HTTP Handlers
+Flutter (Web / Mobile / Desktop)
+    ↓  REST API
+Gin Router  ←── CORS, rate limiting (Redis, fail-open)
     ↓
-Business Services
+Auth Middleware  ←── JWT validation + blacklist check (Redis, fail-open)
     ↓
-Repository Layer  ←── tenantTx() sets RLS session variable
-    ↓
-GORM Models
-    ↓
-PostgreSQL (RLS-enforced, multi-tenant)
+Handlers → Services → Repositories
+    ↓             ↓
+    └─────────────┴── tenantTx() → SET LOCAL app.current_tenant
+                                          ↓
+                                   PostgreSQL (RLS enforced)
 ```
 
-**Multi-Tenancy:** Every table includes `tenant_id`. All queries are wrapped in a transaction that sets `SET LOCAL app.current_tenant` to satisfy PostgreSQL RLS policies. JWT carries the tenant context.
+Every table carries `tenant_id`. Queries run inside transactions that set the RLS session variable, enforcing strict data isolation at the database level.
+
+---
 
 ## Project Structure
 
 ```
 backend/
-├── cmd/
-│   ├── server/          # Main server entry point
-│   └── import_bosta/    # Bosta CSV import CLI
-├── handlers/            # HTTP layer
-├── services/            # Business logic
-├── repositories/        # Data access (RLS-aware via tenantTx)
-├── models/              # GORM entities
-├── middleware/          # Auth, CORS, tenant
-└── migrations/          # Database migrations
+├── cmd/server/          # Entry point
+├── cmd/import_bosta/    # Bosta CSV import CLI
+└── internal/
+    ├── cache/           # Redis client, token blacklist
+    ├── config/          # Config loading (env / .env file)
+    ├── handlers/        # HTTP layer
+    ├── services/        # Business logic
+    ├── repositories/    # Data access — RLS-aware via tenantTx()
+    ├── models/          # GORM entities
+    ├── middleware/       # Auth, rate limit, tenant
+    └── router/          # Route registration
 
 frontend/
-├── core/                # Theme, constants, providers (role_provider)
-├── data/                # Models, repositories
+├── core/                # Theme, constants, role provider
+├── data/                # Freezed models, repositories
 ├── features/
 │   ├── auth/            # Login (workspace discovery), register
-│   ├── customers/       # Customer management
-│   ├── products/        # Product catalog
-│   ├── orders/          # Order processing
-│   ├── locations/       # City/zone shipping configuration
-│   └── couriers/        # Courier management + reconciliation
-├── routes/              # Navigation (role-gated routes)
-└── shared/              # Shared widgets
+│   ├── customers/
+│   ├── products/
+│   ├── orders/
+│   ├── locations/
+│   └── couriers/
+├── routes/              # Role-gated navigation
+└── shared/              # Reusable widgets
 ```
+
+---
 
 ## API
 
-**Standard Response:**
+All responses follow a standard envelope:
+
 ```json
-{
-  "success": true,
-  "message": "Operation completed",
-  "data": {...}
-}
+{ "success": true, "message": "...", "data": {} }
 ```
 
-**Endpoints:**
-- `POST /api/v1/auth/login` — workspace discovery or direct JWT login
-- `GET /api/v1/customers` — list with pagination and filters
-- `GET /api/v1/products` — filter by category, stock level
-- `POST /api/v1/orders` — create with line items and shipping fee
-- `POST /api/v1/orders/:id/ship` — advance status, deduct inventory
-- `GET /api/v1/locations` — city/zone shipping configuration
-- `GET /api/v1/reports/courier-reconciliation` — cash reconciliation per courier
+Paginated lists include a `meta` object: `{ "total", "page", "per_page", "total_pages" }`.
 
-Full API docs: [backend/API-DOCUMENTATION.md](backend/API-DOCUMENTATION.md)
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| POST | `/api/v1/auth/login` | — | Workspace discovery or direct login |
+| POST | `/api/v1/auth/logout` | JWT | Revoke token |
+| POST | `/api/v1/auth/refresh` | JWT | Refresh JWT |
+| CRUD | `/api/v1/customers` | JWT | Customer management |
+| CRUD | `/api/v1/products` | JWT | Product catalog |
+| CRUD | `/api/v1/orders` | JWT | Order management |
+| POST | `/api/v1/orders/:id/{action}` | JWT + role | Status transitions |
+| CRUD | `/api/v1/locations` | JWT | Shipping zones |
+| GET | `/api/v1/reports/courier-reconciliation` | JWT + owner | Cash reconciliation |
 
-## Development
+Full reference: [backend/API-DOCUMENTATION.md](backend/API-DOCUMENTATION.md)
 
-### Backend Commands
-```bash
-cd backend
-go run cmd/server/main.go     # Start server
-./scripts/run-migrations.sh   # Apply migrations
-go build ./...                # Verify build
-```
-
-### Frontend Commands
-```bash
-flutter run -d chrome                                                    # Development
-flutter build web                                                        # Production build
-flutter pub run build_runner build --delete-conflicting-outputs          # Regenerate models
-flutter analyze                                                          # Lint
-```
-
-### Integration Tests (RLS)
-
-Verify database row-level security enforcement:
-
-```bash
-export MERIDIEN_DB_DSN="user=postgres dbname=meridien_dev sslmode=disable"
-cd backend
-go test ./internal/integration -run TestRLS_Enforcement -v
-```
-
-The test inserts temporary data inside a transaction with `SET LOCAL app.current_tenant` and verifies isolation. Skipped automatically if `MERIDIEN_DB_DSN` is not set.
-
-### Bosta CSV Import
-
-Seed locations and couriers from a Bosta pricing export:
-
-```bash
-cd backend
-go run cmd/import_bosta/main.go --file pricing.csv --tenant <tenant-id>
-```
-
-### Conventions
-
-**Go:** snake_case files · PascalCase exports · camelCase unexported
-**Dart:** snake_case files · PascalCase classes · camelCase variables
-**Database:** snake_case tables/columns · plural tables · UUID primary keys
-
-## Roadmap
-
-### Phase 2 (In Progress — 55%)
-- [x] Location and courier management
-- [x] RLS enforcement at database level
-- [x] Workspace discovery login flow
-- [x] Role-based UI guards
-- [ ] Full RBAC (backend enforcement)
-- [ ] Automated testing (target: 80% backend, 70% frontend)
-- [ ] Redis session cache and rate limiting
-- [ ] Invoice generation (PDF)
-- [ ] Advanced reporting dashboard
-
-### Phase 3 (Planned)
-- [ ] Advanced inventory (batch tracking, serial numbers)
-- [ ] Supplier and purchase order management
-- [ ] Business intelligence dashboards
-- [ ] Mobile app optimization
-- [ ] Integration APIs (Shopify, WooCommerce)
+---
 
 ## Security
 
 - bcrypt password hashing (cost 10)
-- JWT with 24h expiry and refresh tokens
-- PostgreSQL RLS policies on all tenant tables (`FORCE ROW LEVEL SECURITY`)
+- JWT HS256, 24h expiry, unique JTI per token
+- Token revocation on logout via Redis (JTI blacklisted with TTL)
+- Rate limiting on auth endpoints: 10 req/min per IP (Redis, fail-open)
+- PostgreSQL RLS on all tenant tables (`FORCE ROW LEVEL SECURITY`)
 - `SET LOCAL app.current_tenant` scoped to each transaction
-- GORM prepared statements (SQL injection prevention)
-- Input validation at handler level
-- Soft deletes for data retention
+- GORM prepared statements — no raw SQL
+- Soft deletes on all entities
+
+---
+
+## Development
+
+```bash
+# Backend
+cd backend
+go build ./...                             # Verify build
+go test ./...                              # Run tests
+./scripts/run-migrations.sh               # Apply migrations
+
+# RLS integration test (requires live DB)
+export MERIDIEN_DB_DSN="user=postgres dbname=meridien_dev sslmode=disable"
+go test ./internal/integration -run TestRLS_Enforcement -v
+
+# Bosta CSV import
+go run cmd/import_bosta/main.go --file pricing.csv --tenant <tenant-id>
+
+# Frontend
+cd frontend
+flutter analyze
+flutter build web
+flutter pub run build_runner build --delete-conflicting-outputs
+```
+
+---
 
 ## Documentation
 
-- [Getting Started](GETTING-STARTED.md) — Setup guide
-- [Project Status](PROJECT-STATUS.md) — Detailed status and metrics
+- [Project Status](PROJECT-STATUS.md) — Progress, roadmap, known gaps
+- [Getting Started](GETTING-STARTED.md) — Detailed setup guide
+- [API Documentation](backend/API-DOCUMENTATION.md) — Full endpoint reference
 - [Development Rules](docs/DEVELOPMENT-RULES.md) — Coding standards
-- [API Documentation](backend/API-DOCUMENTATION.md) — Complete API reference
 - [Brand Guidelines](docs/MERIDIEN-BRAND.md) — Visual identity
+
+---
 
 ## License
 
 Proprietary. Copyright © 2024-2025 MERIDIEN.
 
-## Contact
-
-**Muhammad Ali**
-[GitHub](https://github.com/mu7ammad-3li/) · [LinkedIn](https://linkedin.com/in/muhammad-3lii) · muhammad.3lii2@gmail.com
+**Muhammad Ali** — [GitHub](https://github.com/mu7ammad-3li/) · [LinkedIn](https://linkedin.com/in/muhammad-3lii) · muhammad.3lii2@gmail.com
