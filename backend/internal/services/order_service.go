@@ -79,7 +79,7 @@ type UpdateOrderRequest struct {
 
 // Create creates a new order
 func (s *OrderService) Create(req *CreateOrderRequest) (*models.Order, error) {
-	// Validate customer exists and is active
+	// Validate customer exists and is active (online orders only)
 	customer, err := s.customerRepo.FindByID(req.CustomerID, req.TenantID)
 	if err != nil {
 		return nil, errors.New("customer not found")
@@ -193,7 +193,8 @@ func (s *OrderService) Create(req *CreateOrderRequest) (*models.Order, error) {
 	// Create order
 	order := &models.Order{
 		TenantID:             req.TenantID,
-		CustomerID:           req.CustomerID,
+		CustomerID:           &req.CustomerID,
+		OrderType:            models.OrderTypeOnline,
 		OrderNumber:          orderNumber,
 		OrderDate:            time.Now(),
 		Status:               models.OrderStatusDraft,

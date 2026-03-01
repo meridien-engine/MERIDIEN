@@ -8,11 +8,19 @@ import (
 	"gorm.io/gorm"
 )
 
+// Order type constants
+const (
+	OrderTypeOnline = "online"
+	OrderTypePOS    = "pos"
+)
+
 // Order represents a sales order in the system
 type Order struct {
 	BaseModel
-	TenantID   uuid.UUID `gorm:"type:uuid;not null;index" json:"tenant_id"`
-	CustomerID uuid.UUID `gorm:"type:uuid;not null;index" json:"customer_id"`
+	TenantID     uuid.UUID  `gorm:"type:uuid;not null;index" json:"tenant_id"`
+	CustomerID   *uuid.UUID `gorm:"type:uuid;index" json:"customer_id,omitempty"`
+	OrderType    string     `gorm:"type:varchar(20);not null;default:'online'" json:"order_type"`
+	CustomerName string     `gorm:"type:varchar(255)" json:"customer_name,omitempty"`
 
 	// Order Identification
 	OrderNumber string    `gorm:"type:varchar(50);not null" json:"order_number"`
@@ -52,7 +60,7 @@ type Order struct {
 
 	// Relationships
 	Tenant   *Tenant     `gorm:"foreignKey:TenantID" json:"tenant,omitempty"`
-	Customer *Customer   `gorm:"foreignKey:CustomerID" json:"customer,omitempty"`
+	Customer *Customer   `gorm:"foreignKey:CustomerID;references:ID" json:"customer,omitempty"`
 	Items    []OrderItem `gorm:"foreignKey:OrderID" json:"items,omitempty"`
 	Payments []Payment   `gorm:"foreignKey:OrderID" json:"payments,omitempty"`
 }

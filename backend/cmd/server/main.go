@@ -68,6 +68,8 @@ func main() {
 		authRateLimiter = middleware.NewRateLimiter(cache.Client, 10, time.Minute)
 	}
 
+	posSessionRepo := repositories.NewPOSSessionRepository(database.DB)
+
 	// Initialize services
 	authService := services.NewAuthService(userRepo, tenantRepo, jwtManager, tokenBlacklist)
 	customerService := services.NewCustomerService(customerRepo)
@@ -75,6 +77,7 @@ func main() {
 	orderService := services.NewOrderService(orderRepo, customerRepo, productRepo, paymentRepo)
 	reportService := services.NewReportService(courierRepo)
 	locationService := services.NewLocationService(locationRepo)
+	posService := services.NewPOSService(posSessionRepo, orderRepo, productRepo, paymentRepo, orderService)
 
 	// Initialize handlers
 	authHandler := handlers.NewAuthHandler(authService)
@@ -83,12 +86,13 @@ func main() {
 	orderHandler := handlers.NewOrderHandler(orderService)
 	reportHandler := handlers.NewReportHandler(reportService)
 	locationHandler := handlers.NewLocationHandler(locationService)
+	posHandler := handlers.NewPOSHandler(posService)
 
 	// Initialize middleware
 	authMiddleware := middleware.NewAuthMiddleware(jwtManager, tokenBlacklist)
 
 	// Setup router
-	r := router.Setup(cfg.App.Debug, authHandler, customerHandler, productHandler, orderHandler, reportHandler, locationHandler, authMiddleware, authRateLimiter)
+	r := router.Setup(cfg.App.Debug, authHandler, customerHandler, productHandler, orderHandler, reportHandler, locationHandler, posHandler, authMiddleware, authRateLimiter)
 
 	// Start server in goroutine
 	go func() {

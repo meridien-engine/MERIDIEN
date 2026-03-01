@@ -18,7 +18,7 @@ type rateLimiterMiddleware interface {
 
 // Setup configures and returns the router.
 // authRateLimiter may be nil; if so, no rate limiting is applied to auth routes.
-func Setup(debug bool, authHandler *handlers.AuthHandler, customerHandler *handlers.CustomerHandler, productHandler *handlers.ProductHandler, orderHandler *handlers.OrderHandler, reportHandler *handlers.ReportHandler, locationHandler *handlers.LocationHandler, authMiddleware *middleware.AuthMiddleware, authRateLimiter rateLimiterMiddleware) *gin.Engine {
+func Setup(debug bool, authHandler *handlers.AuthHandler, customerHandler *handlers.CustomerHandler, productHandler *handlers.ProductHandler, orderHandler *handlers.OrderHandler, reportHandler *handlers.ReportHandler, locationHandler *handlers.LocationHandler, posHandler *handlers.POSHandler, authMiddleware *middleware.AuthMiddleware, authRateLimiter rateLimiterMiddleware) *gin.Engine {
 	// Set Gin mode
 	if !debug {
 		gin.SetMode(gin.ReleaseMode)
@@ -99,6 +99,7 @@ func Setup(debug bool, authHandler *handlers.AuthHandler, customerHandler *handl
 			{
 				products.POST("", productHandler.Create)
 				products.GET("", productHandler.List)
+				products.GET("/lookup", posHandler.LookupProduct)
 				products.GET("/:id", productHandler.GetByID)
 				products.PUT("/:id", productHandler.Update)
 				products.DELETE("/:id", productHandler.Delete)
@@ -133,6 +134,17 @@ func Setup(debug bool, authHandler *handlers.AuthHandler, customerHandler *handl
 				locations.GET("/:id", locationHandler.GetByID)
 				locations.PUT("/:id", locationHandler.Update)
 				locations.DELETE("/:id", locationHandler.Delete)
+			}
+
+			// POS routes
+			pos := protected.Group("/pos")
+			{
+				pos.POST("/sessions", posHandler.OpenSession)
+				pos.GET("/sessions", posHandler.ListSessions)
+				pos.GET("/sessions/current", posHandler.GetCurrentSession)
+				pos.GET("/sessions/:id", posHandler.GetSession)
+				pos.POST("/sessions/:id/close", posHandler.CloseSession)
+				pos.POST("/checkout", posHandler.Checkout)
 			}
 
 			// Report routes (owner-only)

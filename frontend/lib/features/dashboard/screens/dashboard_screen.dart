@@ -45,9 +45,10 @@ class DashboardScreen extends ConsumerWidget {
                       ),
                       Text(
                         tenant?.name ?? 'No Tenant',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: AppColors.textSecondary,
-                            ),
+                        style:
+                            Theme.of(context).textTheme.bodySmall?.copyWith(
+                                  color: AppColors.textSecondary,
+                                ),
                       ),
                     ],
                   ),
@@ -123,6 +124,12 @@ class DashboardScreen extends ConsumerWidget {
                       label: context.loc.orders,
                       color: AppColors.warning,
                       onTap: () => context.push('/orders'),
+                    ),
+                    _QuickActionCard(
+                      icon: Icons.point_of_sale_rounded,
+                      label: 'POS',
+                      color: Colors.teal,
+                      onTap: () => context.push('/pos'),
                     ),
                   ],
                 ),

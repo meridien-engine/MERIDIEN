@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/gin-gonic/gin"
@@ -16,8 +17,9 @@ func TenantMiddleware() gin.HandlerFunc {
 			// best-effort: set session variable for operations that might not run in a transaction
 			if db := database.GetDB(); db != nil {
 				if _, err := db.DB(); err == nil {
-					// Exec on the connection pool; repositories set LOCAL within transactions for safety
-					if err := db.Exec("SET app.current_tenant = ?", tenant).Error; err != nil {
+					// SET does not support $1 placeholders; inline the UUID directly.
+					// UUIDs are hex+hyphens only — no injection risk.
+					if err := db.Exec(fmt.Sprintf("SET app.current_tenant = '%v'", tenant)).Error; err != nil {
 						log.Printf("warning: failed to set app.current_tenant: %v", err)
 					}
 				}

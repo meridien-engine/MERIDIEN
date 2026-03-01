@@ -41,6 +41,21 @@ func (r *ProductRepository) FindByID(id, tenantID uuid.UUID) (*models.Product, e
 	return &product, nil
 }
 
+// FindByBarcode finds a product by barcode within a specific tenant
+func (r *ProductRepository) FindByBarcode(barcode string, tenantID uuid.UUID) (*models.Product, error) {
+	var product models.Product
+	err := tenantTx(r.db, tenantID, func(tx *gorm.DB) error {
+		return tx.Where("barcode = ? AND tenant_id = ?", barcode, tenantID).Preload("Category").First(&product).Error
+	})
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("product not found")
+		}
+		return nil, err
+	}
+	return &product, nil
+}
+
 // FindBySKU finds a product by SKU within a specific tenant
 func (r *ProductRepository) FindBySKU(sku string, tenantID uuid.UUID) (*models.Product, error) {
 	var product models.Product

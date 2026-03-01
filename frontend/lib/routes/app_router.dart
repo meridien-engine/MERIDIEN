@@ -16,6 +16,8 @@ import '../features/orders/screens/create_order_screen.dart';
 import '../features/locations/screens/location_management_screen.dart';
 import '../features/couriers/screens/courier_management_screen.dart';
 import '../features/couriers/screens/courier_reconciliation_screen.dart';
+import '../features/pos/screens/pos_session_gate_screen.dart';
+import '../features/pos/screens/pos_sessions_screen.dart';
 import '../features/auth/providers/auth_provider.dart';
 import '../core/providers/role_provider.dart';
 import '../data/models/customer_model.dart';
@@ -32,7 +34,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         orElse: () => false,
       );
       final isAuthRoute = state.matchedLocation == '/login' ||
-                          state.matchedLocation == '/register';
+          state.matchedLocation == '/register';
 
       if (!isAuthenticated && !isAuthRoute) {
         return '/login';
@@ -166,6 +168,18 @@ final routerProvider = Provider<GoRouter>((ref) {
           return null;
         },
         builder: (context, state) => const CourierReconciliationScreen(),
+      ),
+
+      // ── POS ───────────────────────────────────────────────────────
+      GoRoute(
+        path: '/pos',
+        name: 'pos',
+        builder: (context, state) => const PosSessionGateScreen(),
+      ),
+      GoRoute(
+        path: '/pos/sessions',
+        name: 'pos-sessions',
+        builder: (context, state) => const PosSessionsScreen(),
       ),
     ],
     errorBuilder: (context, state) => Scaffold(

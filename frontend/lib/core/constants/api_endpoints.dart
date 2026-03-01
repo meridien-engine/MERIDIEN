@@ -46,4 +46,12 @@ class ApiEndpoints {
 
   // Report Endpoints
   static const String courierReconciliation = '/reports/courier-reconciliation';
+
+  // POS Endpoints
+  static const String posSessions = '/pos/sessions';
+  static const String posCurrentSession = '/pos/sessions/current';
+  static String posSessionById(String id) => '/pos/sessions/$id';
+  static String closePosSession(String id) => '/pos/sessions/$id/close';
+  static const String posCheckout = '/pos/checkout';
+  static const String productLookup = '/products/lookup';
 }
