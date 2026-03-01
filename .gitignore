@@ -46,6 +46,7 @@ temp/
 # Binaries
 backend/bin/
 backend/dist/
+backend/import_bosta
 *.exe
 *.exe~
 *.dll
