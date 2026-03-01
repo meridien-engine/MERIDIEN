@@ -127,7 +127,7 @@ class DashboardScreen extends ConsumerWidget {
                     ),
                     _QuickActionCard(
                       icon: Icons.point_of_sale_rounded,
-                      label: 'POS',
+                      label: context.loc.pos,
                       color: Colors.teal,
                       onTap: () => context.push('/pos'),
                     ),
