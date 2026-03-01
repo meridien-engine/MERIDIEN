@@ -1,7 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/auth_state.dart';
-import '../../../data/models/auth_response_model.dart';
 import '../../../data/models/tenant_model.dart';
 import '../../../data/repositories/auth_repository.dart';
 import '../../../data/services/storage_service.dart';
@@ -24,15 +23,12 @@ class AuthNotifier extends StateNotifier<AuthState> {
         state = const AuthState.loading();
         final user = await _authRepository.getCurrentUser();
 
-        // Fetch tenant info from stored slug
         final tenantSlug = _storageService.getTenantSlug();
         if (tenantSlug == null) {
           await logout();
           return;
         }
 
-        // For now, create a minimal tenant object
-        // In a real app, you might want to fetch full tenant details
         final tenant = TenantModel(
           id: user.tenantId,
           name: tenantSlug,
@@ -49,8 +45,27 @@ class AuthNotifier extends StateNotifier<AuthState> {
     }
   }
 
-  // Login
-  Future<void> login(String tenantSlug, String email, String password) async {
+  // Step 1: discover workspaces for the given email + password
+  Future<void> discoverWorkspaces(String email, String password) async {
+    try {
+      state = const AuthState.loading();
+      final workspaces = await _authRepository.discoverWorkspaces(
+        email: email,
+        password: password,
+      );
+      state = AuthState.workspaceSelection(
+        email: email,
+        password: password,
+        workspaces: workspaces,
+      );
+    } catch (e) {
+      state = AuthState.error(_extractErrorMessage(e));
+    }
+  }
+
+  // Step 2: login with the selected workspace
+  Future<void> selectWorkspace(
+      String tenantSlug, String email, String password) async {
     try {
       state = const AuthState.loading();
 
@@ -60,7 +75,6 @@ class AuthNotifier extends StateNotifier<AuthState> {
         password: password,
       );
 
-      // Save auth data
       await _storageService.saveToken(response.token);
       await _storageService.saveTenantSlug(tenantSlug);
       await _storageService.saveUserId(response.user.id);
@@ -93,7 +107,6 @@ class AuthNotifier extends StateNotifier<AuthState> {
         password: password,
       );
 
-      // Save auth data
       await _storageService.saveToken(response.token);
       await _storageService.saveTenantSlug(tenantSlug);
       await _storageService.saveUserId(response.user.id);
@@ -109,7 +122,6 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
   // Logout
   Future<void> logout() async {
-    // Logout is client-side only - just clear storage and reset state
     await _storageService.clearAll();
     state = const AuthState.unauthenticated();
   }
@@ -123,7 +135,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
       }
       return error.message ?? 'Network error occurred';
     }
-    return error.toString();
+    return error.toString().replaceFirst('Exception: ', '');
   }
 }
 

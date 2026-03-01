@@ -13,5 +13,10 @@ class AuthState with _$AuthState {
     TenantModel? tenant,
   }) = _Authenticated;
   const factory AuthState.unauthenticated() = _Unauthenticated;
+  const factory AuthState.workspaceSelection({
+    required String email,
+    required String password,
+    required List<TenantModel> workspaces,
+  }) = _WorkspaceSelection;
   const factory AuthState.error(String message) = _Error;
 }

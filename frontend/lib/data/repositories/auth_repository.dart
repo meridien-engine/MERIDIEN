@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import '../models/user_model.dart';
 import '../models/auth_response_model.dart';
+import '../models/tenant_model.dart';
 
 /// Auth repository using Dio directly (without Retrofit)
 class AuthRepository {
@@ -8,7 +9,32 @@ class AuthRepository {
 
   AuthRepository(this._dio);
 
-  /// Login user
+  /// Discover workspaces for an email/password combination.
+  /// Returns list of tenants the user belongs to.
+  Future<List<TenantModel>> discoverWorkspaces({
+    required String email,
+    required String password,
+  }) async {
+    try {
+      final response = await _dio.post(
+        '/auth/login',
+        data: {'email': email, 'password': password},
+      );
+
+      final data = response.data is Map && response.data['data'] != null
+          ? response.data['data']
+          : response.data;
+
+      final List<dynamic> list = (data as Map<String, dynamic>)['workspaces'] ?? [];
+      return list
+          .map((json) => TenantModel.fromJson(json as Map<String, dynamic>))
+          .toList();
+    } on DioException catch (e) {
+      throw _handleDioError(e);
+    }
+  }
+
+  /// Login user with explicit tenant slug
   Future<AuthResponseModel> login({
     required String email,
     required String password,
@@ -120,13 +146,11 @@ class AuthRepository {
 
   String _extractErrorMessage(dynamic data) {
     if (data == null) return 'Unknown error';
-
     if (data is Map) {
       if (data['error'] != null) return data['error'].toString();
       if (data['message'] != null) return data['message'].toString();
       if (data['detail'] != null) return data['detail'].toString();
     }
-
     return data.toString();
   }
 }
