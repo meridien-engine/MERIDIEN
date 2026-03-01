@@ -3,9 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/localization/localization_extension.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/providers/role_provider.dart';
 import '../../../data/models/order_model.dart';
+import '../../../data/models/location_model.dart';
 import '../../customers/providers/customer_provider.dart';
 import '../../products/providers/product_provider.dart';
+import '../../locations/providers/location_provider.dart';
 import '../providers/order_provider.dart';
 
 class CreateOrderScreen extends ConsumerStatefulWidget {
@@ -24,11 +27,14 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
   // Shipping address fields
   final _shippingLine1Controller = TextEditingController();
   final _shippingLine2Controller = TextEditingController();
-  final _shippingCityController = TextEditingController();
   final _shippingStateController = TextEditingController();
   final _shippingPostalCodeController = TextEditingController();
   final _shippingCountryController = TextEditingController();
   final _notesController = TextEditingController();
+  final _shippingFeeController = TextEditingController(text: '0.00');
+
+  // Location dropdown selection
+  String? _selectedLocationId;
 
   @override
   void initState() {
@@ -36,6 +42,7 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
     Future.microtask(() {
       ref.read(customerListProvider.notifier).loadCustomers();
       ref.read(productListProvider.notifier).loadProducts();
+      ref.read(locationProvider.notifier).listLocations();
     });
   }
 
@@ -43,18 +50,42 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
   void dispose() {
     _shippingLine1Controller.dispose();
     _shippingLine2Controller.dispose();
-    _shippingCityController.dispose();
     _shippingStateController.dispose();
     _shippingPostalCodeController.dispose();
     _shippingCountryController.dispose();
     _notesController.dispose();
+    _shippingFeeController.dispose();
     super.dispose();
+  }
+
+  void _onLocationSelected(String? locationId) {
+    setState(() {
+      _selectedLocationId = locationId;
+      if (locationId != null) {
+        final location =
+            ref.read(locationProvider).locations.firstWhere((l) => l.id == locationId,
+                orElse: () => const LocationModel(
+                      id: '',
+                      tenantId: '',
+                      city: '',
+                      shippingFee: '0.00',
+                    ));
+        // Auto-populate city field from location
+        _shippingFeeController.text =
+            location.shippingFeeValue.toStringAsFixed(2);
+      } else {
+        _shippingFeeController.text = '0.00';
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     final customerState = ref.watch(customerListProvider);
     final productState = ref.watch(productListProvider);
+    final locationState = ref.watch(locationProvider);
+    final isOwner = ref.isOwner;
+    final isOperator = ref.isOperator;
 
     return Scaffold(
       appBar: AppBar(
@@ -67,7 +98,7 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Customer Selection
+              // ── Customer Selection ────────────────────────────────────
               Card(
                 child: Padding(
                   padding: const EdgeInsets.all(16),
@@ -90,9 +121,9 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
                           }
                           return DropdownButtonFormField<String>(
                             value: _selectedCustomerId,
-                            decoration: InputDecoration(
+                            decoration: const InputDecoration(
                               labelText: 'Select Customer *',
-                              border: const OutlineInputBorder(),
+                              border: OutlineInputBorder(),
                             ),
                             items: customers.map((customer) {
                               return DropdownMenuItem(
@@ -122,7 +153,7 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
               ),
               const SizedBox(height: 16),
 
-              // Order Items
+              // ── Order Items ───────────────────────────────────────────
               Card(
                 child: Padding(
                   padding: const EdgeInsets.all(16),
@@ -134,12 +165,14 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
                         children: [
                           Text(
                             'Order Items',
-                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
+                            style:
+                                Theme.of(context).textTheme.titleMedium?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                    ),
                           ),
                           IconButton(
-                            onPressed: () => _showAddItemDialog(context, productState),
+                            onPressed: () =>
+                                _showAddItemDialog(context, productState),
                             icon: const Icon(Icons.add_circle_outline_rounded),
                           ),
                         ],
@@ -164,7 +197,7 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
               ),
               const SizedBox(height: 16),
 
-              // Shipping Address (Optional)
+              // ── City / Location Dropdown ──────────────────────────────
               Card(
                 child: Padding(
                   padding: const EdgeInsets.all(16),
@@ -172,74 +205,138 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Shipping Address (Optional)',
+                        'Delivery Location',
                         style: Theme.of(context).textTheme.titleMedium?.copyWith(
                               fontWeight: FontWeight.bold,
                             ),
                       ),
-                      const SizedBox(height: 16),
-                      TextFormField(
-                        controller: _shippingLine1Controller,
-                        decoration: InputDecoration(
-                          labelText: 'Address Line 1',
-                          border: const OutlineInputBorder(),
-                        ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Select a city/zone to auto-fill the shipping fee.',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: AppColors.textSecondary,
+                            ),
                       ),
                       const SizedBox(height: 12),
+
+                      // Location dropdown
+                      if (locationState.isLoading)
+                        const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 8),
+                          child: LinearProgressIndicator(),
+                        )
+                      else if (locationState.locations.isEmpty)
+                        Row(
+                          children: [
+                            Icon(Icons.info_outline_rounded,
+                                size: 16, color: AppColors.textSecondary),
+                            const SizedBox(width: 6),
+                            Text(
+                              'No locations configured yet.',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(color: AppColors.textSecondary),
+                            ),
+                          ],
+                        )
+                      else
+                        DropdownButtonFormField<String>(
+                          value: _selectedLocationId,
+                          decoration: const InputDecoration(
+                            labelText: 'City / Zone',
+                            border: OutlineInputBorder(),
+                            prefixIcon: Icon(Icons.location_on_rounded),
+                          ),
+                          items: [
+                            const DropdownMenuItem<String>(
+                              value: null,
+                              child: Text('— None —'),
+                            ),
+                            ...locationState.locations.map((loc) {
+                              return DropdownMenuItem<String>(
+                                value: loc.id,
+                                child: Text(loc.displayName),
+                              );
+                            }),
+                          ],
+                          onChanged: _onLocationSelected,
+                        ),
+
+                      const SizedBox(height: 12),
+
+                      // Shipping fee (auto-populated, owners can edit manually)
                       TextFormField(
-                        controller: _shippingLine2Controller,
+                        controller: _shippingFeeController,
                         decoration: InputDecoration(
-                          labelText: 'Address Line 2',
+                          labelText: 'Shipping Fee',
                           border: const OutlineInputBorder(),
+                          prefixText: '\$ ',
+                          prefixIcon: const Icon(Icons.local_shipping_rounded),
+                          helperText: _selectedLocationId != null
+                              ? 'Auto-populated from location. '
+                                '${isOwner || isOperator ? 'You can override.' : ''}'
+                              : null,
+                        ),
+                        keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true),
+                        // Collectors cannot manually override the shipping fee
+                        enabled: isOwner || isOperator || _selectedLocationId == null,
+                        readOnly: !isOwner && !isOperator,
+                        validator: (v) {
+                          if (v == null || v.isEmpty) return null;
+                          final parsed = double.tryParse(v);
+                          if (parsed == null) return 'Invalid decimal number';
+                          if (parsed < 0) return 'Cannot be negative';
+                          return null;
+                        },
+                      ),
+
+                      const SizedBox(height: 12),
+                      Text(
+                        'Additional Address',
+                        style: Theme.of(context).textTheme.labelLarge,
+                      ),
+                      const SizedBox(height: 8),
+
+                      TextFormField(
+                        controller: _shippingLine1Controller,
+                        decoration: const InputDecoration(
+                          labelText: 'Address Line 1',
+                          border: OutlineInputBorder(),
                         ),
                       ),
                       const SizedBox(height: 12),
                       Row(
                         children: [
-                          Expanded(
-                            child: TextFormField(
-                              controller: _shippingCityController,
-                              decoration: InputDecoration(
-                                labelText: 'City',
-                                border: const OutlineInputBorder(),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
                           Expanded(
                             child: TextFormField(
                               controller: _shippingStateController,
-                              decoration: InputDecoration(
-                                labelText: 'State/Province',
-                                border: const OutlineInputBorder(),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: TextFormField(
-                              controller: _shippingPostalCodeController,
-                              decoration: InputDecoration(
-                                labelText: 'Postal Code',
-                                border: const OutlineInputBorder(),
+                              decoration: const InputDecoration(
+                                labelText: 'State / Province',
+                                border: OutlineInputBorder(),
                               ),
                             ),
                           ),
                           const SizedBox(width: 12),
                           Expanded(
                             child: TextFormField(
-                              controller: _shippingCountryController,
-                              decoration: InputDecoration(
-                                labelText: 'Country',
-                                border: const OutlineInputBorder(),
+                              controller: _shippingPostalCodeController,
+                              decoration: const InputDecoration(
+                                labelText: 'Postal Code',
+                                border: OutlineInputBorder(),
                               ),
                             ),
                           ),
                         ],
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: _shippingCountryController,
+                        decoration: const InputDecoration(
+                          labelText: 'Country',
+                          border: OutlineInputBorder(),
+                        ),
                       ),
                     ],
                   ),
@@ -247,15 +344,15 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
               ),
               const SizedBox(height: 16),
 
-              // Notes (Optional)
+              // ── Notes ─────────────────────────────────────────────────
               Card(
                 child: Padding(
                   padding: const EdgeInsets.all(16),
                   child: TextFormField(
                     controller: _notesController,
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       labelText: 'Order Notes (Optional)',
-                      border: const OutlineInputBorder(),
+                      border: OutlineInputBorder(),
                       hintText: 'Add any special instructions or notes',
                     ),
                     maxLines: 3,
@@ -264,7 +361,7 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
               ),
               const SizedBox(height: 16),
 
-              // Order Summary
+              // ── Order Summary ─────────────────────────────────────────
               if (_items.isNotEmpty)
                 Card(
                   child: Padding(
@@ -274,23 +371,29 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
                       children: [
                         Text(
                           'Order Summary',
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
                         ),
                         const SizedBox(height: 16),
                         _buildSummaryRow('Subtotal', _calculateSubtotal()),
                         const SizedBox(height: 8),
                         _buildSummaryRow('Tax (10%)', _calculateTax()),
+                        const SizedBox(height: 8),
+                        _buildSummaryRow(
+                            'Shipping',
+                            '\$${double.tryParse(_shippingFeeController.text)?.toStringAsFixed(2) ?? '0.00'}'),
                         const Divider(height: 24),
-                        _buildSummaryRow('Total', _calculateTotal(), isTotal: true),
+                        _buildSummaryRow('Total', _calculateTotal(),
+                            isTotal: true),
                       ],
                     ),
                   ),
                 ),
               const SizedBox(height: 24),
 
-              // Submit Button
+              // ── Submit Button ─────────────────────────────────────────
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -387,18 +490,26 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
       0,
       (sum, item) => sum + (item.quantity * double.parse(item.unitPrice)),
     );
-    return subtotal.toStringAsFixed(2);
+    return '\$${subtotal.toStringAsFixed(2)}';
   }
 
   String _calculateTax() {
-    final subtotal = double.parse(_calculateSubtotal());
-    return (subtotal * 0.1).toStringAsFixed(2);
+    final subtotal = _items.fold<double>(
+      0,
+      (sum, item) => sum + (item.quantity * double.parse(item.unitPrice)),
+    );
+    return '\$${(subtotal * 0.1).toStringAsFixed(2)}';
   }
 
   String _calculateTotal() {
-    final subtotal = double.parse(_calculateSubtotal());
-    final tax = double.parse(_calculateTax());
-    return (subtotal + tax).toStringAsFixed(2);
+    final subtotal = _items.fold<double>(
+      0,
+      (sum, item) => sum + (item.quantity * double.parse(item.unitPrice)),
+    );
+    final tax = subtotal * 0.1;
+    final shipping =
+        double.tryParse(_shippingFeeController.text) ?? 0.0;
+    return '\$${(subtotal + tax + shipping).toStringAsFixed(2)}';
   }
 
   void _showAddItemDialog(BuildContext context, dynamic productState) {
@@ -426,9 +537,9 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
                 children: [
                   DropdownButtonFormField<String>(
                     value: selectedProductId,
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       labelText: 'Product',
-                      border: const OutlineInputBorder(),
+                      border: OutlineInputBorder(),
                     ),
                     items: products.map<DropdownMenuItem<String>>((product) {
                       return DropdownMenuItem<String>(
@@ -486,7 +597,8 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
                     );
 
                     // Check stock availability
-                    if (product.trackInventory && quantity > product.stockQuantity) {
+                    if (product.trackInventory &&
+                        quantity > product.stockQuantity) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text(
@@ -538,22 +650,39 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
 
     setState(() => _isSubmitting = true);
 
-    final taxAmount = _calculateTax();
+    final subtotalValue = _items.fold<double>(
+      0,
+      (sum, item) => sum + (item.quantity * double.parse(item.unitPrice)),
+    );
+    final taxAmount = (subtotalValue * 0.1).toStringAsFixed(2);
+    final shippingAmount =
+        double.tryParse(_shippingFeeController.text)?.toStringAsFixed(2) ??
+            '0.00';
+
+    // Derive city from selected location (or leave blank)
+    String? cityValue;
+    if (_selectedLocationId != null) {
+      final loc = ref.read(locationProvider).locations.firstWhere(
+            (l) => l.id == _selectedLocationId,
+            orElse: () => const LocationModel(
+                id: '', tenantId: '', city: '', shippingFee: '0.00'),
+          );
+      cityValue = loc.city.isNotEmpty ? loc.city : null;
+    }
 
     // Build shipping address if any field is filled
     ShippingAddressRequest? shippingAddress;
-    if (_shippingLine1Controller.text.isNotEmpty ||
-        _shippingCityController.text.isNotEmpty) {
+    final hasShippingData = _shippingLine1Controller.text.isNotEmpty ||
+        cityValue != null ||
+        _shippingStateController.text.isNotEmpty ||
+        _shippingCountryController.text.isNotEmpty;
+
+    if (hasShippingData) {
       shippingAddress = ShippingAddressRequest(
         addressLine1: _shippingLine1Controller.text.isEmpty
             ? null
             : _shippingLine1Controller.text,
-        addressLine2: _shippingLine2Controller.text.isEmpty
-            ? null
-            : _shippingLine2Controller.text,
-        city: _shippingCityController.text.isEmpty
-            ? null
-            : _shippingCityController.text,
+        city: cityValue,
         state: _shippingStateController.text.isEmpty
             ? null
             : _shippingStateController.text,
@@ -566,28 +695,26 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
       );
     }
 
-    // Create request matching backend API exactly
     final request = CreateOrderRequest(
       customerId: _selectedCustomerId!,
       items: _items.map((item) {
         return CreateOrderItemRequest(
           productId: item.productId,
           quantity: item.quantity,
-          // Backend calculates unit price from product
-          // Only send item-level discounts/tax if needed
           discountAmount: '0.00',
           taxAmount: '0.00',
         );
       }).toList(),
       taxAmount: taxAmount,
       discountAmount: '0.00',
-      shippingAmount: '0.00',
+      shippingAmount: shippingAmount,
       shippingAddress: shippingAddress,
       notes: _notesController.text.isEmpty ? null : _notesController.text,
     );
 
     try {
-      final result = await ref.read(orderDetailProvider.notifier).createOrder(request);
+      final result =
+          await ref.read(orderDetailProvider.notifier).createOrder(request);
 
       setState(() => _isSubmitting = false);
 
