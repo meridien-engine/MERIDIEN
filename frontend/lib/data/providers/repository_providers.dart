@@ -3,6 +3,8 @@ import '../repositories/auth_repository.dart';
 import '../repositories/customer_repository.dart';
 import '../repositories/product_repository.dart';
 import '../repositories/order_repository.dart';
+import '../repositories/location_repository.dart';
+import '../repositories/courier_repository.dart';
 import 'dio_provider.dart';
 
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
@@ -23,4 +25,14 @@ final productRepositoryProvider = Provider<ProductRepository>((ref) {
 final orderRepositoryProvider = Provider<OrderRepository>((ref) {
   final dio = ref.watch(dioProvider);
   return OrderRepository(dio);
+});
+
+final locationRepositoryProvider = Provider<LocationRepository>((ref) {
+  final dio = ref.watch(dioProvider);
+  return LocationRepository(dio);
+});
+
+final courierRepositoryProvider = Provider<CourierRepository>((ref) {
+  final dio = ref.watch(dioProvider);
+  return CourierRepository(dio);
 });

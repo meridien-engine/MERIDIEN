@@ -35,4 +35,15 @@ class ApiEndpoints {
   // Payment Endpoints
   static String orderPayments(String orderId) => '/orders/$orderId/payments';
   static String paymentById(String id) => '/payments/$id';
+
+  // Location Endpoints
+  static const String locations = '/locations';
+  static String locationById(String id) => '/locations/$id';
+
+  // Courier Endpoints
+  static const String couriers = '/couriers';
+  static String courierById(String id) => '/couriers/$id';
+
+  // Report Endpoints
+  static const String courierReconciliation = '/reports/courier-reconciliation';
 }

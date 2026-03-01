@@ -13,7 +13,11 @@ import '../features/products/screens/product_form_screen.dart';
 import '../features/orders/screens/order_list_screen.dart';
 import '../features/orders/screens/order_detail_screen.dart';
 import '../features/orders/screens/create_order_screen.dart';
+import '../features/locations/screens/location_management_screen.dart';
+import '../features/couriers/screens/courier_management_screen.dart';
+import '../features/couriers/screens/courier_reconciliation_screen.dart';
 import '../features/auth/providers/auth_provider.dart';
+import '../core/providers/role_provider.dart';
 import '../data/models/customer_model.dart';
 import '../data/models/product_model.dart';
 
@@ -30,17 +34,14 @@ final routerProvider = Provider<GoRouter>((ref) {
       final isAuthRoute = state.matchedLocation == '/login' ||
                           state.matchedLocation == '/register';
 
-      // If not authenticated and trying to access protected route, redirect to login
       if (!isAuthenticated && !isAuthRoute) {
         return '/login';
       }
 
-      // If authenticated and trying to access auth routes, redirect to dashboard
       if (isAuthenticated && isAuthRoute) {
         return '/dashboard';
       }
 
-      // No redirect needed
       return null;
     },
     routes: [
@@ -136,6 +137,35 @@ final routerProvider = Provider<GoRouter>((ref) {
           final id = state.pathParameters['id']!;
           return OrderDetailScreen(orderId: id);
         },
+      ),
+
+      // ── Locations (admin settings – operator/owner) ───────────────
+      GoRoute(
+        path: '/settings/locations',
+        name: 'locations',
+        builder: (context, state) => const LocationManagementScreen(),
+      ),
+
+      // ── Couriers (operator/owner) ─────────────────────────────────
+      GoRoute(
+        path: '/settings/couriers',
+        name: 'couriers',
+        builder: (context, state) => const CourierManagementScreen(),
+      ),
+
+      // ── Courier Reconciliation (owner only) ───────────────────────
+      GoRoute(
+        path: '/reports/courier-reconciliation',
+        name: 'courier-reconciliation',
+        redirect: (context, state) {
+          // Guard: only owners can access this route
+          final role = ref.read(currentUserRoleProvider);
+          if (role != MeridienRole.owner) {
+            return '/dashboard';
+          }
+          return null;
+        },
+        builder: (context, state) => const CourierReconciliationScreen(),
       ),
     ],
     errorBuilder: (context, state) => Scaffold(
