@@ -122,7 +122,12 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		// Return tenant list (id, slug, name) for the client to choose
 		result := make([]gin.H, 0, len(tenants))
 		for _, t := range tenants {
-			result = append(result, gin.H{"id": t.ID, "slug": t.Slug, "name": t.Name})
+			result = append(result, gin.H{
+				"id":        t.ID,
+				"slug":      t.Slug,
+				"name":      t.Name,
+				"is_active": t.SubscriptionStatus == "active",
+			})
 		}
 
 		utils.SuccessResponse(c, http.StatusOK, "Workspaces found", gin.H{"workspaces": result})
