@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/localization/localization_extension.dart';
 import '../../../data/models/pos_model.dart';
 
 class PosReceiptDialog extends StatelessWidget {
@@ -13,11 +14,11 @@ class PosReceiptDialog extends StatelessWidget {
     final change = double.tryParse(result.change) ?? 0.0;
 
     return AlertDialog(
-      title: const Row(
+      title: Row(
         children: [
-          Icon(Icons.check_circle_rounded, color: Colors.green, size: 32),
-          SizedBox(width: 8),
-          Text('Sale Complete!'),
+          const Icon(Icons.check_circle_rounded, color: Colors.green, size: 32),
+          const SizedBox(width: 8),
+          Text(context.loc.saleComplete),
         ],
       ),
       content: ConstrainedBox(
@@ -26,16 +27,25 @@ class PosReceiptDialog extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _ReceiptRow(label: 'Order', value: order.orderNumber),
             _ReceiptRow(
-              label: 'Items',
+              label: context.loc.orderNumber,
+              value: order.orderNumber,
+            ),
+            _ReceiptRow(
+              label: context.loc.items,
               value: '${order.items?.length ?? 0}',
             ),
-            _ReceiptRow(label: 'Total', value: 'EGP ${order.totalAmount}'),
-            const Divider(),
-            _ReceiptRow(label: 'Tendered', value: 'EGP ${order.totalAmount}'),
             _ReceiptRow(
-              label: 'CHANGE',
+              label: context.loc.total,
+              value: 'EGP ${order.totalAmount}',
+            ),
+            const Divider(),
+            _ReceiptRow(
+              label: context.loc.tendered,
+              value: 'EGP ${order.totalAmount}',
+            ),
+            _ReceiptRow(
+              label: context.loc.change.toUpperCase(),
               value: 'EGP ${change.toStringAsFixed(2)}',
               highlight: true,
             ),
@@ -45,11 +55,11 @@ class PosReceiptDialog extends StatelessWidget {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('New Sale'),
+          child: Text(context.loc.newSale),
         ),
         ElevatedButton.icon(
           icon: const Icon(Icons.receipt_rounded),
-          label: const Text('View Order'),
+          label: Text(context.loc.viewOrder),
           onPressed: () {
             Navigator.pop(context);
             context.push('/orders/${order.id}');
@@ -82,8 +92,7 @@ class _ReceiptRow extends StatelessWidget {
           Text(
             value,
             style: TextStyle(
-              fontWeight:
-                  highlight ? FontWeight.bold : FontWeight.normal,
+              fontWeight: highlight ? FontWeight.bold : FontWeight.normal,
               fontSize: highlight ? 20 : 14,
               color: highlight ? Colors.green : null,
             ),

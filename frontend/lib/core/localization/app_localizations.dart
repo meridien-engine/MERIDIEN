@@ -208,6 +208,39 @@ class AppLocalizations {
   String get filters => translate('filters');
   String get clearFilters => translate('clearFilters');
   String get applyFilters => translate('applyFilters');
+
+  // POS
+  String get pos => translate('pos');
+  String get pointOfSale => translate('pointOfSale');
+  String get posSessionHistory => translate('posSessionHistory');
+  String get openCashSession => translate('openCashSession');
+  String get posOpenSessionDesc => translate('posOpenSessionDesc');
+  String get openingFloat => translate('openingFloat');
+  String get openSession => translate('openSession');
+  String get closeSession => translate('closeSession');
+  String get closingCash => translate('closingCash');
+  String get enterClosingCash => translate('enterClosingCash');
+  String get scanBarcodeOrSku => translate('scanBarcodeOrSku');
+  String get customerNameOptional => translate('customerNameOptional');
+  String get walkin => translate('walkin');
+  String get cartIsEmpty => translate('cartIsEmpty');
+  String get cartIsEmptyHint => translate('cartIsEmptyHint');
+  String get cashTendered => translate('cashTendered');
+  String get checkout => translate('checkout');
+  String get sessionOpened => translate('sessionOpened');
+  String get posFloat => translate('posFloat');
+  String get noSessionsFound => translate('noSessionsFound');
+  String get dateOpened => translate('dateOpened');
+  String get expectedCash => translate('expectedCash');
+  String get actualCash => translate('actualCash');
+  String get cashDifference => translate('cashDifference');
+  String get saleComplete => translate('saleComplete');
+  String get newSale => translate('newSale');
+  String get viewOrder => translate('viewOrder');
+  String get tendered => translate('tendered');
+  String get change => translate('change');
+  String get retry => translate('retry');
+  String get anErrorOccurred => translate('anErrorOccurred');
 }
 
 /// English translations
@@ -396,6 +429,39 @@ const Map<String, String> _enTranslations = {
   'filters': 'Filters',
   'clearFilters': 'Clear Filters',
   'applyFilters': 'Apply Filters',
+
+  // POS
+  'pos': 'POS',
+  'pointOfSale': 'Point of Sale',
+  'posSessionHistory': 'POS Session History',
+  'openCashSession': 'Open Cash Session',
+  'posOpenSessionDesc': 'Enter the opening cash float to start a new session.',
+  'openingFloat': 'Opening Float (EGP)',
+  'openSession': 'Open Session',
+  'closeSession': 'Close Session',
+  'closingCash': 'Closing Cash (EGP)',
+  'enterClosingCash': 'Enter the actual cash in the drawer:',
+  'scanBarcodeOrSku': 'Scan barcode or enter SKU',
+  'customerNameOptional': 'Customer Name (optional)',
+  'walkin': 'Walk-in',
+  'cartIsEmpty': 'Cart is empty',
+  'cartIsEmptyHint': 'Cart is empty\nScan a product to start',
+  'cashTendered': 'Cash Tendered (EGP)',
+  'checkout': 'CHECKOUT',
+  'sessionOpened': 'Session opened',
+  'posFloat': 'Float',
+  'noSessionsFound': 'No sessions found',
+  'dateOpened': 'Date Opened',
+  'expectedCash': 'Expected',
+  'actualCash': 'Actual',
+  'cashDifference': 'Diff',
+  'saleComplete': 'Sale Complete!',
+  'newSale': 'New Sale',
+  'viewOrder': 'View Order',
+  'tendered': 'Tendered',
+  'change': 'Change',
+  'retry': 'Retry',
+  'anErrorOccurred': 'An error occurred',
 };
 
 /// Arabic translations
@@ -584,4 +650,37 @@ const Map<String, String> _arTranslations = {
   'filters': 'الفلاتر',
   'clearFilters': 'مسح الفلاتر',
   'applyFilters': 'تطبيق الفلاتر',
+
+  // POS
+  'pos': 'نقطة البيع',
+  'pointOfSale': 'نقطة البيع',
+  'posSessionHistory': 'سجل جلسات نقطة البيع',
+  'openCashSession': 'فتح جلسة نقدية',
+  'posOpenSessionDesc': 'أدخل مبلغ الصندوق الافتتاحي لبدء جلسة جديدة.',
+  'openingFloat': 'رصيد الصندوق الافتتاحي (ج.م.)',
+  'openSession': 'فتح الجلسة',
+  'closeSession': 'إغلاق الجلسة',
+  'closingCash': 'النقد الختامي (ج.م.)',
+  'enterClosingCash': 'أدخل المبلغ النقدي الفعلي في الصندوق:',
+  'scanBarcodeOrSku': 'امسح الباركود أو أدخل رمز المنتج',
+  'customerNameOptional': 'اسم العميل (اختياري)',
+  'walkin': 'عميل عابر',
+  'cartIsEmpty': 'السلة فارغة',
+  'cartIsEmptyHint': 'السلة فارغة\nامسح منتجاً للبدء',
+  'cashTendered': 'المبلغ المدفوع (ج.م.)',
+  'checkout': 'إتمام البيع',
+  'sessionOpened': 'بدأت الجلسة',
+  'posFloat': 'الرصيد',
+  'noSessionsFound': 'لم يتم العثور على جلسات',
+  'dateOpened': 'تاريخ الفتح',
+  'expectedCash': 'المتوقع',
+  'actualCash': 'الفعلي',
+  'cashDifference': 'الفرق',
+  'saleComplete': 'تمت عملية البيع!',
+  'newSale': 'بيع جديد',
+  'viewOrder': 'عرض الطلب',
+  'tendered': 'المبلغ المدفوع',
+  'change': 'الباقي',
+  'retry': 'إعادة المحاولة',
+  'anErrorOccurred': 'حدث خطأ',
 };

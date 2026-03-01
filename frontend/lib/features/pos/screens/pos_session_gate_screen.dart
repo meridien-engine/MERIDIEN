@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/localization/localization_extension.dart';
 import '../providers/pos_provider.dart';
 import 'pos_terminal_screen.dart';
 
@@ -34,7 +35,7 @@ class _PosSessionGateScreenState
     final sessionState = ref.watch(posSessionProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Point of Sale')),
+      appBar: AppBar(title: Text(context.loc.pointOfSale)),
       body: switch (sessionState.status) {
         PosSessionStatus.initial ||
         PosSessionStatus.loading =>
@@ -48,13 +49,15 @@ class _PosSessionGateScreenState
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(sessionState.errorMessage ?? 'An error occurred'),
+                Text(
+                  sessionState.errorMessage ?? context.loc.anErrorOccurred,
+                ),
                 const SizedBox(height: 16),
                 ElevatedButton(
                   onPressed: () => ref
                       .read(posSessionProvider.notifier)
                       .checkCurrentSession(),
-                  child: const Text('Retry'),
+                  child: Text(context.loc.retry),
                 ),
               ],
             ),
@@ -88,15 +91,14 @@ class _OpenSessionCard extends ConsumerWidget {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'Open Cash Session',
-                  style:
-                      Theme.of(context).textTheme.headlineSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                  context.loc.openCashSession,
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Enter the opening cash float to start a new session.',
+                  context.loc.posOpenSessionDesc,
                   style: Theme.of(context).textTheme.bodyMedium,
                   textAlign: TextAlign.center,
                 ),
@@ -106,9 +108,9 @@ class _OpenSessionCard extends ConsumerWidget {
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
                   ),
-                  decoration: const InputDecoration(
-                    labelText: 'Opening Float (EGP)',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: context.loc.openingFloat,
+                    border: const OutlineInputBorder(),
                     prefixText: 'EGP ',
                   ),
                 ),
@@ -117,7 +119,7 @@ class _OpenSessionCard extends ConsumerWidget {
                   width: double.infinity,
                   child: ElevatedButton.icon(
                     icon: const Icon(Icons.lock_open_rounded),
-                    label: const Text('Open Session'),
+                    label: Text(context.loc.openSession),
                     onPressed: () {
                       ref.read(posSessionProvider.notifier).openSession(
                             floatController.text.trim().isEmpty

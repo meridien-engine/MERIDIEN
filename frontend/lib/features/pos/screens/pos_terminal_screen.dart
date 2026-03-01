@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/localization/localization_extension.dart';
 import '../../../data/models/pos_model.dart';
 import '../providers/pos_provider.dart';
 import '../widgets/pos_cart_item_row.dart';
@@ -17,16 +18,25 @@ class PosTerminalScreen extends ConsumerStatefulWidget {
 class _PosTerminalScreenState extends ConsumerState<PosTerminalScreen> {
   final _scanController = TextEditingController();
   final _scanFocus = FocusNode();
-  final _customerController = TextEditingController(text: 'Walk-in');
+  final _customerController = TextEditingController();
   final _cashController = TextEditingController();
   final _closeController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback(
-      (_) => _scanFocus.requestFocus(),
-    );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scanFocus.requestFocus();
+    });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Set locale-aware default customer name
+    if (_customerController.text.isEmpty) {
+      _customerController.text = context.loc.walkin;
+    }
   }
 
   @override
@@ -51,7 +61,7 @@ class _PosTerminalScreenState extends ConsumerState<PosTerminalScreen> {
     final cart = ref.read(posCartProvider);
     if (cart.items.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Cart is empty')),
+        SnackBar(content: Text(context.loc.cartIsEmpty)),
       );
       return;
     }
@@ -80,7 +90,7 @@ class _PosTerminalScreenState extends ConsumerState<PosTerminalScreen> {
       );
       ref.read(posCartProvider.notifier).clearCart();
       _cashController.clear();
-      _customerController.text = 'Walk-in';
+      _customerController.text = context.loc.walkin;
       _scanFocus.requestFocus();
     }
   }
@@ -89,20 +99,20 @@ class _PosTerminalScreenState extends ConsumerState<PosTerminalScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Close Session'),
+        title: Text(context.loc.closeSession),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('Enter the actual cash in the drawer:'),
+            Text(context.loc.enterClosingCash),
             const SizedBox(height: 16),
             TextField(
               controller: _closeController,
               keyboardType: const TextInputType.numberWithOptions(
                 decimal: true,
               ),
-              decoration: const InputDecoration(
-                labelText: 'Closing Cash (EGP)',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: context.loc.closingCash,
+                border: const OutlineInputBorder(),
                 prefixText: 'EGP ',
               ),
             ),
@@ -111,7 +121,7 @@ class _PosTerminalScreenState extends ConsumerState<PosTerminalScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
+            child: Text(context.loc.cancel),
           ),
           ElevatedButton(
             onPressed: () {
@@ -123,7 +133,7 @@ class _PosTerminalScreenState extends ConsumerState<PosTerminalScreen> {
                         : _closeController.text.trim(),
                   );
             },
-            child: const Text('Close Session'),
+            child: Text(context.loc.closeSession),
           ),
         ],
       ),
@@ -141,15 +151,15 @@ class _PosTerminalScreenState extends ConsumerState<PosTerminalScreen> {
       appBar: AppBar(
         automaticallyImplyLeading: false,
         title: Text(
-          'POS — Session opened $timeStr | Float: ${widget.session.openingFloat} EGP',
+          '${context.loc.pos} — ${context.loc.sessionOpened} $timeStr | ${context.loc.posFloat}: ${widget.session.openingFloat} EGP',
         ),
         actions: [
           TextButton.icon(
             onPressed: _onCloseSession,
             icon: const Icon(Icons.lock_rounded, color: Colors.red),
-            label: const Text(
-              'Close Session',
-              style: TextStyle(color: Colors.red),
+            label: Text(
+              context.loc.closeSession,
+              style: const TextStyle(color: Colors.red),
             ),
           ),
           const SizedBox(width: 8),
@@ -173,11 +183,11 @@ class _PosTerminalScreenState extends ConsumerState<PosTerminalScreen> {
                         child: TextField(
                           controller: _scanController,
                           focusNode: _scanFocus,
-                          decoration: const InputDecoration(
-                            labelText: 'Scan barcode or enter SKU',
+                          decoration: InputDecoration(
+                            labelText: context.loc.scanBarcodeOrSku,
                             prefixIcon:
-                                Icon(Icons.qr_code_scanner_rounded),
-                            border: OutlineInputBorder(),
+                                const Icon(Icons.qr_code_scanner_rounded),
+                            border: const OutlineInputBorder(),
                           ),
                           onSubmitted: (_) => _onScan(),
                         ),
@@ -185,7 +195,7 @@ class _PosTerminalScreenState extends ConsumerState<PosTerminalScreen> {
                       const SizedBox(width: 8),
                       ElevatedButton(
                         onPressed: _onScan,
-                        child: const Text('Add'),
+                        child: Text(context.loc.add),
                       ),
                     ],
                   ),
@@ -193,10 +203,10 @@ class _PosTerminalScreenState extends ConsumerState<PosTerminalScreen> {
                   // Customer name
                   TextField(
                     controller: _customerController,
-                    decoration: const InputDecoration(
-                      labelText: 'Customer Name (optional)',
-                      prefixIcon: Icon(Icons.person_outline_rounded),
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      labelText: context.loc.customerNameOptional,
+                      prefixIcon: const Icon(Icons.person_outline_rounded),
+                      border: const OutlineInputBorder(),
                     ),
                     onChanged: (v) =>
                         ref.read(posCartProvider.notifier).setCustomerName(v),
@@ -214,10 +224,7 @@ class _PosTerminalScreenState extends ConsumerState<PosTerminalScreen> {
                       ),
                       child: Row(
                         children: [
-                          const Icon(
-                            Icons.error_outline,
-                            color: Colors.red,
-                          ),
+                          const Icon(Icons.error_outline, color: Colors.red),
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
@@ -242,11 +249,11 @@ class _PosTerminalScreenState extends ConsumerState<PosTerminalScreen> {
                 children: [
                   Expanded(
                     child: cart.items.isEmpty
-                        ? const Center(
+                        ? Center(
                             child: Text(
-                              'Cart is empty\nScan a product to start',
+                              context.loc.cartIsEmptyHint,
                               textAlign: TextAlign.center,
-                              style: TextStyle(color: Colors.grey),
+                              style: const TextStyle(color: Colors.grey),
                             ),
                           )
                         : ListView.builder(
@@ -264,8 +271,7 @@ class _PosTerminalScreenState extends ConsumerState<PosTerminalScreen> {
                                         cart.items[index].productId),
                                 onRemove: () => ref
                                     .read(posCartProvider.notifier)
-                                    .removeItem(
-                                        cart.items[index].productId),
+                                    .removeItem(cart.items[index].productId),
                               );
                             },
                           ),
@@ -273,11 +279,11 @@ class _PosTerminalScreenState extends ConsumerState<PosTerminalScreen> {
                   const Divider(),
                   // Totals
                   _TotalRow(
-                    label: 'Subtotal',
+                    label: context.loc.subtotal,
                     value: cart.subtotal.toStringAsFixed(2),
                   ),
                   _TotalRow(
-                    label: 'Total',
+                    label: context.loc.total,
                     value: cart.total.toStringAsFixed(2),
                     bold: true,
                   ),
@@ -288,10 +294,10 @@ class _PosTerminalScreenState extends ConsumerState<PosTerminalScreen> {
                     keyboardType: const TextInputType.numberWithOptions(
                       decimal: true,
                     ),
-                    decoration: const InputDecoration(
-                      labelText: 'Cash Tendered (EGP)',
+                    decoration: InputDecoration(
+                      labelText: context.loc.cashTendered,
                       prefixText: 'EGP ',
-                      border: OutlineInputBorder(),
+                      border: const OutlineInputBorder(),
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -309,9 +315,8 @@ class _PosTerminalScreenState extends ConsumerState<PosTerminalScreen> {
                                 color: Colors.white,
                               ),
                             )
-                          : const Text('CHECKOUT'),
-                      onPressed:
-                          cart.isCheckingOut ? null : _onCheckout,
+                          : Text(context.loc.checkout),
+                      onPressed: cart.isCheckingOut ? null : _onCheckout,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.green,
                         foregroundColor: Colors.white,

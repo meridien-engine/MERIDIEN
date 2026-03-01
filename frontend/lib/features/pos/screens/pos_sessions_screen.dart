@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/localization/localization_extension.dart';
 import '../../../data/models/pos_model.dart';
 import '../../../data/providers/repository_providers.dart';
 
@@ -16,24 +17,26 @@ class PosSessionsScreen extends ConsumerWidget {
     final sessionsAsync = ref.watch(_sessionsProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('POS Session History')),
+      appBar: AppBar(title: Text(context.loc.posSessionHistory)),
       body: sessionsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('Error: $e')),
+        error: (e, _) => Center(
+          child: Text('${context.loc.error}: $e'),
+        ),
         data: (sessions) {
           if (sessions.isEmpty) {
-            return const Center(child: Text('No sessions found'));
+            return Center(child: Text(context.loc.noSessionsFound));
           }
           return SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: DataTable(
-              columns: const [
-                DataColumn(label: Text('Date Opened')),
-                DataColumn(label: Text('Status')),
-                DataColumn(label: Text('Float')),
-                DataColumn(label: Text('Expected')),
-                DataColumn(label: Text('Actual')),
-                DataColumn(label: Text('Diff')),
+              columns: [
+                DataColumn(label: Text(context.loc.dateOpened)),
+                DataColumn(label: Text(context.loc.status)),
+                DataColumn(label: Text(context.loc.posFloat)),
+                DataColumn(label: Text(context.loc.expectedCash)),
+                DataColumn(label: Text(context.loc.actualCash)),
+                DataColumn(label: Text(context.loc.cashDifference)),
               ],
               rows: sessions
                   .map(
@@ -47,7 +50,9 @@ class PosSessionsScreen extends ConsumerWidget {
                           '${s.openedAt.minute.toString().padLeft(2, '0')}',
                         )),
                         DataCell(Chip(
-                          label: Text(s.status),
+                          label: Text(s.isOpen
+                              ? context.loc.active
+                              : context.loc.close),
                           backgroundColor: s.isOpen
                               ? Colors.green.shade100
                               : Colors.grey.shade200,
