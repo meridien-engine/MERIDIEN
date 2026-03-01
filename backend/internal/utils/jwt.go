@@ -39,6 +39,7 @@ func (m *JWTManager) GenerateToken(userID, tenantID uuid.UUID, email, role strin
 		Email:    email,
 		Role:     role,
 		RegisteredClaims: jwt.RegisteredClaims{
+			ID:        uuid.New().String(),
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * time.Duration(m.expirationHours))),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 			NotBefore: jwt.NewNumericDate(time.Now()),

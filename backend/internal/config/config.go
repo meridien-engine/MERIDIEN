@@ -12,6 +12,7 @@ type Config struct {
 	App      AppConfig
 	Database DatabaseConfig
 	JWT      JWTConfig
+	Redis    RedisConfig
 }
 
 // AppConfig holds application-level configuration
@@ -36,6 +37,14 @@ type DatabaseConfig struct {
 type JWTConfig struct {
 	Secret          string
 	ExpirationHours int
+}
+
+// RedisConfig holds Redis configuration
+type RedisConfig struct {
+	Host     string
+	Port     string
+	Password string
+	DB       int
 }
 
 // Load reads configuration from environment variables and .env file
@@ -74,6 +83,12 @@ func Load() (*Config, error) {
 		JWT: JWTConfig{
 			Secret:          getEnvOrDefault("JWT_SECRET", "your-super-secret-jwt-key-change-this-in-production"),
 			ExpirationHours: getEnvOrDefaultInt("JWT_EXPIRATION_HOURS", 24),
+		},
+		Redis: RedisConfig{
+			Host:     getEnvOrDefault("REDIS_HOST", "localhost"),
+			Port:     getEnvOrDefault("REDIS_PORT", "6379"),
+			Password: getEnvOrDefault("REDIS_PASSWORD", ""),
+			DB:       getEnvOrDefaultInt("REDIS_DB", 0),
 		},
 	}
 

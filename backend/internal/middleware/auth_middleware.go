@@ -8,15 +8,23 @@ import (
 	"github.com/mu7ammad-3li/MERIDIEN/backend/internal/utils"
 )
 
+// blacklistChecker can check whether a JTI has been revoked.
+type blacklistChecker interface {
+	IsBlacklisted(jti string) (bool, error)
+}
+
 // AuthMiddleware handles JWT authentication
 type AuthMiddleware struct {
 	jwtManager *utils.JWTManager
+	blacklist  blacklistChecker
 }
 
-// NewAuthMiddleware creates a new auth middleware instance
-func NewAuthMiddleware(jwtManager *utils.JWTManager) *AuthMiddleware {
+// NewAuthMiddleware creates a new auth middleware instance.
+// blacklist may be nil; if so, revocation checks are skipped.
+func NewAuthMiddleware(jwtManager *utils.JWTManager, blacklist blacklistChecker) *AuthMiddleware {
 	return &AuthMiddleware{
 		jwtManager: jwtManager,
+		blacklist:  blacklist,
 	}
 }
 
@@ -47,6 +55,16 @@ func (m *AuthMiddleware) RequireAuth() gin.HandlerFunc {
 			utils.UnauthorizedResponse(c, "Invalid or expired token")
 			c.Abort()
 			return
+		}
+
+		// Check if the token has been revoked (fail open on Redis errors)
+		if m.blacklist != nil && claims.ID != "" {
+			revoked, err := m.blacklist.IsBlacklisted(claims.ID)
+			if err == nil && revoked {
+				utils.UnauthorizedResponse(c, "Token has been revoked")
+				c.Abort()
+				return
+			}
 		}
 
 		// Set user info in context

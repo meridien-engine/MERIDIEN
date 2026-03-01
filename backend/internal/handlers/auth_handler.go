@@ -209,11 +209,13 @@ func (h *AuthHandler) GetCurrentUser(c *gin.Context) {
 	utils.SuccessResponse(c, http.StatusOK, "User retrieved successfully", userResp)
 }
 
-// Logout handles user logout
+// Logout handles user logout and revokes the bearer token.
 // POST /api/v1/auth/logout
 func (h *AuthHandler) Logout(c *gin.Context) {
-	// For JWT-based auth, logout is handled client-side by removing the token
-	// Here we just confirm the logout
+	authHeader := c.GetHeader("Authorization")
+	if len(authHeader) > 7 && authHeader[:7] == "Bearer " {
+		h.authService.RevokeToken(authHeader[7:])
+	}
 	utils.SuccessResponse(c, http.StatusOK, "Logged out successfully", nil)
 }
 

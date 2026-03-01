@@ -15,7 +15,7 @@ func TestRBAC_OperatorCanShip(t *testing.T) {
 	tenantID := uuid.New()
 	orderID := uuid.New()
 
-	authMid := middleware.NewAuthMiddleware(nil)
+	authMid := middleware.NewAuthMiddleware(nil, nil)
 	router := gin.New()
 	router.POST("/orders/:id/ship",
 		func(c *gin.Context) {
@@ -42,7 +42,7 @@ func TestRBAC_CollectorCannotShip(t *testing.T) {
 	tenantID := uuid.New()
 	orderID := uuid.New()
 
-	authMid := middleware.NewAuthMiddleware(nil)
+	authMid := middleware.NewAuthMiddleware(nil, nil)
 	router := gin.New()
 	router.POST("/orders/:id/ship",
 		func(c *gin.Context) {
@@ -69,7 +69,7 @@ func TestRBAC_CollectorCanCollect(t *testing.T) {
 	tenantID := uuid.New()
 	orderID := uuid.New()
 
-	authMid := middleware.NewAuthMiddleware(nil)
+	authMid := middleware.NewAuthMiddleware(nil, nil)
 	router := gin.New()
 	router.POST("/orders/:id/collect",
 		func(c *gin.Context) {
@@ -96,7 +96,7 @@ func TestRBAC_OperatorCannotCollect(t *testing.T) {
 	tenantID := uuid.New()
 	orderID := uuid.New()
 
-	authMid := middleware.NewAuthMiddleware(nil)
+	authMid := middleware.NewAuthMiddleware(nil, nil)
 	router := gin.New()
 	router.POST("/orders/:id/collect",
 		func(c *gin.Context) {
@@ -123,7 +123,7 @@ func TestRBAC_OwnerCanShip(t *testing.T) {
 	tenantID := uuid.New()
 	orderID := uuid.New()
 
-	authMid := middleware.NewAuthMiddleware(nil)
+	authMid := middleware.NewAuthMiddleware(nil, nil)
 	router := gin.New()
 	router.POST("/orders/:id/ship",
 		func(c *gin.Context) {
@@ -150,7 +150,7 @@ func TestRBAC_OwnerCanCollect(t *testing.T) {
 	tenantID := uuid.New()
 	orderID := uuid.New()
 
-	authMid := middleware.NewAuthMiddleware(nil)
+	authMid := middleware.NewAuthMiddleware(nil, nil)
 	router := gin.New()
 	router.POST("/orders/:id/collect",
 		func(c *gin.Context) {
@@ -176,7 +176,7 @@ func TestRBAC_NoRoleReturns403(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	orderID := uuid.New()
 
-	authMid := middleware.NewAuthMiddleware(nil)
+	authMid := middleware.NewAuthMiddleware(nil, nil)
 	router := gin.New()
 	router.POST("/orders/:id/ship",
 		authMid.RequireRole("operator"),

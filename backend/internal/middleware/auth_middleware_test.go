@@ -11,7 +11,7 @@ import (
 func TestRequireRole_AllowedRole(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	router := gin.New()
-	am := NewAuthMiddleware(nil)
+	am := NewAuthMiddleware(nil, nil)
 
 	router.GET("/test",
 		func(c *gin.Context) {
@@ -35,7 +35,7 @@ func TestRequireRole_AllowedRole(t *testing.T) {
 func TestRequireRole_DeniedRole(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	router := gin.New()
-	am := NewAuthMiddleware(nil)
+	am := NewAuthMiddleware(nil, nil)
 
 	router.GET("/test",
 		func(c *gin.Context) {
@@ -59,7 +59,7 @@ func TestRequireRole_DeniedRole(t *testing.T) {
 func TestRequireRole_OwnerBypass(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	router := gin.New()
-	am := NewAuthMiddleware(nil)
+	am := NewAuthMiddleware(nil, nil)
 
 	router.GET("/test",
 		func(c *gin.Context) {

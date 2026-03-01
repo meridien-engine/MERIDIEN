@@ -6,7 +6,9 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
+	"github.com/mu7ammad-3li/MERIDIEN/backend/internal/cache"
 	"github.com/mu7ammad-3li/MERIDIEN/backend/internal/config"
 	"github.com/mu7ammad-3li/MERIDIEN/backend/internal/database"
 	"github.com/mu7ammad-3li/MERIDIEN/backend/internal/handlers"
@@ -36,6 +38,14 @@ func main() {
 		}
 	}()
 
+	// Connect to Redis (optional — app runs without it)
+	if err := cache.Connect(&cfg.Redis); err != nil {
+		log.Printf("⚠️  Redis unavailable, running without token blacklist and rate limiting: %v", err)
+	} else {
+		log.Printf("✅ Redis connected at %s:%s", cfg.Redis.Host, cfg.Redis.Port)
+		defer cache.Close()
+	}
+
 	// Initialize repositories
 	userRepo := repositories.NewUserRepository(database.DB)
 	tenantRepo := repositories.NewTenantRepository(database.DB)
@@ -50,8 +60,16 @@ func main() {
 	// Initialize JWT manager
 	jwtManager := utils.NewJWTManager(cfg.JWT.Secret, cfg.JWT.ExpirationHours)
 
+	// Initialize Redis-backed helpers (nil-safe when Redis is unavailable)
+	var tokenBlacklist *cache.TokenBlacklist
+	var authRateLimiter *middleware.RateLimiter
+	if cache.Client != nil {
+		tokenBlacklist = cache.NewTokenBlacklist(cache.Client)
+		authRateLimiter = middleware.NewRateLimiter(cache.Client, 10, time.Minute)
+	}
+
 	// Initialize services
-	authService := services.NewAuthService(userRepo, tenantRepo, jwtManager)
+	authService := services.NewAuthService(userRepo, tenantRepo, jwtManager, tokenBlacklist)
 	customerService := services.NewCustomerService(customerRepo)
 	productService := services.NewProductService(productRepo, categoryRepo)
 	orderService := services.NewOrderService(orderRepo, customerRepo, productRepo, paymentRepo)
@@ -67,10 +85,10 @@ func main() {
 	locationHandler := handlers.NewLocationHandler(locationService)
 
 	// Initialize middleware
-	authMiddleware := middleware.NewAuthMiddleware(jwtManager)
+	authMiddleware := middleware.NewAuthMiddleware(jwtManager, tokenBlacklist)
 
 	// Setup router
-	r := router.Setup(cfg.App.Debug, authHandler, customerHandler, productHandler, orderHandler, reportHandler, locationHandler, authMiddleware)
+	r := router.Setup(cfg.App.Debug, authHandler, customerHandler, productHandler, orderHandler, reportHandler, locationHandler, authMiddleware, authRateLimiter)
 
 	// Start server in goroutine
 	go func() {

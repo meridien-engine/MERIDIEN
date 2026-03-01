@@ -11,8 +11,14 @@ import (
 	"github.com/mu7ammad-3li/MERIDIEN/backend/internal/middleware"
 )
 
-// Setup configures and returns the router
-func Setup(debug bool, authHandler *handlers.AuthHandler, customerHandler *handlers.CustomerHandler, productHandler *handlers.ProductHandler, orderHandler *handlers.OrderHandler, reportHandler *handlers.ReportHandler, locationHandler *handlers.LocationHandler, authMiddleware *middleware.AuthMiddleware) *gin.Engine {
+// rateLimiterMiddleware is a local interface so the router doesn't import the middleware package type directly.
+type rateLimiterMiddleware interface {
+	Middleware() gin.HandlerFunc
+}
+
+// Setup configures and returns the router.
+// authRateLimiter may be nil; if so, no rate limiting is applied to auth routes.
+func Setup(debug bool, authHandler *handlers.AuthHandler, customerHandler *handlers.CustomerHandler, productHandler *handlers.ProductHandler, orderHandler *handlers.OrderHandler, reportHandler *handlers.ReportHandler, locationHandler *handlers.LocationHandler, authMiddleware *middleware.AuthMiddleware, authRateLimiter rateLimiterMiddleware) *gin.Engine {
 	// Set Gin mode
 	if !debug {
 		gin.SetMode(gin.ReleaseMode)
@@ -55,8 +61,11 @@ func Setup(debug bool, authHandler *handlers.AuthHandler, customerHandler *handl
 			})
 		})
 
-		// Auth routes (public)
+		// Auth routes (public, rate-limited)
 		auth := v1.Group("/auth")
+		if authRateLimiter != nil {
+			auth.Use(authRateLimiter.Middleware())
+		}
 		{
 			auth.POST("/register", authHandler.Register)
 			auth.POST("/login", authHandler.Login)

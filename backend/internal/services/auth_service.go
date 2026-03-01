@@ -3,6 +3,7 @@ package services
 import (
 	"errors"
 	"strings"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/mu7ammad-3li/MERIDIEN/backend/internal/models"
@@ -10,23 +11,32 @@ import (
 	"github.com/mu7ammad-3li/MERIDIEN/backend/internal/utils"
 )
 
+// tokenBlacklist is a minimal interface so the service doesn't import the cache package directly.
+type tokenBlacklist interface {
+	Add(jti string, ttl time.Duration) error
+}
+
 // AuthService handles authentication business logic
 type AuthService struct {
 	userRepo   *repositories.UserRepository
 	tenantRepo *repositories.TenantRepository
 	jwtManager *utils.JWTManager
+	blacklist  tokenBlacklist
 }
 
-// NewAuthService creates a new auth service instance
+// NewAuthService creates a new auth service instance.
+// blacklist may be nil; if so, token revocation is a no-op.
 func NewAuthService(
 	userRepo *repositories.UserRepository,
 	tenantRepo *repositories.TenantRepository,
 	jwtManager *utils.JWTManager,
+	blacklist tokenBlacklist,
 ) *AuthService {
 	return &AuthService{
 		userRepo:   userRepo,
 		tenantRepo: tenantRepo,
 		jwtManager: jwtManager,
+		blacklist:  blacklist,
 	}
 }
 
@@ -222,6 +232,21 @@ func (s *AuthService) ValidateToken(tokenString string) (*utils.JWTClaims, error
 // RefreshToken generates a new token from an existing valid token
 func (s *AuthService) RefreshToken(tokenString string) (string, error) {
 	return s.jwtManager.RefreshToken(tokenString)
+}
+
+// RevokeToken blacklists the given token so it cannot be used again.
+// It is a no-op when no blacklist is configured or if the token is invalid/already expired.
+func (s *AuthService) RevokeToken(tokenString string) {
+	if s.blacklist == nil {
+		return
+	}
+	claims, err := s.jwtManager.ValidateToken(tokenString)
+	if err != nil || claims.ID == "" {
+		return
+	}
+	ttl := time.Until(claims.ExpiresAt.Time)
+	// Ignore errors — revocation is best-effort.
+	_ = s.blacklist.Add(claims.ID, ttl)
 }
 
 // validateRegisterRequest validates the registration request
