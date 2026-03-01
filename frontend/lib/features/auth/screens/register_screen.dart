@@ -38,7 +38,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   void _handleRegister() {
     if (_formKey.currentState!.validate()) {
       ref.read(authProvider.notifier).register(
-            tenantSlug: _tenantSlugController.text.trim(),
+            tenantSlug: 'demo', // Hardcoded tenant slug for single-tenant / local mode
             firstName: _firstNameController.text.trim(),
             lastName: _lastNameController.text.trim(),
             email: _emailController.text.trim(),
@@ -109,32 +109,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 32),
-
-                    // Tenant Slug Field
-                    TextFormField(
-                      controller: _tenantSlugController,
-                      decoration: InputDecoration(
-                        labelText: 'Tenant Slug',
-                        hintText: 'test-company',
-                        prefixIcon: const Icon(Icons.business_rounded),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        helperText: 'Your organization identifier',
-                      ),
-                      enabled: !isLoading,
-                      textInputAction: TextInputAction.next,
-                      validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return AppStrings.fieldRequired;
-                        }
-                        if (!RegExp(r'^[a-z0-9-]+$').hasMatch(value)) {
-                          return 'Only lowercase letters, numbers, and hyphens';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
 
                     // First Name Field
                     TextFormField(
