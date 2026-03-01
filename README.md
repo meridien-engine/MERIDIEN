@@ -10,26 +10,30 @@ Enterprise SaaS platform for retail operations and inventory management. Built w
 
 ## Status
 
-**Phase 1 MVP:** ✅ Complete (100%)  
-**Current Focus:** Phase 2 - Production Ready (35%)
+**Phase 1 MVP:** ✅ Complete (100%)
+**Current Focus:** Phase 2 - Production Ready (55%)
 
 ### Implemented
-- Multi-tenant architecture with JWT auth
+- Multi-tenant architecture with JWT auth and workspace discovery login
 - Customer management (CRM, addresses, financials)
 - Product catalog (SKU, categories, inventory)
-- Order processing (7-state workflow, payments)
+- Order processing (7-state workflow, payments, shipping fees)
+- Location management (city/zone shipping zones)
+- Courier management and cash reconciliation reports
+- Row-level security (RLS) enforcement on all tenant tables
+- Role-based UI guards (owner / operator / collector)
 - Internationalization (AR/EN, RTL support)
 
 ### Key Metrics
-- 26 RESTful API endpoints
-- 8 multi-tenant database tables
-- 14 responsive Flutter screens
-- Zero test coverage (manual testing only)
+- 33 RESTful API endpoints
+- 8+ multi-tenant database tables
+- 17 Flutter screens
+- RLS enforced at database level via PostgreSQL policies
 
 ## Tech Stack
 
-**Backend:** Go 1.21+ · Gin · GORM · PostgreSQL 15+ · JWT  
-**Frontend:** Flutter 3.24+ · Riverpod · Dio · Freezed  
+**Backend:** Go 1.21+ · Gin · GORM · PostgreSQL 15+ · JWT
+**Frontend:** Flutter 3.24+ · Riverpod · Dio · Freezed
 **Architecture:** Clean architecture with tenant isolation
 
 ## Quick Start
@@ -65,8 +69,15 @@ flutter pub run build_runner build --delete-conflicting-outputs
 flutter run -d chrome
 ```
 
-### Test Credentials
-- Tenant: `demo`
+### Login
+
+The login screen uses a **workspace discovery** flow — no need to know your tenant slug upfront:
+
+1. Enter your email and password
+2. Choose your workspace from the list
+3. You're in
+
+**Demo credentials:**
 - Email: `admin@meridien.com`
 - Password: `Admin123`
 
@@ -79,32 +90,41 @@ Gin HTTP Handlers
     ↓
 Business Services
     ↓
-Repository Layer
+Repository Layer  ←── tenantTx() sets RLS session variable
     ↓
 GORM Models
     ↓
-PostgreSQL (Multi-tenant)
+PostgreSQL (RLS-enforced, multi-tenant)
 ```
 
-**Multi-Tenancy:** Every table includes `tenant_id`. All queries filtered by tenant. JWT contains tenant context.
+**Multi-Tenancy:** Every table includes `tenant_id`. All queries are wrapped in a transaction that sets `SET LOCAL app.current_tenant` to satisfy PostgreSQL RLS policies. JWT carries the tenant context.
 
 ## Project Structure
 
 ```
 backend/
-├── handlers/          # HTTP layer
-├── services/          # Business logic
-├── repositories/      # Data access
-├── models/            # GORM entities
-├── middleware/        # Auth, CORS, tenant
-└── migrations/        # Database migrations
+├── cmd/
+│   ├── server/          # Main server entry point
+│   └── import_bosta/    # Bosta CSV import CLI
+├── handlers/            # HTTP layer
+├── services/            # Business logic
+├── repositories/        # Data access (RLS-aware via tenantTx)
+├── models/              # GORM entities
+├── middleware/          # Auth, CORS, tenant
+└── migrations/          # Database migrations
 
 frontend/
-├── core/              # Theme, constants, utils
-├── data/              # Models, repositories
-├── features/          # Feature modules (auth, customers, products, orders)
-├── routes/            # Navigation
-└── shared/            # Shared widgets
+├── core/                # Theme, constants, providers (role_provider)
+├── data/                # Models, repositories
+├── features/
+│   ├── auth/            # Login (workspace discovery), register
+│   ├── customers/       # Customer management
+│   ├── products/        # Product catalog
+│   ├── orders/          # Order processing
+│   ├── locations/       # City/zone shipping configuration
+│   └── couriers/        # Courier management + reconciliation
+├── routes/              # Navigation (role-gated routes)
+└── shared/              # Shared widgets
 ```
 
 ## API
@@ -119,11 +139,13 @@ frontend/
 ```
 
 **Endpoints:**
-- `POST /api/v1/auth/login` - JWT authentication
-- `GET /api/v1/customers` - List with pagination
-- `GET /api/v1/products` - Filter by category, stock
-- `POST /api/v1/orders` - Create with line items
-- `POST /api/v1/orders/:id/ship` - Update status, deduct inventory
+- `POST /api/v1/auth/login` — workspace discovery or direct JWT login
+- `GET /api/v1/customers` — list with pagination and filters
+- `GET /api/v1/products` — filter by category, stock level
+- `POST /api/v1/orders` — create with line items and shipping fee
+- `POST /api/v1/orders/:id/ship` — advance status, deduct inventory
+- `GET /api/v1/locations` — city/zone shipping configuration
+- `GET /api/v1/reports/courier-reconciliation` — cash reconciliation per courier
 
 Full API docs: [backend/API-DOCUMENTATION.md](backend/API-DOCUMENTATION.md)
 
@@ -131,59 +153,59 @@ Full API docs: [backend/API-DOCUMENTATION.md](backend/API-DOCUMENTATION.md)
 
 ### Backend Commands
 ```bash
-make dev          # Start with hot reload
-make test         # Run tests
-make migrate-up   # Run migrations
-make build        # Production build
+cd backend
+go run cmd/server/main.go     # Start server
+./scripts/run-migrations.sh   # Apply migrations
+go build ./...                # Verify build
 ```
 
 ### Frontend Commands
 ```bash
-flutter run                    # Development
-flutter test                   # Run tests
-flutter build web             # Production web build
-flutter pub run build_runner build --delete-conflicting-outputs  # Generate models
+flutter run -d chrome                                                    # Development
+flutter build web                                                        # Production build
+flutter pub run build_runner build --delete-conflicting-outputs          # Regenerate models
+flutter analyze                                                          # Lint
 ```
 
-### Integration tests (RLS)
+### Integration Tests (RLS)
 
-Run the RLS enforcement integration test locally to verify database row-level security behavior.
-
-- Requirements: a running Postgres instance with the project migrations applied (see `./scripts/run-migrations.sh`). The test will skip if it cannot connect using the configured DSN.
-- Configure a DSN via `MERIDIEN_DB_DSN` (optional). Example DSN:
+Verify database row-level security enforcement:
 
 ```bash
 export MERIDIEN_DB_DSN="user=postgres dbname=meridien_dev sslmode=disable"
-```
-
-- Run the single integration test (skips when DB access/auth fails):
-
-```bash
 cd backend
 go test ./internal/integration -run TestRLS_Enforcement -v
 ```
 
-- Notes:
-    - The test inserts temporary tenants and orders inside a transaction and uses `SET LOCAL app.current_tenant` to verify access.
-    - If your Postgres user requires a password, set the DSN accordingly (for example, `user=postgres password=secret dbname=meridien_dev sslmode=disable`).
-    - The test cleans up via transaction rollback so it is safe to run against a dev database.
+The test inserts temporary data inside a transaction with `SET LOCAL app.current_tenant` and verifies isolation. Skipped automatically if `MERIDIEN_DB_DSN` is not set.
 
+### Bosta CSV Import
+
+Seed locations and couriers from a Bosta pricing export:
+
+```bash
+cd backend
+go run cmd/import_bosta/main.go --file pricing.csv --tenant <tenant-id>
+```
 
 ### Conventions
 
-**Go:** snake_case files, PascalCase exports, camelCase unexported  
-**Dart:** snake_case files, PascalCase classes, camelCase variables  
-**Database:** snake_case tables/columns, plural tables, UUID primary keys
+**Go:** snake_case files · PascalCase exports · camelCase unexported
+**Dart:** snake_case files · PascalCase classes · camelCase variables
+**Database:** snake_case tables/columns · plural tables · UUID primary keys
 
 ## Roadmap
 
-### Phase 2 (In Progress - 35%)
-- [ ] RBAC and multi-user support
-- [ ] Automated testing (80% backend, 70% frontend)
-- [ ] Enhanced security (Redis, rate limiting)
-- [ ] CI/CD pipeline
+### Phase 2 (In Progress — 55%)
+- [x] Location and courier management
+- [x] RLS enforcement at database level
+- [x] Workspace discovery login flow
+- [x] Role-based UI guards
+- [ ] Full RBAC (backend enforcement)
+- [ ] Automated testing (target: 80% backend, 70% frontend)
+- [ ] Redis session cache and rate limiting
 - [ ] Invoice generation (PDF)
-- [ ] Advanced reporting
+- [ ] Advanced reporting dashboard
 
 ### Phase 3 (Planned)
 - [ ] Advanced inventory (batch tracking, serial numbers)
@@ -192,22 +214,23 @@ go test ./internal/integration -run TestRLS_Enforcement -v
 - [ ] Mobile app optimization
 - [ ] Integration APIs (Shopify, WooCommerce)
 
-## Documentation
-
-- [Getting Started](GETTING-STARTED.md) - Setup guide
-- [Project Status](PROJECT-STATUS.md) - Detailed status and metrics
-- [Development Rules](docs/DEVELOPMENT-RULES.md) - Coding standards
-- [API Documentation](backend/API-DOCUMENTATION.md) - Complete API reference
-- [Brand Guidelines](docs/MERIDIEN-BRAND.md) - Visual identity
-
 ## Security
 
 - bcrypt password hashing (cost 10)
 - JWT with 24h expiry and refresh tokens
-- Strict tenant isolation on all queries
+- PostgreSQL RLS policies on all tenant tables (`FORCE ROW LEVEL SECURITY`)
+- `SET LOCAL app.current_tenant` scoped to each transaction
 - GORM prepared statements (SQL injection prevention)
 - Input validation at handler level
 - Soft deletes for data retention
+
+## Documentation
+
+- [Getting Started](GETTING-STARTED.md) — Setup guide
+- [Project Status](PROJECT-STATUS.md) — Detailed status and metrics
+- [Development Rules](docs/DEVELOPMENT-RULES.md) — Coding standards
+- [API Documentation](backend/API-DOCUMENTATION.md) — Complete API reference
+- [Brand Guidelines](docs/MERIDIEN-BRAND.md) — Visual identity
 
 ## License
 
@@ -215,5 +238,5 @@ Proprietary. Copyright © 2024-2025 MERIDIEN.
 
 ## Contact
 
-**Muhammad Ali**  
+**Muhammad Ali**
 [GitHub](https://github.com/mu7ammad-3li/) · [LinkedIn](https://linkedin.com/in/muhammad-3lii) · muhammad.3lii2@gmail.com
