@@ -209,6 +209,7 @@ class _MemberCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final hasActions = onChangeRole != null || onRemove != null;
     return Card(
       child: ListTile(
         leading: CircleAvatar(
@@ -223,29 +224,54 @@ class _MemberCard extends StatelessWidget {
         ),
         title: Text(member.displayName,
             style: const TextStyle(fontWeight: FontWeight.w600)),
-        subtitle: Text(member.displayEmail,
-            style: TextStyle(color: Colors.grey[600], fontSize: 12)),
-        trailing: Row(
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
+            if (member.displayEmail.isNotEmpty)
+              Text(member.displayEmail,
+                  style: TextStyle(color: Colors.grey[600], fontSize: 12)),
+            const SizedBox(height: 4),
             _RoleBadge(role: member.role),
-            if (onChangeRole != null) ...[
-              const SizedBox(width: 4),
-              IconButton(
-                icon: const Icon(Icons.edit_rounded, size: 18),
-                tooltip: 'Change Role',
-                onPressed: onChangeRole,
-              ),
-            ],
-            if (onRemove != null)
-              IconButton(
-                icon: Icon(Icons.remove_circle_outline_rounded,
-                    size: 18, color: Colors.red[400]),
-                tooltip: 'Remove',
-                onPressed: onRemove,
-              ),
           ],
         ),
+        trailing: hasActions
+            ? PopupMenuButton<String>(
+                icon: const Icon(Icons.more_vert_rounded),
+                tooltip: 'Member actions',
+                onSelected: (value) {
+                  if (value == 'change_role') onChangeRole?.call();
+                  if (value == 'remove') onRemove?.call();
+                },
+                itemBuilder: (_) => [
+                  if (onChangeRole != null)
+                    const PopupMenuItem(
+                      value: 'change_role',
+                      child: Row(
+                        children: [
+                          Icon(Icons.manage_accounts_rounded),
+                          SizedBox(width: 12),
+                          Text('Change Role'),
+                        ],
+                      ),
+                    ),
+                  if (onRemove != null)
+                    PopupMenuItem(
+                      value: 'remove',
+                      child: Row(
+                        children: [
+                          Icon(Icons.person_remove_rounded,
+                              color: Colors.red[400]),
+                          const SizedBox(width: 12),
+                          Text('Remove Member',
+                              style: TextStyle(color: Colors.red[400])),
+                        ],
+                      ),
+                    ),
+                ],
+              )
+            : null,
+        isThreeLine: member.displayEmail.isNotEmpty,
       ),
     );
   }
