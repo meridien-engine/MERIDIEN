@@ -5,7 +5,6 @@ import '../../../core/localization/localization_extension.dart';
 import 'package:intl/intl.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../data/models/product_model.dart';
-import '../../../data/repositories/product_repository.dart';
 import '../../../data/providers/repository_providers.dart';
 import '../providers/product_provider.dart';
 
@@ -63,14 +62,12 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Product'),
-        content: const Text(
-          'Are you sure you want to delete this product? This action cannot be undone.',
-        ),
+        title: Text(context.loc.deleteProduct),
+        content: Text(context.loc.deleteProductConfirm),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text(context.loc.cancel),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
@@ -78,7 +75,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
               backgroundColor: AppColors.error,
               foregroundColor: Colors.white,
             ),
-            child: const Text('Delete'),
+            child: Text(context.loc.delete),
           ),
         ],
       ),
@@ -91,9 +88,8 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Product deleted successfully')),
+            SnackBar(content: Text(context.loc.productDeleted)),
           );
-          // Refresh the product list
           ref.read(productListProvider.notifier).refresh();
           context.pop();
         }
@@ -101,7 +97,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Error deleting product: ${e.toString()}'),
+              content: Text('${context.loc.error}: ${e.toString()}'),
               backgroundColor: AppColors.error,
             ),
           );
@@ -139,14 +135,14 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
               ),
               const SizedBox(height: 16),
               Text(
-                'Error loading product',
+                context.loc.errorLoadingProduct,
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               const SizedBox(height: 8),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 32),
                 child: Text(
-                  _error ?? 'Product not found',
+                  _error ?? context.loc.productNotFound,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: AppColors.textSecondary,
                       ),
@@ -156,7 +152,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: _loadProduct,
-                child: const Text('Retry'),
+                child: Text(context.loc.tryAgain),
               ),
             ],
           ),
@@ -187,12 +183,11 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            // Header Card with Image
+            // Header Card
             Card(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Image removed - not in backend model
                   Padding(
                     padding: const EdgeInsets.all(16),
                     child: Column(
@@ -217,7 +212,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                                   const SizedBox(height: 4),
                                   if (product.sku != null)
                                     Text(
-                                      'SKU: ${product.sku}',
+                                      '${context.loc.sku}: ${product.sku}',
                                       style: Theme.of(context)
                                           .textTheme
                                           .bodyMedium
@@ -236,7 +231,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                           children: [
                             Expanded(
                               child: _PriceCard(
-                                label: 'Selling Price',
+                                label: context.loc.sellingPrice,
                                 price: product.sellingPrice,
                                 color: AppColors.primary,
                               ),
@@ -245,7 +240,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                               const SizedBox(width: 12),
                               Expanded(
                                 child: _PriceCard(
-                                  label: 'Cost Price',
+                                  label: context.loc.costPrice,
                                   price: product.costPrice!,
                                   color: Colors.orange,
                                 ),
@@ -267,28 +262,28 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
 
             // Basic Information
             _SectionCard(
-              title: 'Basic Information',
+              title: context.loc.basicInformation,
               children: [
-                _InfoRow(label: 'Name', value: product.name),
+                _InfoRow(label: context.loc.name, value: product.name),
                 const Divider(),
-                _InfoRow(label: 'SKU', value: product.sku ?? 'N/A'),
+                _InfoRow(label: context.loc.sku, value: product.sku ?? 'N/A'),
                 if (product.description != null &&
                     product.description!.isNotEmpty) ...[
                   const Divider(),
-                  _InfoRow(label: 'Description', value: product.description!),
+                  _InfoRow(label: context.loc.description, value: product.description!),
                 ],
                 const Divider(),
                 _InfoRow(
-                  label: 'Category',
+                  label: context.loc.category,
                   value: product.category?.name ?? 'N/A',
                 ),
                 if (product.barcode != null && product.barcode!.isNotEmpty) ...[
                   const Divider(),
-                  _InfoRow(label: 'Barcode', value: product.barcode!),
+                  _InfoRow(label: context.loc.barcode, value: product.barcode!),
                 ],
                 const Divider(),
                 _InfoRow(
-                  label: 'Created',
+                  label: context.loc.created,
                   value: product.createdAt != null
                       ? dateFormat.format(product.createdAt!)
                       : 'N/A',
@@ -299,17 +294,17 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
 
             // Pricing Details
             _SectionCard(
-              title: 'Pricing',
+              title: context.loc.pricing,
               children: [
                 _InfoRow(
-                  label: 'Selling Price',
+                  label: context.loc.sellingPrice,
                   value: currencyFormat.format(
                     double.tryParse(product.sellingPrice) ?? 0,
                   ),
                 ),
                 const Divider(),
                 _InfoRow(
-                  label: 'Cost Price',
+                  label: context.loc.costPrice,
                   value: currencyFormat.format(
                     double.tryParse(product.costPrice) ?? 0,
                   ),
@@ -317,7 +312,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                 if (product.discountPrice != null && product.discountPrice!.isNotEmpty) ...[
                   const Divider(),
                   _InfoRow(
-                    label: 'Discount Price',
+                    label: context.loc.discountPrice,
                     value: currencyFormat.format(
                       double.tryParse(product.discountPrice!) ?? 0,
                     ),
@@ -330,20 +325,20 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
             // Inventory
             if (product.trackInventory)
               _SectionCard(
-                title: 'Inventory',
+                title: context.loc.inventory,
                 children: [
                   _InfoRow(
-                    label: 'Stock Status',
+                    label: context.loc.stockStatus,
                     value: product.stockStatus,
                   ),
                   const Divider(),
                   _InfoRow(
-                    label: 'Stock Quantity',
+                    label: context.loc.stockQuantity,
                     value: product.stockQuantity.toString(),
                   ),
                   const Divider(),
                   _InfoRow(
-                    label: 'Low Stock Alert',
+                    label: context.loc.lowStockAlert,
                     value: product.lowStockThreshold.toString(),
                   ),
                 ],
@@ -353,12 +348,12 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
             // Physical Properties
             if (product.weight != null && product.weight!.isNotEmpty)
               _SectionCard(
-                title: 'Physical Properties',
+                title: context.loc.physicalProperties,
                 children: [
-                  _InfoRow(label: 'Weight', value: '${product.weight} ${product.weightUnit}'),
+                  _InfoRow(label: context.loc.weight, value: '${product.weight} ${product.weightUnit}'),
                   if (product.notes != null && product.notes!.isNotEmpty) ...[
                     const Divider(),
-                    _InfoRow(label: 'Notes', value: product.notes!),
+                    _InfoRow(label: context.loc.notes, value: product.notes!),
                   ],
                 ],
               ),
@@ -447,7 +442,7 @@ class _StatusChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = active ? Colors.green : Colors.grey;
-    final label = active ? 'ACTIVE' : 'INACTIVE';
+    final label = active ? context.loc.active.toUpperCase() : context.loc.inactive.toUpperCase();
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -529,15 +524,15 @@ class _StockIndicator extends StatelessWidget {
     if (product.isOutOfStock) {
       statusColor = AppColors.error;
       statusIcon = Icons.error_outline_rounded;
-      statusText = 'Out of Stock';
+      statusText = context.loc.outOfStock;
     } else if (product.isLowStock) {
       statusColor = Colors.orange;
       statusIcon = Icons.warning_amber_rounded;
-      statusText = 'Low Stock (${product.stockQuantity} left)';
+      statusText = '${context.loc.lowStock} (${product.stockQuantity})';
     } else {
       statusColor = Colors.green;
       statusIcon = Icons.check_circle_outline_rounded;
-      statusText = 'In Stock (${product.stockQuantity})';
+      statusText = '${context.loc.inStock} (${product.stockQuantity})';
     }
 
     return Container(

@@ -97,7 +97,6 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
       final repository = ref.read(productRepositoryProvider);
 
       if (widget.product == null) {
-        // Create new product
         final request = CreateProductRequest(
           name: _nameController.text.trim(),
           sellingPrice: _sellingPriceController.text.trim(),
@@ -131,12 +130,11 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Product created successfully')),
+            SnackBar(content: Text(context.loc.productCreated)),
           );
           context.pop();
         }
       } else {
-        // Update existing product
         final request = UpdateProductRequest(
           name: _nameController.text.trim() != widget.product!.name
               ? _nameController.text.trim()
@@ -182,7 +180,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Product updated successfully')),
+            SnackBar(content: Text(context.loc.productUpdated)),
           );
           context.pop();
         }
@@ -191,7 +189,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: ${e.toString()}'),
+            content: Text('${context.loc.error}: ${e.toString()}'),
             backgroundColor: AppColors.error,
           ),
         );
@@ -236,7 +234,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
           children: [
             // Basic Information
             Text(
-              'Basic Information',
+              context.loc.basicInformation,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -246,12 +244,12 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
             TextFormField(
               controller: _nameController,
               decoration: InputDecoration(
-                labelText: 'Product Name *',
+                labelText: '${context.loc.productName} *',
                 border: const OutlineInputBorder(),
               ),
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
-                  return 'Product name is required';
+                  return context.loc.productNameRequired;
                 }
                 return null;
               },
@@ -263,7 +261,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
               decoration: InputDecoration(
                 labelText: context.loc.sku,
                 border: const OutlineInputBorder(),
-                hintText: 'Product code or SKU',
+                hintText: context.loc.skuHint,
               ),
             ),
             const SizedBox(height: 16),
@@ -281,8 +279,8 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
             TextFormField(
               initialValue: _categoryId,
               decoration: InputDecoration(
-                labelText: 'Category ID (Optional)',
-                hintText: 'Enter category UUID',
+                labelText: context.loc.categoryIdOptional,
+                hintText: context.loc.categoryIdHint,
                 border: const OutlineInputBorder(),
               ),
               onChanged: (value) => setState(() => _categoryId = value.trim().isEmpty ? null : value.trim()),
@@ -300,7 +298,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
 
             // Pricing
             Text(
-              'Pricing',
+              context.loc.pricing,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -310,17 +308,17 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
             TextFormField(
               controller: _sellingPriceController,
               decoration: InputDecoration(
-                labelText: 'Selling Price *',
+                labelText: '${context.loc.sellingPrice} *',
                 border: const OutlineInputBorder(),
                 prefixText: '\$ ',
               ),
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
-                  return 'Selling price is required';
+                  return context.loc.sellingPriceRequired;
                 }
                 if (double.tryParse(value.trim()) == null) {
-                  return 'Please enter a valid number';
+                  return context.loc.invalidNumber;
                 }
                 return null;
               },
@@ -358,7 +356,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
 
             // Inventory
             Text(
-              'Inventory',
+              context.loc.inventory,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -366,8 +364,8 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
             const SizedBox(height: 16),
 
             SwitchListTile(
-              title: const Text('Track Inventory'),
-              subtitle: const Text('Monitor stock levels for this product'),
+              title: Text(context.loc.trackInventory),
+              subtitle: Text(context.loc.trackInventorySubtitle),
               value: _trackInventory,
               onChanged: (value) => setState(() => _trackInventory = value),
             ),
@@ -391,7 +389,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                     child: TextFormField(
                       controller: _lowStockThresholdController,
                       decoration: InputDecoration(
-                        labelText: 'Low Stock Alert',
+                        labelText: context.loc.lowStockAlert,
                         border: const OutlineInputBorder(),
                       ),
                       keyboardType: TextInputType.number,
@@ -405,7 +403,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
 
             // Physical Properties
             Text(
-              'Physical Properties',
+              context.loc.physicalProperties,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -418,7 +416,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                   child: TextFormField(
                     controller: _weightController,
                     decoration: InputDecoration(
-                      labelText: 'Weight',
+                      labelText: context.loc.weight,
                       border: const OutlineInputBorder(),
                     ),
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -429,14 +427,14 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                   child: DropdownButtonFormField<String>(
                     value: _weightUnit,
                     decoration: InputDecoration(
-                      labelText: 'Unit',
+                      labelText: context.loc.unit,
                       border: const OutlineInputBorder(),
                     ),
-                    items: const [
-                      DropdownMenuItem(value: 'kg', child: Text('Kilogram')),
-                      DropdownMenuItem(value: 'g', child: Text('Gram')),
-                      DropdownMenuItem(value: 'lb', child: Text('Pound')),
-                      DropdownMenuItem(value: 'oz', child: Text('Ounce')),
+                    items: [
+                      DropdownMenuItem(value: 'kg', child: Text(context.loc.kilogram)),
+                      DropdownMenuItem(value: 'g', child: Text(context.loc.gram)),
+                      DropdownMenuItem(value: 'lb', child: Text(context.loc.pound)),
+                      DropdownMenuItem(value: 'oz', child: Text(context.loc.ounce)),
                     ],
                     onChanged: (value) {
                       if (value != null) {
@@ -452,16 +450,16 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
             TextFormField(
               controller: _notesController,
               decoration: InputDecoration(
-                labelText: 'Notes',
+                labelText: context.loc.notes,
                 border: const OutlineInputBorder(),
               ),
               maxLines: 3,
             ),
             const SizedBox(height: 24),
 
-            // Status
+            // Status & Visibility
             Text(
-              'Status & Visibility',
+              context.loc.statusAndVisibility,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -471,13 +469,13 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
             DropdownButtonFormField<String>(
               value: _status,
               decoration: InputDecoration(
-                labelText: 'Status',
+                labelText: context.loc.status,
                 border: const OutlineInputBorder(),
               ),
-              items: const [
-                DropdownMenuItem(value: 'active', child: Text('Active')),
-                DropdownMenuItem(value: 'draft', child: Text('Draft')),
-                DropdownMenuItem(value: 'archived', child: Text('Archived')),
+              items: [
+                DropdownMenuItem(value: 'active', child: Text(context.loc.active)),
+                DropdownMenuItem(value: 'draft', child: Text(context.loc.draft)),
+                DropdownMenuItem(value: 'archived', child: Text(context.loc.archived)),
               ],
               onChanged: (value) {
                 if (value != null) {
@@ -488,8 +486,8 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
             const SizedBox(height: 16),
 
             SwitchListTile(
-              title: const Text('Featured Product'),
-              subtitle: const Text('Highlight this product on the homepage'),
+              title: Text(context.loc.featuredProduct),
+              subtitle: Text(context.loc.featuredProductSubtitle),
               value: _isFeatured,
               onChanged: (value) => setState(() => _isFeatured = value),
             ),
@@ -506,7 +504,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                         width: 20,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : Text(isEditMode ? 'Update Product' : 'Create Product'),
+                    : Text(isEditMode ? context.loc.updateProduct : context.loc.createProduct),
               ),
             ),
             const SizedBox(height: 32),

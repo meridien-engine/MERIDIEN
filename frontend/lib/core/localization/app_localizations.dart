@@ -324,6 +324,121 @@ class AppLocalizations {
   String get deleted => translate('deleted');
   String get optional => translate('optional');
   String get noResults => translate('noResults');
+
+  // Products - Form & Detail
+  String get productName => translate('productName');
+  String get productNameRequired => translate('productNameRequired');
+  String get skuHint => translate('skuHint');
+  String get categoryIdOptional => translate('categoryIdOptional');
+  String get categoryIdHint => translate('categoryIdHint');
+  String get sellingPriceRequired => translate('sellingPriceRequired');
+  String get statusAndVisibility => translate('statusAndVisibility');
+  String get archived => translate('archived');
+  String get featuredProduct => translate('featuredProduct');
+  String get featuredProductSubtitle => translate('featuredProductSubtitle');
+  String get trackInventorySubtitle => translate('trackInventorySubtitle');
+  String get physicalProperties => translate('physicalProperties');
+  String get weight => translate('weight');
+  String get unit => translate('unit');
+  String get kilogram => translate('kilogram');
+  String get gram => translate('gram');
+  String get pound => translate('pound');
+  String get ounce => translate('ounce');
+  String get productCreated => translate('productCreated');
+  String get productUpdated => translate('productUpdated');
+  String get productDeleted => translate('productDeleted');
+  String get deleteProductConfirm => translate('deleteProductConfirm');
+  String get errorLoadingProduct => translate('errorLoadingProduct');
+  String get productNotFound => translate('productNotFound');
+  String get lowStockAlert => translate('lowStockAlert');
+  String get createProduct => translate('createProduct');
+  String get updateProduct => translate('updateProduct');
+
+  // Orders - Create Form
+  String get noCustomersAvailable => translate('noCustomersAvailable');
+  String get selectCustomerRequired => translate('selectCustomerRequired');
+  String get orderItems => translate('orderItems');
+  String get noItemsAdded => translate('noItemsAdded');
+  String get deliveryLocation => translate('deliveryLocation');
+  String get deliveryLocationHint => translate('deliveryLocationHint');
+  String get cityZone => translate('cityZone');
+  String get noneOption => translate('noneOption');
+  String get shippingFee => translate('shippingFee');
+  String get autoFilledFromLocation => translate('autoFilledFromLocation');
+  String get canOverrideShipping => translate('canOverrideShipping');
+  String get invalidDecimal => translate('invalidDecimal');
+  String get cannotBeNegative => translate('cannotBeNegative');
+  String get additionalAddress => translate('additionalAddress');
+  String get addressLine1 => translate('addressLine1');
+  String get stateProvince => translate('stateProvince');
+  String get orderNotesOptional => translate('orderNotesOptional');
+  String get orderNotesHint => translate('orderNotesHint');
+  String get taxPercent => translate('taxPercent');
+  String get noProductsAvailable => translate('noProductsAvailable');
+  String get selectProductRequired => translate('selectProductRequired');
+  String get quantityMustBePositive => translate('quantityMustBePositive');
+  String get insufficientStockPrefix => translate('insufficientStockPrefix');
+  String get productAddedToOrder => translate('productAddedToOrder');
+  String get orderCreated => translate('orderCreated');
+  String get addAtLeastOneItem => translate('addAtLeastOneItem');
+
+  // Orders - List
+  String get searchOrdersInitial => translate('searchOrdersInitial');
+  String get noOrdersFound => translate('noOrdersFound');
+  String get noOrdersDesc => translate('noOrdersDesc');
+  String get errorLoadingOrders => translate('errorLoadingOrders');
+  String get filterOrders => translate('filterOrders');
+  String get all => translate('all');
+  String get overdue => translate('overdue');
+  String get partiallyPaid => translate('partiallyPaid');
+  String get clear => translate('clear');
+  String get apply => translate('apply');
+
+  // Orders - Detail & Actions
+  String get errorLoadingOrder => translate('errorLoadingOrder');
+  String get noItems => translate('noItems');
+  String get totalAmount => translate('totalAmount');
+  String get paidAmount => translate('paidAmount');
+  String get confirmOrderMessage => translate('confirmOrderMessage');
+  String get orderConfirmed => translate('orderConfirmed');
+  String get shipOrderMessage => translate('shipOrderMessage');
+  String get ship => translate('ship');
+  String get orderShipped => translate('orderShipped');
+  String get markAsShipped => translate('markAsShipped');
+  String get deliverOrderMessage => translate('deliverOrderMessage');
+  String get deliver => translate('deliver');
+  String get orderDelivered => translate('orderDelivered');
+  String get markAsDelivered => translate('markAsDelivered');
+  String get cancelOrderMessage => translate('cancelOrderMessage');
+  String get yesCancel => translate('yesCancel');
+  String get orderCancelled => translate('orderCancelled');
+  String get rejectDelivery => translate('rejectDelivery');
+  String get rejectDeliveryMessage => translate('rejectDeliveryMessage');
+  String get rejectionReasonOptional => translate('rejectionReasonOptional');
+  String get rejectionReasonHint => translate('rejectionReasonHint');
+  String get reject => translate('reject');
+  String get deliveryRejected => translate('deliveryRejected');
+  String get returnOrder => translate('returnOrder');
+  String get returnOrderMessage => translate('returnOrderMessage');
+  String get returnReasonOptional => translate('returnReasonOptional');
+  String get returnReasonHint => translate('returnReasonHint');
+  String get returnLabel => translate('returnLabel');
+  String get orderReturned => translate('orderReturned');
+  String get paymentRecorded => translate('paymentRecorded');
+
+  // Payment Dialog
+  String get amount => translate('amount');
+  String get amountRequired => translate('amountRequired');
+  String get enterValidAmount => translate('enterValidAmount');
+  String get amountExceedsBalance => translate('amountExceedsBalance');
+  String get paymentMethod => translate('paymentMethod');
+  String get cash => translate('cash');
+  String get card => translate('card');
+  String get bankTransfer => translate('bankTransfer');
+  String get check => translate('check');
+  String get other => translate('other');
+  String get transactionReferenceOptional => translate('transactionReferenceOptional');
+  String get transactionReferenceHint => translate('transactionReferenceHint');
 }
 
 /// English translations
@@ -628,6 +743,121 @@ const Map<String, String> _enTranslations = {
   'change': 'Change',
   'retry': 'Retry',
   'anErrorOccurred': 'An error occurred',
+
+  // Products - Form & Detail
+  'productName': 'Product Name',
+  'productNameRequired': 'Product name is required',
+  'skuHint': 'Product code or SKU',
+  'categoryIdOptional': 'Category ID (Optional)',
+  'categoryIdHint': 'Enter category UUID',
+  'sellingPriceRequired': 'Selling price is required',
+  'statusAndVisibility': 'Status & Visibility',
+  'archived': 'Archived',
+  'featuredProduct': 'Featured Product',
+  'featuredProductSubtitle': 'Highlight this product on the homepage',
+  'trackInventorySubtitle': 'Monitor stock levels for this product',
+  'physicalProperties': 'Physical Properties',
+  'weight': 'Weight',
+  'unit': 'Unit',
+  'kilogram': 'Kilogram',
+  'gram': 'Gram',
+  'pound': 'Pound',
+  'ounce': 'Ounce',
+  'productCreated': 'Product created successfully',
+  'productUpdated': 'Product updated successfully',
+  'productDeleted': 'Product deleted successfully',
+  'deleteProductConfirm': 'Are you sure you want to delete this product? This action cannot be undone.',
+  'errorLoadingProduct': 'Error loading product',
+  'productNotFound': 'Product not found',
+  'lowStockAlert': 'Low Stock Alert',
+  'createProduct': 'Create Product',
+  'updateProduct': 'Update Product',
+
+  // Orders - Create Form
+  'noCustomersAvailable': 'No customers available',
+  'selectCustomerRequired': 'Please select a customer',
+  'orderItems': 'Order Items',
+  'noItemsAdded': 'No items added. Tap + to add items.',
+  'deliveryLocation': 'Delivery Location',
+  'deliveryLocationHint': 'Select a city/zone to auto-fill the shipping fee.',
+  'cityZone': 'City / Zone',
+  'noneOption': '— None —',
+  'shippingFee': 'Shipping Fee',
+  'autoFilledFromLocation': 'Auto-populated from location.',
+  'canOverrideShipping': 'You can override.',
+  'invalidDecimal': 'Invalid decimal number',
+  'cannotBeNegative': 'Cannot be negative',
+  'additionalAddress': 'Additional Address',
+  'addressLine1': 'Address Line 1',
+  'stateProvince': 'State / Province',
+  'orderNotesOptional': 'Order Notes (Optional)',
+  'orderNotesHint': 'Add any special instructions or notes',
+  'taxPercent': 'Tax (10%)',
+  'noProductsAvailable': 'No products available',
+  'selectProductRequired': 'Please select a product',
+  'quantityMustBePositive': 'Quantity must be greater than 0',
+  'insufficientStockPrefix': 'Insufficient stock! Available:',
+  'productAddedToOrder': 'added to order',
+  'orderCreated': 'Order created successfully',
+  'addAtLeastOneItem': 'Please add at least one item',
+
+  // Orders - List
+  'searchOrdersInitial': 'Search for orders',
+  'noOrdersFound': 'No orders found',
+  'noOrdersDesc': 'Start by creating your first order',
+  'errorLoadingOrders': 'Error loading orders',
+  'filterOrders': 'Filter Orders',
+  'all': 'All',
+  'overdue': 'Overdue',
+  'partiallyPaid': 'Partially Paid',
+  'clear': 'Clear',
+  'apply': 'Apply',
+
+  // Orders - Detail & Actions
+  'errorLoadingOrder': 'Error loading order',
+  'noItems': 'No items',
+  'totalAmount': 'Total Amount',
+  'paidAmount': 'Paid Amount',
+  'confirmOrderMessage': 'Are you sure you want to confirm this order?',
+  'orderConfirmed': 'Order confirmed successfully',
+  'shipOrderMessage': 'Mark this order as shipped? This will deduct inventory.',
+  'ship': 'Ship',
+  'orderShipped': 'Order marked as shipped',
+  'markAsShipped': 'Mark as Shipped',
+  'deliverOrderMessage': 'Mark this order as delivered?',
+  'deliver': 'Deliver',
+  'orderDelivered': 'Order marked as delivered',
+  'markAsDelivered': 'Mark as Delivered',
+  'cancelOrderMessage': 'Are you sure you want to cancel this order? This action cannot be undone.',
+  'yesCancel': 'Yes, Cancel',
+  'orderCancelled': 'Order cancelled',
+  'rejectDelivery': 'Reject Delivery',
+  'rejectDeliveryMessage': 'Are you sure you want to reject this delivery?',
+  'rejectionReasonOptional': 'Rejection Reason (Optional)',
+  'rejectionReasonHint': 'e.g., Damaged package, incorrect items',
+  'reject': 'Reject',
+  'deliveryRejected': 'Delivery rejected',
+  'returnOrder': 'Return Order',
+  'returnOrderMessage': 'Are you sure you want to return this order?',
+  'returnReasonOptional': 'Return Reason (Optional)',
+  'returnReasonHint': 'e.g., Defective product, wrong item',
+  'returnLabel': 'Return',
+  'orderReturned': 'Order returned successfully',
+  'paymentRecorded': 'Payment recorded successfully',
+
+  // Payment Dialog
+  'amount': 'Amount',
+  'amountRequired': 'Amount is required',
+  'enterValidAmount': 'Enter a valid amount',
+  'amountExceedsBalance': 'Amount exceeds balance due',
+  'paymentMethod': 'Payment Method',
+  'cash': 'Cash',
+  'card': 'Card',
+  'bankTransfer': 'Bank Transfer',
+  'check': 'Check',
+  'other': 'Other',
+  'transactionReferenceOptional': 'Transaction Reference (Optional)',
+  'transactionReferenceHint': 'e.g., Check number, transaction ID',
 };
 
 /// Arabic translations
@@ -932,4 +1162,119 @@ const Map<String, String> _arTranslations = {
   'change': 'الباقي',
   'retry': 'إعادة المحاولة',
   'anErrorOccurred': 'حدث خطأ',
+
+  // Products - Form & Detail
+  'productName': 'اسم المنتج',
+  'productNameRequired': 'اسم المنتج مطلوب',
+  'skuHint': 'رمز أو كود المنتج',
+  'categoryIdOptional': 'معرف الفئة (اختياري)',
+  'categoryIdHint': 'أدخل معرف الفئة',
+  'sellingPriceRequired': 'سعر البيع مطلوب',
+  'statusAndVisibility': 'الحالة والظهور',
+  'archived': 'مؤرشف',
+  'featuredProduct': 'منتج مميز',
+  'featuredProductSubtitle': 'عرض هذا المنتج في الصفحة الرئيسية',
+  'trackInventorySubtitle': 'تتبع مستويات المخزون لهذا المنتج',
+  'physicalProperties': 'الخصائص الجسدية',
+  'weight': 'الوزن',
+  'unit': 'الوحدة',
+  'kilogram': 'كيلوغرام',
+  'gram': 'غرام',
+  'pound': 'رطل',
+  'ounce': 'أونصة',
+  'productCreated': 'تم إنشاء المنتج بنجاح',
+  'productUpdated': 'تم تحديث المنتج بنجاح',
+  'productDeleted': 'تم حذف المنتج بنجاح',
+  'deleteProductConfirm': 'هل أنت متأكد من حذف هذا المنتج؟ لا يمكن التراجع عن هذا الإجراء.',
+  'errorLoadingProduct': 'خطأ في تحميل المنتج',
+  'productNotFound': 'المنتج غير موجود',
+  'lowStockAlert': 'تنبيه المخزون المنخفض',
+  'createProduct': 'إنشاء المنتج',
+  'updateProduct': 'تحديث المنتج',
+
+  // Orders - Create Form
+  'noCustomersAvailable': 'لا يوجد عملاء متاحون',
+  'selectCustomerRequired': 'الرجاء اختيار عميل',
+  'orderItems': 'عناصر الطلب',
+  'noItemsAdded': 'لم تتم إضافة عناصر. اضغط + لإضافة عناصر.',
+  'deliveryLocation': 'موقع التسليم',
+  'deliveryLocationHint': 'اختر المدينة/المنطقة لتعبئة رسوم الشحن تلقائياً.',
+  'cityZone': 'المدينة / المنطقة',
+  'noneOption': '— لا شيء —',
+  'shippingFee': 'رسوم الشحن',
+  'autoFilledFromLocation': 'تم التعبئة تلقائياً من الموقع.',
+  'canOverrideShipping': 'يمكنك تغييره.',
+  'invalidDecimal': 'رقم عشري غير صحيح',
+  'cannotBeNegative': 'لا يمكن أن يكون سالباً',
+  'additionalAddress': 'عنوان إضافي',
+  'addressLine1': 'سطر العنوان الأول',
+  'stateProvince': 'المحافظة / الإقليم',
+  'orderNotesOptional': 'ملاحظات الطلب (اختياري)',
+  'orderNotesHint': 'أضف أي تعليمات أو ملاحظات خاصة',
+  'taxPercent': 'الضريبة (10%)',
+  'noProductsAvailable': 'لا توجد منتجات متاحة',
+  'selectProductRequired': 'الرجاء اختيار منتج',
+  'quantityMustBePositive': 'يجب أن تكون الكمية أكبر من 0',
+  'insufficientStockPrefix': 'مخزون غير كافٍ! المتاح:',
+  'productAddedToOrder': 'تمت إضافته إلى الطلب',
+  'orderCreated': 'تم إنشاء الطلب بنجاح',
+  'addAtLeastOneItem': 'الرجاء إضافة عنصر واحد على الأقل',
+
+  // Orders - List
+  'searchOrdersInitial': 'ابحث عن الطلبات',
+  'noOrdersFound': 'لم يتم العثور على طلبات',
+  'noOrdersDesc': 'ابدأ بإنشاء طلبك الأول',
+  'errorLoadingOrders': 'خطأ في تحميل الطلبات',
+  'filterOrders': 'تصفية الطلبات',
+  'all': 'الكل',
+  'overdue': 'متأخر',
+  'partiallyPaid': 'مدفوع جزئياً',
+  'clear': 'مسح',
+  'apply': 'تطبيق',
+
+  // Orders - Detail & Actions
+  'errorLoadingOrder': 'خطأ في تحميل الطلب',
+  'noItems': 'لا توجد عناصر',
+  'totalAmount': 'المبلغ الإجمالي',
+  'paidAmount': 'المبلغ المدفوع',
+  'confirmOrderMessage': 'هل أنت متأكد من تأكيد هذا الطلب؟',
+  'orderConfirmed': 'تم تأكيد الطلب بنجاح',
+  'shipOrderMessage': 'هل تريد تأكيد شحن هذا الطلب؟ سيتم خصم المخزون.',
+  'ship': 'شحن',
+  'orderShipped': 'تم تأكيد شحن الطلب',
+  'markAsShipped': 'تأكيد الشحن',
+  'deliverOrderMessage': 'هل تريد تأكيد توصيل هذا الطلب؟',
+  'deliver': 'تسليم',
+  'orderDelivered': 'تم تأكيد توصيل الطلب',
+  'markAsDelivered': 'تأكيد التوصيل',
+  'cancelOrderMessage': 'هل أنت متأكد من إلغاء هذا الطلب؟ لا يمكن التراجع عن هذا الإجراء.',
+  'yesCancel': 'نعم، ألغِ',
+  'orderCancelled': 'تم إلغاء الطلب',
+  'rejectDelivery': 'رفض التسليم',
+  'rejectDeliveryMessage': 'هل أنت متأكد من رفض هذا التسليم؟',
+  'rejectionReasonOptional': 'سبب الرفض (اختياري)',
+  'rejectionReasonHint': 'مثال: طرد تالف، عناصر غير صحيحة',
+  'reject': 'رفض',
+  'deliveryRejected': 'تم رفض التسليم',
+  'returnOrder': 'إرجاع الطلب',
+  'returnOrderMessage': 'هل أنت متأكد من إرجاع هذا الطلب؟',
+  'returnReasonOptional': 'سبب الإرجاع (اختياري)',
+  'returnReasonHint': 'مثال: منتج معيب، عنصر خاطئ',
+  'returnLabel': 'إرجاع',
+  'orderReturned': 'تم إرجاع الطلب بنجاح',
+  'paymentRecorded': 'تم تسجيل الدفعة بنجاح',
+
+  // Payment Dialog
+  'amount': 'المبلغ',
+  'amountRequired': 'المبلغ مطلوب',
+  'enterValidAmount': 'أدخل مبلغاً صحيحاً',
+  'amountExceedsBalance': 'المبلغ يتجاوز الرصيد المستحق',
+  'paymentMethod': 'طريقة الدفع',
+  'cash': 'نقدي',
+  'card': 'بطاقة',
+  'bankTransfer': 'تحويل بنكي',
+  'check': 'شيك',
+  'other': 'أخرى',
+  'transactionReferenceOptional': 'رقم المرجع (اختياري)',
+  'transactionReferenceHint': 'مثال: رقم الشيك، معرف المعاملة',
 };

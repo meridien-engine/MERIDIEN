@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/localization/localization_extension.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../data/models/order_model.dart';
 import '../providers/order_provider.dart';
@@ -75,7 +76,7 @@ class _RecordPaymentDialogState extends ConsumerState<RecordPaymentDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Record Payment'),
+      title: Text(context.loc.recordPayment),
       content: SingleChildScrollView(
         child: Form(
           key: _formKey,
@@ -94,7 +95,7 @@ class _RecordPaymentDialogState extends ConsumerState<RecordPaymentDialog> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Balance Due:',
+                      '${context.loc.balanceDue}:',
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                     Text(
@@ -112,10 +113,10 @@ class _RecordPaymentDialogState extends ConsumerState<RecordPaymentDialog> {
               // Amount
               TextFormField(
                 controller: _amountController,
-                decoration: const InputDecoration(
-                  labelText: 'Amount *',
+                decoration: InputDecoration(
+                  labelText: '${context.loc.amount} *',
                   prefixText: '\$ ',
-                  border: OutlineInputBorder(),
+                  border: const OutlineInputBorder(),
                 ),
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
                 inputFormatters: [
@@ -123,14 +124,14 @@ class _RecordPaymentDialogState extends ConsumerState<RecordPaymentDialog> {
                 ],
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
-                    return 'Amount is required';
+                    return context.loc.amountRequired;
                   }
                   final amount = double.tryParse(value);
                   if (amount == null || amount <= 0) {
-                    return 'Enter a valid amount';
+                    return context.loc.enterValidAmount;
                   }
                   if (amount > widget.balanceDue) {
-                    return 'Amount exceeds balance due';
+                    return context.loc.amountExceedsBalance;
                   }
                   return null;
                 },
@@ -140,16 +141,16 @@ class _RecordPaymentDialogState extends ConsumerState<RecordPaymentDialog> {
               // Payment Method
               DropdownButtonFormField<String>(
                 value: _paymentMethod,
-                decoration: const InputDecoration(
-                  labelText: 'Payment Method *',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: '${context.loc.paymentMethod} *',
+                  border: const OutlineInputBorder(),
                 ),
-                items: const [
-                  DropdownMenuItem(value: 'cash', child: Text('Cash')),
-                  DropdownMenuItem(value: 'card', child: Text('Card')),
-                  DropdownMenuItem(value: 'bank_transfer', child: Text('Bank Transfer')),
-                  DropdownMenuItem(value: 'check', child: Text('Check')),
-                  DropdownMenuItem(value: 'other', child: Text('Other')),
+                items: [
+                  DropdownMenuItem(value: 'cash', child: Text(context.loc.cash)),
+                  DropdownMenuItem(value: 'card', child: Text(context.loc.card)),
+                  DropdownMenuItem(value: 'bank_transfer', child: Text(context.loc.bankTransfer)),
+                  DropdownMenuItem(value: 'check', child: Text(context.loc.check)),
+                  DropdownMenuItem(value: 'other', child: Text(context.loc.other)),
                 ],
                 onChanged: (value) {
                   if (value != null) {
@@ -162,10 +163,10 @@ class _RecordPaymentDialogState extends ConsumerState<RecordPaymentDialog> {
               // Transaction Reference
               TextFormField(
                 controller: _transactionReferenceController,
-                decoration: const InputDecoration(
-                  labelText: 'Transaction Reference (Optional)',
-                  hintText: 'e.g., Check number, transaction ID',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: context.loc.transactionReferenceOptional,
+                  hintText: context.loc.transactionReferenceHint,
+                  border: const OutlineInputBorder(),
                 ),
               ),
               const SizedBox(height: 16),
@@ -173,9 +174,9 @@ class _RecordPaymentDialogState extends ConsumerState<RecordPaymentDialog> {
               // Notes
               TextFormField(
                 controller: _notesController,
-                decoration: const InputDecoration(
-                  labelText: 'Notes',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: context.loc.notes,
+                  border: const OutlineInputBorder(),
                 ),
                 maxLines: 3,
               ),
@@ -186,7 +187,7 @@ class _RecordPaymentDialogState extends ConsumerState<RecordPaymentDialog> {
       actions: [
         TextButton(
           onPressed: _isSubmitting ? null : () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: Text(context.loc.cancel),
         ),
         ElevatedButton(
           onPressed: _isSubmitting ? null : _submitPayment,
@@ -196,7 +197,7 @@ class _RecordPaymentDialogState extends ConsumerState<RecordPaymentDialog> {
                   height: 16,
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
-              : const Text('Record Payment'),
+              : Text(context.loc.recordPayment),
         ),
       ],
     );

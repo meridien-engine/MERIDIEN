@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import '../../../core/localization/localization_extension.dart';
 import 'package:intl/intl.dart';
 import '../../../core/constants/app_colors.dart';
@@ -46,7 +45,7 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
         ],
       ),
       body: state.when(
-        initial: () => const Center(child: Text('Loading...')),
+        initial: () => Center(child: Text(context.loc.loading)),
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (message) => Center(
           child: Column(
@@ -59,7 +58,7 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
               ),
               const SizedBox(height: 16),
               Text(
-                'Error loading order',
+                context.loc.errorLoadingOrder,
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               const SizedBox(height: 8),
@@ -76,7 +75,7 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: _loadOrder,
-                child: const Text('Retry'),
+                child: Text(context.loc.retry),
               ),
             ],
           ),
@@ -116,21 +115,21 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
                   const SizedBox(height: 16),
                   _buildInfoRow(
                     Icons.calendar_today_outlined,
-                    'Order Date',
+                    context.loc.orderDate,
                     dateFormat.format(order.orderDate),
                   ),
                   if (order.customer != null) ...[
                     const SizedBox(height: 8),
                     _buildInfoRow(
                       Icons.person_outline_rounded,
-                      'Customer',
+                      context.loc.customer,
                       '${order.customer!.firstName ?? ''} ${order.customer!.lastName ?? ''}'.trim(),
                     ),
                     if (order.customer!.email != null) ...[
                       const SizedBox(height: 8),
                       _buildInfoRow(
                         Icons.email_outlined,
-                        'Email',
+                        context.loc.email,
                         order.customer!.email!,
                       ),
                     ],
@@ -149,7 +148,7 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Order Items',
+                    context.loc.orderItems,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
@@ -159,7 +158,7 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
                     ...order.items!.map((item) => _buildOrderItem(context, item))
                   else
                     Text(
-                      'No items',
+                      context.loc.noItems,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             color: AppColors.textSecondary,
                           ),
@@ -186,7 +185,7 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          'Shipping Address',
+                          context.loc.shippingAddress,
                           style: Theme.of(context).textTheme.titleMedium?.copyWith(
                                 fontWeight: FontWeight.bold,
                               ),
@@ -212,30 +211,30 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Order Summary',
+                    context.loc.orderSummary,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
                   ),
                   const SizedBox(height: 16),
-                  _buildSummaryRow('Subtotal', '\$${order.subtotal}'),
+                  _buildSummaryRow(context.loc.subtotal, '\$${order.subtotal}'),
                   const SizedBox(height: 8),
-                  _buildSummaryRow('Tax', '\$${order.taxAmount}'),
+                  _buildSummaryRow(context.loc.tax, '\$${order.taxAmount}'),
                   if (order.shippingAmount != '0.00') ...[
                     const SizedBox(height: 8),
-                    _buildSummaryRow('Shipping', '\$${order.shippingAmount}'),
+                    _buildSummaryRow(context.loc.shipping, '\$${order.shippingAmount}'),
                   ],
                   if (order.discountAmount != null && order.discountAmount != '0') ...[
                     const SizedBox(height: 8),
                     _buildSummaryRow(
-                      'Discount',
+                      context.loc.discount,
                       '-\$${order.discountAmount}',
                       color: AppColors.success,
                     ),
                   ],
                   const Divider(height: 24),
                   _buildSummaryRow(
-                    'Total',
+                    context.loc.total,
                     '\$${order.totalAmount}',
                     isTotal: true,
                   ),
@@ -256,7 +255,7 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'Payment Status',
+                        context.loc.paymentStatus,
                         style: Theme.of(context).textTheme.titleMedium?.copyWith(
                               fontWeight: FontWeight.bold,
                             ),
@@ -265,12 +264,12 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
                     ],
                   ),
                   const SizedBox(height: 16),
-                  _buildSummaryRow('Total Amount', '\$${order.totalAmount}'),
+                  _buildSummaryRow(context.loc.totalAmount, '\$${order.totalAmount}'),
                   const SizedBox(height: 8),
-                  _buildSummaryRow('Paid Amount', '\$${order.paidAmount}'),
+                  _buildSummaryRow(context.loc.paidAmount, '\$${order.paidAmount}'),
                   const SizedBox(height: 8),
                   _buildSummaryRow(
-                    'Balance Due',
+                    context.loc.balanceDue,
                     '\$${order.balanceDue.toStringAsFixed(2)}',
                     color: order.balanceDue > 0 ? AppColors.error : AppColors.success,
                   ),
@@ -281,7 +280,7 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
                       child: ElevatedButton.icon(
                         onPressed: () => _showRecordPaymentDialog(context, order),
                         icon: const Icon(Icons.payment_rounded),
-                        label: const Text('Record Payment'),
+                        label: Text(context.loc.recordPayment),
                       ),
                     ),
                   ],
@@ -300,7 +299,7 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Notes',
+                      context.loc.notes,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
@@ -373,7 +372,7 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
                 if (item.productSku != null) ...[
                   const SizedBox(height: 4),
                   Text(
-                    'SKU: ${item.productSku}',
+                    '${context.loc.sku}: ${item.productSku}',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: AppColors.textSecondary,
                         ),
@@ -512,14 +511,13 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
   Widget _buildActionButtons(BuildContext context, OrderModel order) {
     return Column(
       children: [
-        // Draft orders can be confirmed
         if (order.status == 'draft' || order.status == 'pending')
           SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(
               onPressed: () => _confirmOrder(order.id),
               icon: const Icon(Icons.check_circle_outline_rounded),
-              label: const Text('Confirm Order'),
+              label: Text(context.loc.confirmOrder),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.orderStatusConfirmed,
               ),
@@ -532,7 +530,7 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
             child: ElevatedButton.icon(
               onPressed: () => _shipOrder(order.id),
               icon: const Icon(Icons.local_shipping_outlined),
-              label: const Text('Mark as Shipped'),
+              label: Text(context.loc.markAsShipped),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.orderStatusShipped,
               ),
@@ -546,14 +544,13 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
             child: ElevatedButton.icon(
               onPressed: () => _deliverOrder(order.id),
               icon: const Icon(Icons.done_all_rounded),
-              label: const Text('Mark as Delivered'),
+              label: Text(context.loc.markAsDelivered),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.orderStatusDelivered,
               ),
             ),
           ),
         ],
-        // Cancel button for draft, pending, confirmed orders
         if (order.status == 'draft' ||
             order.status == 'pending' ||
             order.status == 'confirmed') ...[
@@ -563,7 +560,7 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
             child: OutlinedButton.icon(
               onPressed: () => _cancelOrder(order.id),
               icon: const Icon(Icons.cancel_outlined),
-              label: const Text('Cancel Order'),
+              label: Text(context.loc.cancelOrder),
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColors.error,
                 side: BorderSide(color: AppColors.error),
@@ -571,8 +568,6 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
             ),
           ),
         ],
-
-        // Reject button for shipped orders (receiver rejects delivery)
         if (order.status == 'shipped') ...[
           const SizedBox(height: 12),
           SizedBox(
@@ -580,7 +575,7 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
             child: OutlinedButton.icon(
               onPressed: () => _rejectOrder(order.id),
               icon: const Icon(Icons.block_outlined),
-              label: const Text('Reject Delivery'),
+              label: Text(context.loc.rejectDelivery),
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColors.warning,
                 side: BorderSide(color: AppColors.warning),
@@ -588,8 +583,6 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
             ),
           ),
         ],
-
-        // Return button for delivered orders
         if (order.status == 'delivered') ...[
           const SizedBox(height: 12),
           SizedBox(
@@ -597,7 +590,7 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
             child: OutlinedButton.icon(
               onPressed: () => _returnOrder(order.id),
               icon: const Icon(Icons.keyboard_return_outlined),
-              label: const Text('Return Order'),
+              label: Text(context.loc.returnOrder),
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColors.error,
                 side: BorderSide(color: AppColors.error),
@@ -613,16 +606,16 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Confirm Order'),
-        content: const Text('Are you sure you want to confirm this order?'),
+        title: Text(context.loc.confirmOrder),
+        content: Text(context.loc.confirmOrderMessage),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text(context.loc.cancel),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Confirm'),
+            child: Text(context.loc.confirm),
           ),
         ],
       ),
@@ -632,7 +625,7 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
       final result = await ref.read(orderDetailProvider.notifier).confirmOrder(id);
       if (result != null && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Order confirmed successfully')),
+          SnackBar(content: Text(context.loc.orderConfirmed)),
         );
       }
     }
@@ -642,16 +635,16 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Ship Order'),
-        content: const Text('Mark this order as shipped? This will deduct inventory.'),
+        title: Text(context.loc.shipOrder),
+        content: Text(context.loc.shipOrderMessage),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text(context.loc.cancel),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Ship'),
+            child: Text(context.loc.ship),
           ),
         ],
       ),
@@ -661,7 +654,7 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
       final result = await ref.read(orderDetailProvider.notifier).shipOrder(id);
       if (result != null && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Order marked as shipped')),
+          SnackBar(content: Text(context.loc.orderShipped)),
         );
       }
     }
@@ -671,16 +664,16 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Deliver Order'),
-        content: const Text('Mark this order as delivered?'),
+        title: Text(context.loc.deliverOrder),
+        content: Text(context.loc.deliverOrderMessage),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text(context.loc.cancel),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Deliver'),
+            child: Text(context.loc.deliver),
           ),
         ],
       ),
@@ -690,7 +683,7 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
       final result = await ref.read(orderDetailProvider.notifier).deliverOrder(id);
       if (result != null && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Order marked as delivered')),
+          SnackBar(content: Text(context.loc.orderDelivered)),
         );
       }
     }
@@ -700,17 +693,17 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Cancel Order'),
-        content: const Text('Are you sure you want to cancel this order? This action cannot be undone.'),
+        title: Text(context.loc.cancelOrder),
+        content: Text(context.loc.cancelOrderMessage),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('No'),
+            child: Text(context.loc.no),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
-            child: const Text('Yes, Cancel'),
+            child: Text(context.loc.yesCancel),
           ),
         ],
       ),
@@ -720,7 +713,7 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
       final result = await ref.read(orderDetailProvider.notifier).cancelOrder(id);
       if (result != null && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Order cancelled')),
+          SnackBar(content: Text(context.loc.orderCancelled)),
         );
       }
     }
@@ -732,18 +725,18 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Reject Delivery'),
+        title: Text(context.loc.rejectDelivery),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Are you sure you want to reject this delivery?'),
+            Text(context.loc.rejectDeliveryMessage),
             const SizedBox(height: 16),
             TextField(
               controller: reasonController,
               decoration: InputDecoration(
-                labelText: 'Rejection Reason (Optional)',
-                hintText: 'e.g., Damaged package, incorrect items',
+                labelText: context.loc.rejectionReasonOptional,
+                hintText: context.loc.rejectionReasonHint,
                 border: const OutlineInputBorder(),
               ),
               maxLines: 3,
@@ -753,12 +746,12 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text(context.loc.cancel),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.warning),
-            child: const Text('Reject'),
+            child: Text(context.loc.reject),
           ),
         ],
       ),
@@ -771,8 +764,8 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
           SnackBar(
             content: Text(
               reasonController.text.isEmpty
-                  ? 'Delivery rejected'
-                  : 'Delivery rejected: ${reasonController.text}',
+                  ? context.loc.deliveryRejected
+                  : '${context.loc.deliveryRejected}: ${reasonController.text}',
             ),
             backgroundColor: AppColors.warning,
           ),
@@ -788,18 +781,18 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Return Order'),
+        title: Text(context.loc.returnOrder),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Are you sure you want to return this order?'),
+            Text(context.loc.returnOrderMessage),
             const SizedBox(height: 16),
             TextField(
               controller: reasonController,
               decoration: InputDecoration(
-                labelText: 'Return Reason (Optional)',
-                hintText: 'e.g., Defective product, wrong item',
+                labelText: context.loc.returnReasonOptional,
+                hintText: context.loc.returnReasonHint,
                 border: const OutlineInputBorder(),
               ),
               maxLines: 3,
@@ -809,12 +802,12 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text(context.loc.cancel),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
-            child: const Text('Return'),
+            child: Text(context.loc.returnLabel),
           ),
         ],
       ),
@@ -827,8 +820,8 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
           SnackBar(
             content: Text(
               reasonController.text.isEmpty
-                  ? 'Order returned successfully'
-                  : 'Order returned: ${reasonController.text}',
+                  ? context.loc.orderReturned
+                  : '${context.loc.orderReturned}: ${reasonController.text}',
             ),
           ),
         );
@@ -846,7 +839,7 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
         onPaymentRecorded: () {
           _loadOrder();
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Payment recorded successfully')),
+            SnackBar(content: Text(context.loc.paymentRecorded)),
           );
         },
       ),

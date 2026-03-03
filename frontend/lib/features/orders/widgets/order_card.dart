@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/localization/localization_extension.dart';
 import '../../../data/models/order_model.dart';
 
 class OrderCard extends StatelessWidget {
@@ -172,7 +173,7 @@ class OrderCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Total',
+                        context.loc.total,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                               color: AppColors.textSecondary,
                             ),
@@ -208,7 +209,7 @@ class OrderCard extends StatelessWidget {
                         ),
                         const SizedBox(width: 6),
                         Text(
-                          _getPaymentStatusLabel(),
+                          _getPaymentStatusLabel(context),
                           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                 color: _paymentStatusColor,
                                 fontWeight: FontWeight.w600,
@@ -241,16 +242,16 @@ class OrderCard extends StatelessWidget {
     }
   }
 
-  String _getPaymentStatusLabel() {
+  String _getPaymentStatusLabel(BuildContext context) {
     switch (order.paymentStatus.toLowerCase()) {
       case 'paid':
-        return 'Paid';
+        return context.loc.paymentPaid;
       case 'partial':
-        return 'Partial';
+        return context.loc.partial;
       case 'unpaid':
-        return 'Unpaid';
+        return context.loc.unpaid;
       case 'overdue':
-        return 'Overdue';
+        return context.loc.overdue;
       default:
         return order.paymentStatus;
     }

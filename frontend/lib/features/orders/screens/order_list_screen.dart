@@ -101,7 +101,7 @@ class _OrderListScreenState extends ConsumerState<OrderListScreen> {
                     Padding(
                       padding: const EdgeInsets.only(right: 8),
                       child: Chip(
-                        label: Text('Status: $_selectedStatus'),
+                        label: Text('${context.loc.orderStatus}: $_selectedStatus'),
                         onDeleted: () {
                           setState(() => _selectedStatus = null);
                           _loadOrders();
@@ -110,7 +110,7 @@ class _OrderListScreenState extends ConsumerState<OrderListScreen> {
                     ),
                   if (_selectedPaymentStatus != null)
                     Chip(
-                      label: Text('Payment: $_selectedPaymentStatus'),
+                      label: Text('${context.loc.paymentStatus}: $_selectedPaymentStatus'),
                       onDeleted: () {
                         setState(() => _selectedPaymentStatus = null);
                         _loadOrders();
@@ -123,8 +123,8 @@ class _OrderListScreenState extends ConsumerState<OrderListScreen> {
           // Order List
           Expanded(
             child: state.when(
-              initial: () => const Center(
-                child: Text('Search for orders'),
+              initial: () => Center(
+                child: Text(context.loc.searchOrdersInitial),
               ),
               loading: () => const Center(
                 child: CircularProgressIndicator(),
@@ -142,12 +142,12 @@ class _OrderListScreenState extends ConsumerState<OrderListScreen> {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          'No orders found',
+                          context.loc.noOrdersFound,
                           style: Theme.of(context).textTheme.titleMedium,
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Start by creating your first order',
+                          context.loc.noOrdersDesc,
                           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                 color: AppColors.textSecondary,
                               ),
@@ -184,7 +184,7 @@ class _OrderListScreenState extends ConsumerState<OrderListScreen> {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      'Error loading orders',
+                      context.loc.errorLoadingOrders,
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                     const SizedBox(height: 8),
@@ -201,7 +201,7 @@ class _OrderListScreenState extends ConsumerState<OrderListScreen> {
                     const SizedBox(height: 16),
                     ElevatedButton(
                       onPressed: _loadOrders,
-                      child: const Text('Retry'),
+                      child: Text(context.loc.retry),
                     ),
                   ],
                 ),
@@ -221,25 +221,25 @@ class _OrderListScreenState extends ConsumerState<OrderListScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Filter Orders'),
+        title: Text(context.loc.filterOrders),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             DropdownButtonFormField<String>(
               value: _selectedStatus,
               decoration: InputDecoration(
-                labelText: 'Order Status',
+                labelText: context.loc.orderStatus,
                 border: const OutlineInputBorder(),
               ),
-              items: const [
-                DropdownMenuItem(value: null, child: Text('All')),
-                DropdownMenuItem(value: 'draft', child: Text('Draft')),
-                DropdownMenuItem(value: 'pending', child: Text('Pending')),
-                DropdownMenuItem(value: 'confirmed', child: Text('Confirmed')),
-                DropdownMenuItem(value: 'processing', child: Text('Processing')),
-                DropdownMenuItem(value: 'shipped', child: Text('Shipped')),
-                DropdownMenuItem(value: 'delivered', child: Text('Delivered')),
-                DropdownMenuItem(value: 'cancelled', child: Text('Cancelled')),
+              items: [
+                DropdownMenuItem(value: null, child: Text(context.loc.all)),
+                DropdownMenuItem(value: 'draft', child: Text(context.loc.draft)),
+                DropdownMenuItem(value: 'pending', child: Text(context.loc.pending)),
+                DropdownMenuItem(value: 'confirmed', child: Text(context.loc.confirmed)),
+                DropdownMenuItem(value: 'processing', child: Text(context.loc.processing)),
+                DropdownMenuItem(value: 'shipped', child: Text(context.loc.shipped)),
+                DropdownMenuItem(value: 'delivered', child: Text(context.loc.delivered)),
+                DropdownMenuItem(value: 'cancelled', child: Text(context.loc.cancelled)),
               ],
               onChanged: (value) {
                 setState(() => _selectedStatus = value);
@@ -249,15 +249,15 @@ class _OrderListScreenState extends ConsumerState<OrderListScreen> {
             DropdownButtonFormField<String>(
               value: _selectedPaymentStatus,
               decoration: InputDecoration(
-                labelText: 'Payment Status',
+                labelText: context.loc.paymentStatus,
                 border: const OutlineInputBorder(),
               ),
-              items: const [
-                DropdownMenuItem(value: null, child: Text('All')),
-                DropdownMenuItem(value: 'unpaid', child: Text('Unpaid')),
-                DropdownMenuItem(value: 'partial', child: Text('Partially Paid')),
-                DropdownMenuItem(value: 'paid', child: Text('Paid')),
-                DropdownMenuItem(value: 'overdue', child: Text('Overdue')),
+              items: [
+                DropdownMenuItem(value: null, child: Text(context.loc.all)),
+                DropdownMenuItem(value: 'unpaid', child: Text(context.loc.unpaid)),
+                DropdownMenuItem(value: 'partial', child: Text(context.loc.partiallyPaid)),
+                DropdownMenuItem(value: 'paid', child: Text(context.loc.paymentPaid)),
+                DropdownMenuItem(value: 'overdue', child: Text(context.loc.overdue)),
               ],
               onChanged: (value) {
                 setState(() => _selectedPaymentStatus = value);
@@ -275,14 +275,14 @@ class _OrderListScreenState extends ConsumerState<OrderListScreen> {
               Navigator.pop(context);
               _loadOrders();
             },
-            child: const Text('Clear'),
+            child: Text(context.loc.clear),
           ),
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
               _loadOrders();
             },
-            child: const Text('Apply'),
+            child: Text(context.loc.apply),
           ),
         ],
       ),

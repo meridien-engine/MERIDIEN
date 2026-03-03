@@ -70,7 +70,6 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
                       city: '',
                       shippingFee: '0.00',
                     ));
-        // Auto-populate city field from location
         _shippingFeeController.text =
             location.shippingFeeValue.toStringAsFixed(2);
       } else {
@@ -106,7 +105,7 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Customer',
+                        context.loc.customer,
                         style: Theme.of(context).textTheme.titleMedium?.copyWith(
                               fontWeight: FontWeight.bold,
                             ),
@@ -117,13 +116,13 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
                         loading: () => const CircularProgressIndicator(),
                         loaded: (customers, _, __, ___) {
                           if (customers.isEmpty) {
-                            return const Text('No customers available');
+                            return Text(context.loc.noCustomersAvailable);
                           }
                           return DropdownButtonFormField<String>(
                             value: _selectedCustomerId,
-                            decoration: const InputDecoration(
-                              labelText: 'Select Customer *',
-                              border: OutlineInputBorder(),
+                            decoration: InputDecoration(
+                              labelText: '${context.loc.selectCustomer} *',
+                              border: const OutlineInputBorder(),
                             ),
                             items: customers.map((customer) {
                               return DropdownMenuItem(
@@ -136,14 +135,14 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
                             },
                             validator: (value) {
                               if (value == null || value.isEmpty) {
-                                return 'Please select a customer';
+                                return context.loc.selectCustomerRequired;
                               }
                               return null;
                             },
                           );
                         },
                         error: (message) => Text(
-                          'Error loading customers: $message',
+                          '${context.loc.error}: $message',
                           style: TextStyle(color: AppColors.error),
                         ),
                       ),
@@ -164,7 +163,7 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            'Order Items',
+                            context.loc.orderItems,
                             style:
                                 Theme.of(context).textTheme.titleMedium?.copyWith(
                                       fontWeight: FontWeight.bold,
@@ -180,7 +179,7 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
                       const SizedBox(height: 16),
                       if (_items.isEmpty)
                         Text(
-                          'No items added. Tap + to add items.',
+                          context.loc.noItemsAdded,
                           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                 color: AppColors.textSecondary,
                               ),
@@ -205,21 +204,20 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Delivery Location',
+                        context.loc.deliveryLocation,
                         style: Theme.of(context).textTheme.titleMedium?.copyWith(
                               fontWeight: FontWeight.bold,
                             ),
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Select a city/zone to auto-fill the shipping fee.',
+                        context.loc.deliveryLocationHint,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                               color: AppColors.textSecondary,
                             ),
                       ),
                       const SizedBox(height: 12),
 
-                      // Location dropdown
                       if (locationState.isLoading)
                         const Padding(
                           padding: EdgeInsets.symmetric(vertical: 8),
@@ -232,7 +230,7 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
                                 size: 16, color: AppColors.textSecondary),
                             const SizedBox(width: 6),
                             Text(
-                              'No locations configured yet.',
+                              context.loc.noResults,
                               style: Theme.of(context)
                                   .textTheme
                                   .bodySmall
@@ -243,15 +241,15 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
                       else
                         DropdownButtonFormField<String>(
                           value: _selectedLocationId,
-                          decoration: const InputDecoration(
-                            labelText: 'City / Zone',
-                            border: OutlineInputBorder(),
-                            prefixIcon: Icon(Icons.location_on_rounded),
+                          decoration: InputDecoration(
+                            labelText: context.loc.cityZone,
+                            border: const OutlineInputBorder(),
+                            prefixIcon: const Icon(Icons.location_on_rounded),
                           ),
                           items: [
-                            const DropdownMenuItem<String>(
+                            DropdownMenuItem<String>(
                               value: null,
-                              child: Text('— None —'),
+                              child: Text(context.loc.noneOption),
                             ),
                             ...locationState.locations.map((loc) {
                               return DropdownMenuItem<String>(
@@ -265,45 +263,43 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
 
                       const SizedBox(height: 12),
 
-                      // Shipping fee (auto-populated, owners can edit manually)
                       TextFormField(
                         controller: _shippingFeeController,
                         decoration: InputDecoration(
-                          labelText: 'Shipping Fee',
+                          labelText: context.loc.shippingFee,
                           border: const OutlineInputBorder(),
                           prefixText: '\$ ',
                           prefixIcon: const Icon(Icons.local_shipping_rounded),
                           helperText: _selectedLocationId != null
-                              ? 'Auto-populated from location. '
-                                '${isOwner || isOperator ? 'You can override.' : ''}'
+                              ? '${context.loc.autoFilledFromLocation} '
+                                '${isOwner || isOperator ? context.loc.canOverrideShipping : ''}'
                               : null,
                         ),
                         keyboardType: const TextInputType.numberWithOptions(
                             decimal: true),
-                        // Collectors cannot manually override the shipping fee
                         enabled: isOwner || isOperator || _selectedLocationId == null,
                         readOnly: !isOwner && !isOperator,
                         validator: (v) {
                           if (v == null || v.isEmpty) return null;
                           final parsed = double.tryParse(v);
-                          if (parsed == null) return 'Invalid decimal number';
-                          if (parsed < 0) return 'Cannot be negative';
+                          if (parsed == null) return context.loc.invalidDecimal;
+                          if (parsed < 0) return context.loc.cannotBeNegative;
                           return null;
                         },
                       ),
 
                       const SizedBox(height: 12),
                       Text(
-                        'Additional Address',
+                        context.loc.additionalAddress,
                         style: Theme.of(context).textTheme.labelLarge,
                       ),
                       const SizedBox(height: 8),
 
                       TextFormField(
                         controller: _shippingLine1Controller,
-                        decoration: const InputDecoration(
-                          labelText: 'Address Line 1',
-                          border: OutlineInputBorder(),
+                        decoration: InputDecoration(
+                          labelText: context.loc.addressLine1,
+                          border: const OutlineInputBorder(),
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -312,9 +308,9 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
                           Expanded(
                             child: TextFormField(
                               controller: _shippingStateController,
-                              decoration: const InputDecoration(
-                                labelText: 'State / Province',
-                                border: OutlineInputBorder(),
+                              decoration: InputDecoration(
+                                labelText: context.loc.stateProvince,
+                                border: const OutlineInputBorder(),
                               ),
                             ),
                           ),
@@ -322,9 +318,9 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
                           Expanded(
                             child: TextFormField(
                               controller: _shippingPostalCodeController,
-                              decoration: const InputDecoration(
-                                labelText: 'Postal Code',
-                                border: OutlineInputBorder(),
+                              decoration: InputDecoration(
+                                labelText: context.loc.postalCode,
+                                border: const OutlineInputBorder(),
                               ),
                             ),
                           ),
@@ -333,9 +329,9 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
                       const SizedBox(height: 12),
                       TextFormField(
                         controller: _shippingCountryController,
-                        decoration: const InputDecoration(
-                          labelText: 'Country',
-                          border: OutlineInputBorder(),
+                        decoration: InputDecoration(
+                          labelText: context.loc.country,
+                          border: const OutlineInputBorder(),
                         ),
                       ),
                     ],
@@ -350,10 +346,10 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
                   padding: const EdgeInsets.all(16),
                   child: TextFormField(
                     controller: _notesController,
-                    decoration: const InputDecoration(
-                      labelText: 'Order Notes (Optional)',
-                      border: OutlineInputBorder(),
-                      hintText: 'Add any special instructions or notes',
+                    decoration: InputDecoration(
+                      labelText: context.loc.orderNotesOptional,
+                      border: const OutlineInputBorder(),
+                      hintText: context.loc.orderNotesHint,
                     ),
                     maxLines: 3,
                   ),
@@ -370,22 +366,22 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Order Summary',
+                          context.loc.orderSummary,
                           style:
                               Theme.of(context).textTheme.titleMedium?.copyWith(
                                     fontWeight: FontWeight.bold,
                                   ),
                         ),
                         const SizedBox(height: 16),
-                        _buildSummaryRow('Subtotal', _calculateSubtotal()),
+                        _buildSummaryRow(context.loc.subtotal, _calculateSubtotal()),
                         const SizedBox(height: 8),
-                        _buildSummaryRow('Tax (10%)', _calculateTax()),
+                        _buildSummaryRow(context.loc.taxPercent, _calculateTax()),
                         const SizedBox(height: 8),
                         _buildSummaryRow(
-                            'Shipping',
+                            context.loc.shipping,
                             '\$${double.tryParse(_shippingFeeController.text)?.toStringAsFixed(2) ?? '0.00'}'),
                         const Divider(height: 24),
-                        _buildSummaryRow('Total', _calculateTotal(),
+                        _buildSummaryRow(context.loc.total, _calculateTotal(),
                             isTotal: true),
                       ],
                     ),
@@ -409,7 +405,7 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
                           height: 20,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                      : const Text('Create Order'),
+                      : Text(context.loc.createOrder),
                 ),
               ),
             ],
@@ -519,7 +515,7 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
       loaded: (products, _, __, ___) {
         if (products.isEmpty) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('No products available')),
+            SnackBar(content: Text(context.loc.noProductsAvailable)),
           );
           return;
         }
@@ -531,15 +527,15 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
           context: context,
           builder: (dialogContext) => StatefulBuilder(
             builder: (context, setDialogState) => AlertDialog(
-              title: const Text('Add Item'),
+              title: Text(context.loc.addItem),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   DropdownButtonFormField<String>(
                     value: selectedProductId,
-                    decoration: const InputDecoration(
-                      labelText: 'Product',
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      labelText: context.loc.product,
+                      border: const OutlineInputBorder(),
                     ),
                     items: products.map<DropdownMenuItem<String>>((product) {
                       return DropdownMenuItem<String>(
@@ -568,14 +564,14 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(dialogContext),
-                  child: const Text('Cancel'),
+                  child: Text(context.loc.cancel),
                 ),
                 ElevatedButton(
                   onPressed: () {
                     if (selectedProductId == null) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Please select a product'),
+                        SnackBar(
+                          content: Text(context.loc.selectProductRequired),
                           backgroundColor: Colors.red,
                         ),
                       );
@@ -584,8 +580,8 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
 
                     if (quantity <= 0) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Quantity must be greater than 0'),
+                        SnackBar(
+                          content: Text(context.loc.quantityMustBePositive),
                           backgroundColor: Colors.red,
                         ),
                       );
@@ -596,13 +592,12 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
                       (p) => p.id == selectedProductId,
                     );
 
-                    // Check stock availability
                     if (product.trackInventory &&
                         quantity > product.stockQuantity) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text(
-                            'Insufficient stock! Available: ${product.stockQuantity}',
+                            '${context.loc.insufficientStockPrefix} ${product.stockQuantity}',
                           ),
                           backgroundColor: Colors.red,
                         ),
@@ -622,12 +617,12 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
 
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text('${product.name} added to order'),
+                        content: Text('${product.name} ${context.loc.productAddedToOrder}'),
                         backgroundColor: Colors.green,
                       ),
                     );
                   },
-                  child: const Text('Add'),
+                  child: Text(context.loc.add),
                 ),
               ],
             ),
@@ -643,7 +638,7 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
     if (_selectedCustomerId == null) return;
     if (_items.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please add at least one item')),
+        SnackBar(content: Text(context.loc.addAtLeastOneItem)),
       );
       return;
     }
@@ -659,7 +654,6 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
         double.tryParse(_shippingFeeController.text)?.toStringAsFixed(2) ??
             '0.00';
 
-    // Derive city from selected location (or leave blank)
     String? cityValue;
     if (_selectedLocationId != null) {
       final loc = ref.read(locationProvider).locations.firstWhere(
@@ -670,7 +664,6 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
       cityValue = loc.city.isNotEmpty ? loc.city : null;
     }
 
-    // Build shipping address if any field is filled
     ShippingAddressRequest? shippingAddress;
     final hasShippingData = _shippingLine1Controller.text.isNotEmpty ||
         cityValue != null ||
@@ -720,8 +713,8 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
 
       if (result != null && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Order created successfully'),
+          SnackBar(
+            content: Text(context.loc.orderCreated),
             backgroundColor: Colors.green,
           ),
         );
@@ -732,7 +725,7 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to create order: $e'),
+            content: Text('${context.loc.error}: $e'),
             backgroundColor: AppColors.error,
           ),
         );
