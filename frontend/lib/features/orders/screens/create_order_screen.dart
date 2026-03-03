@@ -4,12 +4,16 @@ import 'package:go_router/go_router.dart';
 import '../../../core/localization/localization_extension.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/providers/role_provider.dart';
-import '../../../data/models/order_model.dart';
+import '../../../data/models/customer_model.dart';
+import '../../../data/models/order_model.dart' hide CustomerModel;
+import '../../../data/models/product_model.dart';
 import '../../../data/models/location_model.dart';
-import '../../customers/providers/customer_provider.dart';
-import '../../products/providers/product_provider.dart';
+import '../../../data/providers/repository_providers.dart';
 import '../../locations/providers/location_provider.dart';
 import '../providers/order_provider.dart';
+import '../widgets/barcode_scanner_sheet.dart';
+import '../widgets/customer_search_field.dart';
+import '../widgets/product_search_picker.dart';
 
 class CreateOrderScreen extends ConsumerStatefulWidget {
   const CreateOrderScreen({super.key});
@@ -20,7 +24,8 @@ class CreateOrderScreen extends ConsumerStatefulWidget {
 
 class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
   final _formKey = GlobalKey<FormState>();
-  String? _selectedCustomerId;
+  CustomerModel? _selectedCustomer;
+  String? _customerError;
   final List<OrderItemData> _items = [];
   bool _isSubmitting = false;
 
@@ -40,8 +45,6 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
   void initState() {
     super.initState();
     Future.microtask(() {
-      ref.read(customerListProvider.notifier).loadCustomers();
-      ref.read(productListProvider.notifier).loadProducts();
       ref.read(locationProvider.notifier).listLocations();
     });
   }
@@ -80,8 +83,6 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final customerState = ref.watch(customerListProvider);
-    final productState = ref.watch(productListProvider);
     final locationState = ref.watch(locationProvider);
     final isOwner = ref.isOwner;
     final isOperator = ref.isOperator;
@@ -111,40 +112,15 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
                             ),
                       ),
                       const SizedBox(height: 16),
-                      customerState.when(
-                        initial: () => const CircularProgressIndicator(),
-                        loading: () => const CircularProgressIndicator(),
-                        loaded: (customers, _, __, ___) {
-                          if (customers.isEmpty) {
-                            return Text(context.loc.noCustomersAvailable);
-                          }
-                          return DropdownButtonFormField<String>(
-                            value: _selectedCustomerId,
-                            decoration: InputDecoration(
-                              labelText: '${context.loc.selectCustomer} *',
-                              border: const OutlineInputBorder(),
-                            ),
-                            items: customers.map((customer) {
-                              return DropdownMenuItem(
-                                value: customer.id,
-                                child: Text(customer.fullName),
-                              );
-                            }).toList(),
-                            onChanged: (value) {
-                              setState(() => _selectedCustomerId = value);
-                            },
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return context.loc.selectCustomerRequired;
-                              }
-                              return null;
-                            },
-                          );
-                        },
-                        error: (message) => Text(
-                          '${context.loc.error}: $message',
-                          style: TextStyle(color: AppColors.error),
-                        ),
+                      CustomerSearchField(
+                        initialValue: _selectedCustomer,
+                        errorText: _customerError,
+                        onSelected: (c) => setState(() {
+                          _selectedCustomer = c;
+                          _customerError = null;
+                        }),
+                        onCleared: () =>
+                            setState(() => _selectedCustomer = null),
                       ),
                     ],
                   ),
@@ -169,10 +145,44 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
                                       fontWeight: FontWeight.bold,
                                     ),
                           ),
-                          IconButton(
-                            onPressed: () =>
-                                _showAddItemDialog(context, productState),
-                            icon: const Icon(Icons.add_circle_outline_rounded),
+                          Row(
+                            children: [
+                              IconButton(
+                                onPressed: () =>
+                                    _showBarcodeScanner(context),
+                                icon: const Icon(
+                                    Icons.qr_code_scanner_rounded),
+                                tooltip: context.loc.scanBarcodeOrSku,
+                              ),
+                              IconButton(
+                                onPressed: () => showProductSearchPicker(
+                                  context,
+                                  onAdd: (product, qty) {
+                                    _addOrIncrementItem(product);
+                                    // Adjust quantity if user requested > 1
+                                    if (qty > 1) {
+                                      final idx = _items.indexWhere(
+                                          (i) => i.productId == product.id);
+                                      if (idx >= 0) {
+                                        final cur = _items[idx];
+                                        setState(() {
+                                          _items[idx] = OrderItemData(
+                                            productId: cur.productId,
+                                            productName: cur.productName,
+                                            quantity: qty,
+                                            unitPrice: cur.unitPrice,
+                                          );
+                                        });
+                                      }
+                                    }
+                                    _showAddedSnack(product.name);
+                                  },
+                                ),
+                                icon: const Icon(
+                                    Icons.add_circle_outline_rounded),
+                                tooltip: context.loc.addItem,
+                              ),
+                            ],
                           ),
                         ],
                       ),
@@ -508,134 +518,78 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
     return '\$${(subtotal + tax + shipping).toStringAsFixed(2)}';
   }
 
-  void _showAddItemDialog(BuildContext context, dynamic productState) {
-    productState.when(
-      initial: () {},
-      loading: () {},
-      loaded: (products, _, __, ___) {
-        if (products.isEmpty) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(context.loc.noProductsAvailable)),
-          );
-          return;
-        }
-
-        String? selectedProductId;
-        int quantity = 1;
-
-        showDialog(
-          context: context,
-          builder: (dialogContext) => StatefulBuilder(
-            builder: (context, setDialogState) => AlertDialog(
-              title: Text(context.loc.addItem),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  DropdownButtonFormField<String>(
-                    value: selectedProductId,
-                    decoration: InputDecoration(
-                      labelText: context.loc.product,
-                      border: const OutlineInputBorder(),
-                    ),
-                    items: products.map<DropdownMenuItem<String>>((product) {
-                      return DropdownMenuItem<String>(
-                        value: product.id,
-                        child: Text('${product.name} (\$${product.displayPrice})'),
-                      );
-                    }).toList(),
-                    onChanged: (value) {
-                      setDialogState(() => selectedProductId = value);
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    initialValue: quantity.toString(),
-                    decoration: InputDecoration(
-                      labelText: context.loc.quantity,
-                      border: const OutlineInputBorder(),
-                    ),
-                    keyboardType: TextInputType.number,
-                    onChanged: (value) {
-                      quantity = int.tryParse(value) ?? 1;
-                    },
-                  ),
-                ],
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(dialogContext),
-                  child: Text(context.loc.cancel),
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    if (selectedProductId == null) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(context.loc.selectProductRequired),
-                          backgroundColor: Colors.red,
-                        ),
-                      );
-                      return;
-                    }
-
-                    if (quantity <= 0) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(context.loc.quantityMustBePositive),
-                          backgroundColor: Colors.red,
-                        ),
-                      );
-                      return;
-                    }
-
-                    final product = products.firstWhere(
-                      (p) => p.id == selectedProductId,
-                    );
-
-                    if (product.trackInventory &&
-                        quantity > product.stockQuantity) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            '${context.loc.insufficientStockPrefix} ${product.stockQuantity}',
-                          ),
-                          backgroundColor: Colors.red,
-                        ),
-                      );
-                      return;
-                    }
-
-                    setState(() {
-                      _items.add(OrderItemData(
-                        productId: product.id,
-                        productName: product.name,
-                        quantity: quantity,
-                        unitPrice: product.displayPrice,
-                      ));
-                    });
-                    Navigator.pop(dialogContext);
-
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('${product.name} ${context.loc.productAddedToOrder}'),
-                        backgroundColor: Colors.green,
-                      ),
-                    );
-                  },
-                  child: Text(context.loc.add),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-      error: (_) {},
+  void _showBarcodeScanner(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) => BarcodeScannerSheet(
+        onScanned: (query) => _lookupAndAddProduct(query),
+      ),
     );
   }
 
+  Future<void> _lookupAndAddProduct(String query) async {
+    // API lookup by barcode / SKU
+    try {
+      final product =
+          await ref.read(productRepositoryProvider).lookupProduct(query);
+      _addOrIncrementItem(product);
+      if (mounted) _showAddedSnack(product.name);
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Product not found: $query'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  void _addOrIncrementItem(ProductModel product) {
+    setState(() {
+      final idx = _items.indexWhere((i) => i.productId == product.id);
+      if (idx >= 0) {
+        final existing = _items[idx];
+        _items[idx] = OrderItemData(
+          productId: existing.productId,
+          productName: existing.productName,
+          quantity: existing.quantity + 1,
+          unitPrice: existing.unitPrice,
+        );
+      } else {
+        _items.add(OrderItemData(
+          productId: product.id,
+          productName: product.name,
+          quantity: 1,
+          unitPrice: product.displayPrice,
+        ));
+      }
+    });
+  }
+
+  void _showAddedSnack(String name) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('$name ${context.loc.productAddedToOrder}'),
+        backgroundColor: Colors.green,
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+
   Future<void> _submitOrder() async {
+    if (_selectedCustomer == null) {
+      setState(() => _customerError = context.loc.selectCustomerRequired);
+      return;
+    }
     if (!_formKey.currentState!.validate()) return;
-    if (_selectedCustomerId == null) return;
     if (_items.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(context.loc.addAtLeastOneItem)),
@@ -689,7 +643,7 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
     }
 
     final request = CreateOrderRequest(
-      customerId: _selectedCustomerId!,
+      customerId: _selectedCustomer!.id,
       items: _items.map((item) {
         return CreateOrderItemRequest(
           productId: item.productId,
