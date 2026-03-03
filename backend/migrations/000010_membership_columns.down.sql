@@ -1,0 +1,11 @@
+BEGIN;
+
+ALTER TABLE join_requests
+  DROP COLUMN IF EXISTS role,
+  DROP COLUMN IF EXISTS reviewed_by,
+  DROP COLUMN IF EXISTS reviewed_at;
+
+ALTER TABLE invitations
+  DROP COLUMN IF EXISTS status;
+
+COMMIT;
