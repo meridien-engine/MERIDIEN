@@ -5,7 +5,6 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/localization/localization_extension.dart';
 import '../../../shared/widgets/language_toggle_button.dart';
 import '../../auth/providers/auth_provider.dart';
-import '../../auth/models/auth_state.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -15,7 +14,7 @@ class DashboardScreen extends ConsumerWidget {
     final authState = ref.watch(authProvider);
 
     return authState.maybeWhen(
-      authenticated: (user, tenant) => Scaffold(
+      authenticated: (user, business, role) => Scaffold(
         appBar: AppBar(
           title: Text(context.loc.appName),
           actions: [
@@ -44,7 +43,7 @@ class DashboardScreen extends ConsumerWidget {
                         style: Theme.of(context).textTheme.bodySmall,
                       ),
                       Text(
-                        tenant?.name ?? 'No Tenant',
+                        business.name,
                         style:
                             Theme.of(context).textTheme.bodySmall?.copyWith(
                                   color: AppColors.textSecondary,
@@ -131,6 +130,12 @@ class DashboardScreen extends ConsumerWidget {
                       color: Colors.teal,
                       onTap: () => context.push('/pos'),
                     ),
+                    _QuickActionCard(
+                      icon: Icons.storefront_rounded,
+                      label: context.loc.stores,
+                      color: Colors.indigo,
+                      onTap: () => context.push('/stores'),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 32),
@@ -150,13 +155,13 @@ class DashboardScreen extends ConsumerWidget {
                         ),
                         const Divider(),
                         _InfoRow(
-                          label: 'Tenant',
-                          value: tenant?.name ?? 'No Tenant',
+                          label: 'Business',
+                          value: business.name,
                         ),
                         const Divider(),
                         _InfoRow(
                           label: 'Role',
-                          value: user.role,
+                          value: role,
                         ),
                       ],
                     ),

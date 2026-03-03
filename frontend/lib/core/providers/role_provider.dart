@@ -39,7 +39,7 @@ MeridienRole? _parseRole(String? raw) {
 final currentUserRoleProvider = Provider<MeridienRole?>((ref) {
   final authState = ref.watch(authProvider);
   return authState.maybeWhen(
-    authenticated: (user, _) => _parseRole(user.role),
+    authenticated: (user, _, role) => _parseRole(role),
     orElse: () => null,
   );
 });
@@ -48,7 +48,7 @@ final currentUserRoleProvider = Provider<MeridienRole?>((ref) {
 final currentUserRoleStringProvider = Provider<String?>((ref) {
   final authState = ref.watch(authProvider);
   return authState.maybeWhen(
-    authenticated: (user, _) => user.role,
+    authenticated: (user, _, role) => role,
     orElse: () => null,
   );
 });

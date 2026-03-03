@@ -8,7 +8,7 @@ part 'pos_model.g.dart';
 class PosSessionModel with _$PosSessionModel {
   const factory PosSessionModel({
     required String id,
-    @JsonKey(name: 'tenant_id') required String tenantId,
+    @JsonKey(name: 'business_id') required String businessId,
     @JsonKey(name: 'cashier_id') required String cashierId,
     required String status,
     @JsonKey(name: 'opening_float') required String openingFloat,

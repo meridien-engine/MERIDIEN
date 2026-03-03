@@ -66,7 +66,7 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
             ref.read(locationProvider).locations.firstWhere((l) => l.id == locationId,
                 orElse: () => const LocationModel(
                       id: '',
-                      tenantId: '',
+                      businessId: '',
                       city: '',
                       shippingFee: '0.00',
                     ));
@@ -665,7 +665,7 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
       final loc = ref.read(locationProvider).locations.firstWhere(
             (l) => l.id == _selectedLocationId,
             orElse: () => const LocationModel(
-                id: '', tenantId: '', city: '', shippingFee: '0.00'),
+                id: '', businessId: '', city: '', shippingFee: '0.00'),
           );
       cityValue = loc.city.isNotEmpty ? loc.city : null;
     }

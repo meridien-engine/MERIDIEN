@@ -7,7 +7,7 @@ part 'category_model.g.dart';
 class CategoryModel with _$CategoryModel {
   const factory CategoryModel({
     required String id,
-    @JsonKey(name: 'tenant_id') required String tenantId,
+    @JsonKey(name: 'business_id') required String businessId,
     required String name,
     required String slug,
     String? description,

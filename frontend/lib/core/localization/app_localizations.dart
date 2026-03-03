@@ -209,6 +209,55 @@ class AppLocalizations {
   String get clearFilters => translate('clearFilters');
   String get applyFilters => translate('applyFilters');
 
+  // Stores
+  String get stores => translate('stores');
+  String get addStore => translate('addStore');
+  String get editStore => translate('editStore');
+  String get deleteStore => translate('deleteStore');
+  String get storeName => translate('storeName');
+  String get noStoresYet => translate('noStoresYet');
+  String get noStoresDesc => translate('noStoresDesc');
+  String get storeCreated => translate('storeCreated');
+  String get storeUpdated => translate('storeUpdated');
+  String get storeDeleted => translate('storeDeleted');
+
+  // Business
+  String get selectBusiness => translate('selectBusiness');
+  String get createBusiness => translate('createBusiness');
+  String get joinBusiness => translate('joinBusiness');
+  String get noBusiness => translate('noBusiness');
+  String get noBusinessDescription => translate('noBusinessDescription');
+  String get businessName => translate('businessName');
+  String get businessSlug => translate('businessSlug');
+  String get businessType => translate('businessType');
+  String get singleBranch => translate('singleBranch');
+  String get multiBranch => translate('multiBranch');
+  String get businessCategory => translate('businessCategory');
+  String get createYourBusiness => translate('createYourBusiness');
+  String get switchBusiness => translate('switchBusiness');
+
+  // Membership
+  String get members => translate('members');
+  String get joinRequests => translate('joinRequests');
+  String get myJoinRequests => translate('myJoinRequests');
+  String get pendingRequests => translate('pendingRequests');
+  String get reviewedRequests => translate('reviewedRequests');
+  String get findBusiness => translate('findBusiness');
+  String get findBusinessBySlug => translate('findBusinessBySlug');
+  String get found => translate('found');
+  String get requestedRole => translate('requestedRole');
+  String get messageOptional => translate('messageOptional');
+  String get messageHint => translate('messageHint');
+  String get sendJoinRequest => translate('sendJoinRequest');
+  String get noJoinRequests => translate('noJoinRequests');
+  String get noJoinRequestsDesc => translate('noJoinRequestsDesc');
+  String get noMembers => translate('noMembers');
+  String get inviteUser => translate('inviteUser');
+  String get sendInvitation => translate('sendInvitation');
+  String get invitation => translate('invitation');
+  String get inviteInfo => translate('inviteInfo');
+  String get role => translate('role');
+
   // POS
   String get pos => translate('pos');
   String get pointOfSale => translate('pointOfSale');
@@ -430,6 +479,55 @@ const Map<String, String> _enTranslations = {
   'clearFilters': 'Clear Filters',
   'applyFilters': 'Apply Filters',
 
+  // Stores
+  'stores': 'Stores',
+  'addStore': 'Add Store',
+  'editStore': 'Edit Store',
+  'deleteStore': 'Delete Store',
+  'storeName': 'Store Name',
+  'noStoresYet': 'No stores yet',
+  'noStoresDesc': 'Add your first store branch to get started.',
+  'storeCreated': 'Store created successfully',
+  'storeUpdated': 'Store updated successfully',
+  'storeDeleted': 'Store deleted',
+
+  // Business
+  'selectBusiness': 'Select Business',
+  'createBusiness': 'Create Business',
+  'joinBusiness': 'Join Business',
+  'noBusiness': 'No Business Yet',
+  'noBusinessDescription': "You don't belong to any business yet. Create a new business or ask an admin to invite you.",
+  'businessName': 'Business Name',
+  'businessSlug': 'Slug (URL identifier)',
+  'businessType': 'Business Type',
+  'singleBranch': 'Single Branch',
+  'multiBranch': 'Multi Branch',
+  'businessCategory': 'Business Category',
+  'createYourBusiness': 'Create Your Business',
+  'switchBusiness': 'Switch Business',
+
+  // Membership
+  'members': 'Members',
+  'joinRequests': 'Join Requests',
+  'myJoinRequests': 'My Join Requests',
+  'pendingRequests': 'Pending',
+  'reviewedRequests': 'Reviewed',
+  'findBusiness': 'Find Business',
+  'findBusinessBySlug': 'Search business by slug',
+  'found': 'Found',
+  'requestedRole': 'Requested Role',
+  'messageOptional': 'Message (optional)',
+  'messageHint': 'Why do you want to join?',
+  'sendJoinRequest': 'Send Join Request',
+  'noJoinRequests': 'No join requests yet',
+  'noJoinRequestsDesc': 'Search for a business by its slug to request to join.',
+  'noMembers': 'No members found',
+  'inviteUser': 'Invite User',
+  'sendInvitation': 'Send Invitation',
+  'invitation': 'Invitation',
+  'inviteInfo': 'An invitation link will be generated. Share it with the user so they can join.',
+  'role': 'Role',
+
   // POS
   'pos': 'POS',
   'pointOfSale': 'Point of Sale',
@@ -650,6 +748,55 @@ const Map<String, String> _arTranslations = {
   'filters': 'الفلاتر',
   'clearFilters': 'مسح الفلاتر',
   'applyFilters': 'تطبيق الفلاتر',
+
+  // Stores
+  'stores': 'المتاجر',
+  'addStore': 'إضافة متجر',
+  'editStore': 'تعديل متجر',
+  'deleteStore': 'حذف متجر',
+  'storeName': 'اسم المتجر',
+  'noStoresYet': 'لا توجد متاجر بعد',
+  'noStoresDesc': 'أضف فرع متجرك الأول للبدء.',
+  'storeCreated': 'تم إنشاء المتجر بنجاح',
+  'storeUpdated': 'تم تحديث المتجر بنجاح',
+  'storeDeleted': 'تم حذف المتجر',
+
+  // Business
+  'selectBusiness': 'اختر النشاط التجاري',
+  'createBusiness': 'إنشاء نشاط تجاري',
+  'joinBusiness': 'الانضمام لنشاط تجاري',
+  'noBusiness': 'لا يوجد نشاط تجاري بعد',
+  'noBusinessDescription': 'لا تنتمي إلى أي نشاط تجاري حتى الآن. أنشئ نشاطاً تجارياً جديداً أو اطلب من المسؤول دعوتك.',
+  'businessName': 'اسم النشاط التجاري',
+  'businessSlug': 'المعرف (رابط URL)',
+  'businessType': 'نوع النشاط التجاري',
+  'singleBranch': 'فرع واحد',
+  'multiBranch': 'متعدد الفروع',
+  'businessCategory': 'فئة النشاط التجاري',
+  'createYourBusiness': 'أنشئ نشاطك التجاري',
+  'switchBusiness': 'تغيير النشاط التجاري',
+
+  // Membership
+  'members': 'الأعضاء',
+  'joinRequests': 'طلبات الانضمام',
+  'myJoinRequests': 'طلباتي',
+  'pendingRequests': 'قيد الانتظار',
+  'reviewedRequests': 'تمت المراجعة',
+  'findBusiness': 'البحث عن نشاط تجاري',
+  'findBusinessBySlug': 'ابحث عن النشاط التجاري بالمعرف',
+  'found': 'موجود',
+  'requestedRole': 'الدور المطلوب',
+  'messageOptional': 'رسالة (اختياري)',
+  'messageHint': 'لماذا تريد الانضمام؟',
+  'sendJoinRequest': 'إرسال طلب الانضمام',
+  'noJoinRequests': 'لا توجد طلبات انضمام بعد',
+  'noJoinRequestsDesc': 'ابحث عن نشاط تجاري باستخدام المعرف لطلب الانضمام.',
+  'noMembers': 'لا يوجد أعضاء',
+  'inviteUser': 'دعوة مستخدم',
+  'sendInvitation': 'إرسال الدعوة',
+  'invitation': 'دعوة',
+  'inviteInfo': 'سيتم إنشاء رابط دعوة. شاركه مع المستخدم للانضمام.',
+  'role': 'الدور',
 
   // POS
   'pos': 'نقطة البيع',

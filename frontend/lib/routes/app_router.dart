@@ -3,6 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../features/auth/screens/login_screen.dart';
 import '../features/auth/screens/register_screen.dart';
+import '../features/auth/screens/business_selector_screen.dart';
+import '../features/auth/screens/no_business_screen.dart';
+import '../features/business/screens/create_business_screen.dart';
 import '../features/dashboard/screens/dashboard_screen.dart';
 import '../features/customers/screens/customer_list_screen.dart';
 import '../features/customers/screens/customer_detail_screen.dart';
@@ -14,10 +17,17 @@ import '../features/orders/screens/order_list_screen.dart';
 import '../features/orders/screens/order_detail_screen.dart';
 import '../features/orders/screens/create_order_screen.dart';
 import '../features/locations/screens/location_management_screen.dart';
+import '../features/stores/screens/store_management_screen.dart';
 import '../features/couriers/screens/courier_management_screen.dart';
 import '../features/couriers/screens/courier_reconciliation_screen.dart';
 import '../features/pos/screens/pos_session_gate_screen.dart';
 import '../features/pos/screens/pos_sessions_screen.dart';
+import '../features/membership/screens/find_business_screen.dart';
+import '../features/membership/screens/my_join_requests_screen.dart';
+import '../features/membership/screens/join_requests_screen.dart';
+import '../features/membership/screens/members_screen.dart';
+import '../features/membership/screens/invite_user_screen.dart';
+import '../features/membership/screens/accept_invitation_screen.dart';
 import '../features/auth/providers/auth_provider.dart';
 import '../core/providers/role_provider.dart';
 import '../data/models/customer_model.dart';
@@ -29,24 +39,67 @@ final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     initialLocation: '/login',
     redirect: (context, state) {
+      final location = state.matchedLocation;
+
       final isAuthenticated = authState.maybeWhen(
-        authenticated: (_, __) => true,
+        authenticated: (_, __, ___) => true,
         orElse: () => false,
       );
-      final isAuthRoute = state.matchedLocation == '/login' ||
-          state.matchedLocation == '/register';
 
-      if (!isAuthenticated && !isAuthRoute) {
-        return '/login';
+      final isSelectingBusiness = authState.maybeWhen(
+        selectingBusiness: (_, __) => true,
+        orElse: () => false,
+      );
+
+      final isNoBusiness = authState.maybeWhen(
+        noBusiness: (_) => true,
+        orElse: () => false,
+      );
+
+      final isLoading = authState.maybeWhen(
+        initial: () => true,
+        loading: () => true,
+        orElse: () => false,
+      );
+
+      // While loading, don't redirect
+      if (isLoading) return null;
+
+      final authRoutes = ['/login', '/register'];
+      final isAuthRoute = authRoutes.contains(location);
+      final isBusinessSelectRoute = location == '/business-select';
+      final isNoBusinessRoute = location == '/no-business';
+      final isBusinessCreateRoute = location == '/business/create';
+
+      // Authenticated with business → redirect away from auth screens
+      if (isAuthenticated && isAuthRoute) return '/dashboard';
+      if (isAuthenticated && isBusinessSelectRoute) return '/dashboard';
+      if (isAuthenticated && isNoBusinessRoute) return '/dashboard';
+
+      // Selecting business → go to selector
+      if (isSelectingBusiness && !isBusinessSelectRoute &&
+          !isBusinessCreateRoute) {
+        return '/business-select';
       }
 
-      if (isAuthenticated && isAuthRoute) {
-        return '/dashboard';
+      // No business → go to no-business screen
+      if (isNoBusiness &&
+          !isNoBusinessRoute &&
+          !isBusinessCreateRoute) {
+        return '/no-business';
       }
+
+      // Unauthenticated → redirect to login
+      final unauthenticated = authState.maybeWhen(
+        unauthenticated: () => true,
+        orElse: () => false,
+      );
+      if (unauthenticated && !isAuthRoute) return '/login';
 
       return null;
     },
     routes: [
+      // ── Auth ──────────────────────────────────────────────────────────────
       GoRoute(
         path: '/login',
         name: 'login',
@@ -58,10 +111,31 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const RegisterScreen(),
       ),
       GoRoute(
+        path: '/business-select',
+        name: 'business-select',
+        builder: (context, state) => const BusinessSelectorScreen(),
+      ),
+      GoRoute(
+        path: '/no-business',
+        name: 'no-business',
+        builder: (context, state) => const NoBusinessScreen(),
+      ),
+
+      // ── Business ──────────────────────────────────────────────────────────
+      GoRoute(
+        path: '/business/create',
+        name: 'create-business',
+        builder: (context, state) => const CreateBusinessScreen(),
+      ),
+
+      // ── Dashboard ─────────────────────────────────────────────────────────
+      GoRoute(
         path: '/dashboard',
         name: 'dashboard',
         builder: (context, state) => const DashboardScreen(),
       ),
+
+      // ── Customers ─────────────────────────────────────────────────────────
       GoRoute(
         path: '/customers',
         name: 'customers',
@@ -86,12 +160,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           final id = state.pathParameters['id']!;
           final customer = state.extra as CustomerModel?;
-          return CustomerFormScreen(
-            customerId: id,
-            customer: customer,
-          );
+          return CustomerFormScreen(customerId: id, customer: customer);
         },
       ),
+
+      // ── Products ──────────────────────────────────────────────────────────
       GoRoute(
         path: '/products',
         name: 'products',
@@ -116,12 +189,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           final id = state.pathParameters['id']!;
           final product = state.extra as ProductModel?;
-          return ProductFormScreen(
-            productId: id,
-            product: product,
-          );
+          return ProductFormScreen(productId: id, product: product);
         },
       ),
+
+      // ── Orders ────────────────────────────────────────────────────────────
       GoRoute(
         path: '/orders',
         name: 'orders',
@@ -141,36 +213,38 @@ final routerProvider = Provider<GoRouter>((ref) {
         },
       ),
 
-      // ── Locations (admin settings – operator/owner) ───────────────
+      // ── Stores ────────────────────────────────────────────────────────────
+      GoRoute(
+        path: '/stores',
+        name: 'stores',
+        builder: (context, state) => const StoreManagementScreen(),
+      ),
+
+      // ── Settings ──────────────────────────────────────────────────────────
       GoRoute(
         path: '/settings/locations',
         name: 'locations',
         builder: (context, state) => const LocationManagementScreen(),
       ),
-
-      // ── Couriers (operator/owner) ─────────────────────────────────
       GoRoute(
         path: '/settings/couriers',
         name: 'couriers',
         builder: (context, state) => const CourierManagementScreen(),
       ),
 
-      // ── Courier Reconciliation (owner only) ───────────────────────
+      // ── Reports ───────────────────────────────────────────────────────────
       GoRoute(
         path: '/reports/courier-reconciliation',
         name: 'courier-reconciliation',
         redirect: (context, state) {
-          // Guard: only owners can access this route
           final role = ref.read(currentUserRoleProvider);
-          if (role != MeridienRole.owner) {
-            return '/dashboard';
-          }
+          if (role != MeridienRole.owner) return '/dashboard';
           return null;
         },
         builder: (context, state) => const CourierReconciliationScreen(),
       ),
 
-      // ── POS ───────────────────────────────────────────────────────
+      // ── POS ───────────────────────────────────────────────────────────────
       GoRoute(
         path: '/pos',
         name: 'pos',
@@ -181,22 +255,60 @@ final routerProvider = Provider<GoRouter>((ref) {
         name: 'pos-sessions',
         builder: (context, state) => const PosSessionsScreen(),
       ),
+
+      // ── Membership ────────────────────────────────────────────────────────
+      GoRoute(
+        path: '/membership/find',
+        name: 'find-business',
+        builder: (context, state) => const FindBusinessScreen(),
+      ),
+      GoRoute(
+        path: '/membership/requests',
+        name: 'my-join-requests',
+        builder: (context, state) => const MyJoinRequestsScreen(),
+      ),
+      GoRoute(
+        path: '/businesses/:id/join-requests',
+        name: 'business-join-requests',
+        builder: (context, state) {
+          final id = state.pathParameters['id']!;
+          return JoinRequestsScreen(businessId: id);
+        },
+      ),
+      GoRoute(
+        path: '/businesses/:id/members',
+        name: 'members',
+        builder: (context, state) {
+          final id = state.pathParameters['id']!;
+          return MembersScreen(businessId: id);
+        },
+      ),
+      GoRoute(
+        path: '/businesses/:id/invite',
+        name: 'invite-user',
+        builder: (context, state) {
+          final id = state.pathParameters['id']!;
+          return InviteUserScreen(businessId: id);
+        },
+      ),
+      GoRoute(
+        path: '/invitations/:token',
+        name: 'accept-invitation',
+        builder: (context, state) {
+          final token = state.pathParameters['token']!;
+          return AcceptInvitationScreen(token: token);
+        },
+      ),
     ],
     errorBuilder: (context, state) => Scaffold(
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(
-              Icons.error_outline_rounded,
-              size: 64,
-              color: Colors.red,
-            ),
+            const Icon(Icons.error_outline_rounded, size: 64, color: Colors.red),
             const SizedBox(height: 16),
-            Text(
-              '404 - Page Not Found',
-              style: Theme.of(context).textTheme.headlineSmall,
-            ),
+            Text('404 - Page Not Found',
+                style: Theme.of(context).textTheme.headlineSmall),
             const SizedBox(height: 24),
             ElevatedButton(
               onPressed: () => context.go('/dashboard'),

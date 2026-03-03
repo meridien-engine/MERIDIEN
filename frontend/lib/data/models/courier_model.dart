@@ -7,7 +7,7 @@ part 'courier_model.g.dart';
 class CourierModel with _$CourierModel {
   const factory CourierModel({
     required String id,
-    @JsonKey(name: 'tenant_id') required String tenantId,
+    @JsonKey(name: 'business_id') required String businessId,
     required String name,
     @JsonKey(name: 'created_at') DateTime? createdAt,
     @JsonKey(name: 'updated_at') DateTime? updatedAt,

@@ -8,7 +8,7 @@ part 'product_model.g.dart';
 class ProductModel with _$ProductModel {
   const factory ProductModel({
     required String id,
-    @JsonKey(name: 'tenant_id') required String tenantId,
+    @JsonKey(name: 'business_id') required String businessId,
     required String name,
     String? slug,
     String? description,

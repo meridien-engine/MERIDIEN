@@ -15,7 +15,6 @@ class RegisterScreen extends ConsumerStatefulWidget {
 
 class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _tenantSlugController = TextEditingController();
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
   final _emailController = TextEditingController();
@@ -26,7 +25,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   @override
   void dispose() {
-    _tenantSlugController.dispose();
     _firstNameController.dispose();
     _lastNameController.dispose();
     _emailController.dispose();
@@ -38,7 +36,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   void _handleRegister() {
     if (_formKey.currentState!.validate()) {
       ref.read(authProvider.notifier).register(
-            tenantSlug: 'demo', // Hardcoded tenant slug for single-tenant / local mode
             firstName: _firstNameController.text.trim(),
             lastName: _lastNameController.text.trim(),
             email: _emailController.text.trim(),
@@ -51,7 +48,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
 
-    // Listen to auth state changes
     ref.listen<AuthState>(authProvider, (previous, next) {
       next.maybeWhen(
         error: (message) {
@@ -62,9 +58,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             ),
           );
         },
-        authenticated: (user, tenant) {
-          context.go('/dashboard');
-        },
+        noBusiness: (_) => context.go('/no-business'),
+        authenticated: (user, business, role) => context.go('/dashboard'),
         orElse: () {},
       );
     });
@@ -87,7 +82,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // Logo and Title
                     Icon(
                       Icons.store_rounded,
                       size: 64,
@@ -110,7 +104,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     ),
                     const SizedBox(height: 32),
 
-                    // First Name Field
+                    // First Name
                     TextFormField(
                       controller: _firstNameController,
                       decoration: InputDecoration(
@@ -118,8 +112,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         hintText: 'John',
                         prefixIcon: const Icon(Icons.person_rounded),
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
+                            borderRadius: BorderRadius.circular(8)),
                       ),
                       enabled: !isLoading,
                       textInputAction: TextInputAction.next,
@@ -132,7 +125,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     ),
                     const SizedBox(height: 16),
 
-                    // Last Name Field
+                    // Last Name
                     TextFormField(
                       controller: _lastNameController,
                       decoration: InputDecoration(
@@ -140,8 +133,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         hintText: 'Doe',
                         prefixIcon: const Icon(Icons.person_outline_rounded),
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
+                            borderRadius: BorderRadius.circular(8)),
                       ),
                       enabled: !isLoading,
                       textInputAction: TextInputAction.next,
@@ -154,7 +146,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     ),
                     const SizedBox(height: 16),
 
-                    // Email Field
+                    // Email
                     TextFormField(
                       controller: _emailController,
                       decoration: InputDecoration(
@@ -162,8 +154,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         hintText: 'john@example.com',
                         prefixIcon: const Icon(Icons.email_rounded),
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
+                            borderRadius: BorderRadius.circular(8)),
                       ),
                       keyboardType: TextInputType.emailAddress,
                       enabled: !isLoading,
@@ -180,7 +171,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     ),
                     const SizedBox(height: 16),
 
-                    // Password Field
+                    // Password
                     TextFormField(
                       controller: _passwordController,
                       decoration: InputDecoration(
@@ -188,20 +179,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         hintText: '••••••••',
                         prefixIcon: const Icon(Icons.lock_rounded),
                         suffixIcon: IconButton(
-                          icon: Icon(
-                            _obscurePassword
-                                ? Icons.visibility_rounded
-                                : Icons.visibility_off_rounded,
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              _obscurePassword = !_obscurePassword;
-                            });
-                          },
+                          icon: Icon(_obscurePassword
+                              ? Icons.visibility_rounded
+                              : Icons.visibility_off_rounded),
+                          onPressed: () => setState(
+                              () => _obscurePassword = !_obscurePassword),
                         ),
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
+                            borderRadius: BorderRadius.circular(8)),
                       ),
                       obscureText: _obscurePassword,
                       enabled: !isLoading,
@@ -218,7 +203,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     ),
                     const SizedBox(height: 16),
 
-                    // Confirm Password Field
+                    // Confirm Password
                     TextFormField(
                       controller: _confirmPasswordController,
                       decoration: InputDecoration(
@@ -226,20 +211,15 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         hintText: '••••••••',
                         prefixIcon: const Icon(Icons.lock_rounded),
                         suffixIcon: IconButton(
-                          icon: Icon(
-                            _obscureConfirmPassword
-                                ? Icons.visibility_rounded
-                                : Icons.visibility_off_rounded,
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              _obscureConfirmPassword = !_obscureConfirmPassword;
-                            });
-                          },
+                          icon: Icon(_obscureConfirmPassword
+                              ? Icons.visibility_rounded
+                              : Icons.visibility_off_rounded),
+                          onPressed: () => setState(() =>
+                              _obscureConfirmPassword =
+                                  !_obscureConfirmPassword),
                         ),
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
+                            borderRadius: BorderRadius.circular(8)),
                       ),
                       obscureText: _obscureConfirmPassword,
                       enabled: !isLoading,
@@ -261,38 +241,31 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     ElevatedButton(
                       onPressed: isLoading ? null : _handleRegister,
                       style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                      ),
+                          padding: const EdgeInsets.symmetric(vertical: 16)),
                       child: isLoading
                           ? const SizedBox(
                               height: 20,
                               width: 20,
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                  Colors.white,
-                                ),
+                                valueColor:
+                                    AlwaysStoppedAnimation<Color>(Colors.white),
                               ),
                             )
                           : const Text(
                               'Create Account',
                               style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                              ),
+                                  fontSize: 16, fontWeight: FontWeight.w600),
                             ),
                     ),
                     const SizedBox(height: 16),
 
-                    // Login Link
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         const Text('Already have an account? '),
                         TextButton(
-                          onPressed: isLoading
-                              ? null
-                              : () => context.pop(),
+                          onPressed: isLoading ? null : () => context.pop(),
                           child: Text(AppStrings.login),
                         ),
                       ],

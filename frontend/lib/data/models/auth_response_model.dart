@@ -1,45 +1,34 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'user_model.dart';
-import 'tenant_model.dart';
 
 part 'auth_response_model.freezed.dart';
 part 'auth_response_model.g.dart';
 
+/// Response from POST /auth/login and POST /auth/register (step 1 — generic token)
 @freezed
-class AuthResponseModel with _$AuthResponseModel {
-  const factory AuthResponseModel({
+class GenericAuthResponse with _$GenericAuthResponse {
+  const factory GenericAuthResponse({
     required String token,
     required UserModel user,
-    TenantModel? tenant,
-  }) = _AuthResponseModel;
+    @Default('generic') String type,
+  }) = _GenericAuthResponse;
 
-  factory AuthResponseModel.fromJson(Map<String, dynamic> json) =>
-      _$AuthResponseModelFromJson(json);
+  factory GenericAuthResponse.fromJson(Map<String, dynamic> json) =>
+      _$GenericAuthResponseFromJson(json);
 }
 
+/// Response from POST /auth/use-business/:id (step 2 — scoped token)
 @freezed
-class LoginRequest with _$LoginRequest {
-  const factory LoginRequest({
-    @JsonKey(name: 'tenant_slug') required String tenantSlug,
-    required String email,
-    required String password,
-  }) = _LoginRequest;
+class ScopedAuthResponse with _$ScopedAuthResponse {
+  const factory ScopedAuthResponse({
+    required String token,
+    required String role,
+    @Default('scoped') String type,
+  }) = _ScopedAuthResponse;
 
-  factory LoginRequest.fromJson(Map<String, dynamic> json) =>
-      _$LoginRequestFromJson(json);
+  factory ScopedAuthResponse.fromJson(Map<String, dynamic> json) =>
+      _$ScopedAuthResponseFromJson(json);
 }
 
-@freezed
-class RegisterRequest with _$RegisterRequest {
-  const factory RegisterRequest({
-    @JsonKey(name: 'tenant_slug') required String tenantSlug,
-    required String email,
-    required String password,
-    @JsonKey(name: 'first_name') required String firstName,
-    @JsonKey(name: 'last_name') required String lastName,
-    String? role,
-  }) = _RegisterRequest;
-
-  factory RegisterRequest.fromJson(Map<String, dynamic> json) =>
-      _$RegisterRequestFromJson(json);
-}
+// Keep backward compat alias
+typedef AuthResponseModel = GenericAuthResponse;

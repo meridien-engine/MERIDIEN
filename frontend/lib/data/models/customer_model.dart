@@ -7,7 +7,7 @@ part 'customer_model.g.dart';
 class CustomerModel with _$CustomerModel {
   const factory CustomerModel({
     required String id,
-    @JsonKey(name: 'tenant_id') required String tenantId,
+    @JsonKey(name: 'business_id') required String businessId,
     required String email,
     @JsonKey(name: 'first_name') required String firstName,
     @JsonKey(name: 'last_name') required String lastName,

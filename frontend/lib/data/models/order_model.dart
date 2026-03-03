@@ -7,7 +7,7 @@ part 'order_model.g.dart';
 class OrderModel with _$OrderModel {
   const factory OrderModel({
     required String id,
-    @JsonKey(name: 'tenant_id') required String tenantId,
+    @JsonKey(name: 'business_id') required String businessId,
     @JsonKey(name: 'order_number') required String orderNumber,
     @JsonKey(name: 'customer_id') String? customerId,
     @JsonKey(name: 'order_type') @Default('online') String orderType,
@@ -138,7 +138,7 @@ class OrderItemModel with _$OrderItemModel {
 class PaymentModel with _$PaymentModel {
   const factory PaymentModel({
     required String id,
-    @JsonKey(name: 'tenant_id') required String tenantId,
+    @JsonKey(name: 'business_id') required String businessId,
     @JsonKey(name: 'order_id') required String orderId,
     @JsonKey(name: 'payment_date') required DateTime paymentDate,
     required String amount,

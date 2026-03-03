@@ -11,6 +11,13 @@ class ApiEndpoints {
   static const String logout = '/auth/logout';
   static const String refreshToken = '/auth/refresh';
   static const String currentUser = '/auth/me';
+  static const String userBusinesses = '/auth/businesses';
+  static String useBusiness(String id) => '/auth/use-business/$id';
+
+  // Business Endpoints
+  static const String createBusiness = '/businesses';
+  static String businessById(String id) => '/businesses/$id';
+  static const String businessCategories = '/business-categories';
 
   // Customer Endpoints
   static const String customers = '/customers';
@@ -36,6 +43,10 @@ class ApiEndpoints {
   static String orderPayments(String orderId) => '/orders/$orderId/payments';
   static String paymentById(String id) => '/payments/$id';
 
+  // Store Endpoints
+  static const String stores = '/stores';
+  static String storeById(String id) => '/stores/$id';
+
   // Location Endpoints
   static const String locations = '/locations';
   static String locationById(String id) => '/locations/$id';
@@ -46,6 +57,21 @@ class ApiEndpoints {
 
   // Report Endpoints
   static const String courierReconciliation = '/reports/courier-reconciliation';
+
+  // Membership Endpoints
+  static const String joinRequests = '/join-requests';
+  static String businessJoinRequests(String id) => '/businesses/$id/join-requests';
+  static String approveJoinRequest(String id, String reqId) =>
+      '/businesses/$id/join-requests/$reqId/approve';
+  static String rejectJoinRequest(String id, String reqId) =>
+      '/businesses/$id/join-requests/$reqId/reject';
+  static String businessInvitations(String id) => '/businesses/$id/invitations';
+  static String invitationByToken(String token) => '/invitations/$token';
+  static String acceptInvitation(String token) => '/invitations/$token/accept';
+  static String businessMembers(String id) => '/businesses/$id/members';
+  static String memberById(String businessId, String userId) =>
+      '/businesses/$businessId/members/$userId';
+  static String businessBySlug(String slug) => '/businesses/slug/$slug';
 
   // POS Endpoints
   static const String posSessions = '/pos/sessions';

@@ -1,16 +1,24 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../repositories/auth_repository.dart';
+import '../repositories/business_repository.dart';
 import '../repositories/customer_repository.dart';
 import '../repositories/product_repository.dart';
 import '../repositories/order_repository.dart';
 import '../repositories/location_repository.dart';
 import '../repositories/courier_repository.dart';
 import '../repositories/pos_repository.dart';
+import '../repositories/store_repository.dart';
+import '../repositories/membership_repository.dart';
 import 'dio_provider.dart';
 
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
   final dio = ref.watch(dioProvider);
   return AuthRepository(dio);
+});
+
+final businessRepositoryProvider = Provider<BusinessRepository>((ref) {
+  final dio = ref.watch(dioProvider);
+  return BusinessRepository(dio);
 });
 
 final customerRepositoryProvider = Provider<CustomerRepository>((ref) {
@@ -41,4 +49,14 @@ final courierRepositoryProvider = Provider<CourierRepository>((ref) {
 final posRepositoryProvider = Provider<PosRepository>((ref) {
   final dio = ref.watch(dioProvider);
   return PosRepository(dio);
+});
+
+final storeRepositoryProvider = Provider<StoreRepository>((ref) {
+  final dio = ref.watch(dioProvider);
+  return StoreRepository(dio);
+});
+
+final membershipRepositoryProvider = Provider<MembershipRepository>((ref) {
+  final dio = ref.watch(dioProvider);
+  return MembershipRepository(dio);
 });
