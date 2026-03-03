@@ -97,6 +97,22 @@ class ProductRepository {
     }
   }
 
+  /// Lookup product by barcode or SKU (used for scanner input)
+  Future<ProductModel> lookupProduct(String query) async {
+    try {
+      final response = await _dio.get(
+        '/products/lookup',
+        queryParameters: {'q': query},
+      );
+      final data = response.data is Map && response.data['data'] != null
+          ? response.data['data']
+          : response.data;
+      return ProductModel.fromJson(data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      throw _handleDioError(e);
+    }
+  }
+
   /// Delete product
   Future<void> deleteProduct(String id) async {
     try {
