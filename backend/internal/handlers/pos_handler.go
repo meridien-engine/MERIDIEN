@@ -53,7 +53,7 @@ type CheckoutItemHTTPReq struct {
 
 // OpenSession handles POST /api/v1/pos/sessions
 func (h *POSHandler) OpenSession(c *gin.Context) {
-	tenantID, err := middleware.GetTenantID(c)
+	businessID, err := middleware.GetBusinessID(c)
 	if err != nil {
 		utils.UnauthorizedResponse(c, "Tenant not found")
 		return
@@ -72,7 +72,7 @@ func (h *POSHandler) OpenSession(c *gin.Context) {
 	}
 
 	session, err := h.posService.OpenSession(&services.OpenSessionRequest{
-		TenantID:     tenantID,
+		BusinessID:     businessID,
 		CashierID:    cashierID,
 		OpeningFloat: req.OpeningFloat,
 	})
@@ -86,7 +86,7 @@ func (h *POSHandler) OpenSession(c *gin.Context) {
 
 // CloseSession handles POST /api/v1/pos/sessions/:id/close
 func (h *POSHandler) CloseSession(c *gin.Context) {
-	tenantID, err := middleware.GetTenantID(c)
+	businessID, err := middleware.GetBusinessID(c)
 	if err != nil {
 		utils.UnauthorizedResponse(c, "Tenant not found")
 		return
@@ -112,7 +112,7 @@ func (h *POSHandler) CloseSession(c *gin.Context) {
 
 	session, err := h.posService.CloseSession(&services.CloseSessionRequest{
 		SessionID:   sessionID,
-		TenantID:    tenantID,
+		BusinessID:    businessID,
 		CashierID:   cashierID,
 		ClosingCash: req.ClosingCash,
 	})
@@ -126,7 +126,7 @@ func (h *POSHandler) CloseSession(c *gin.Context) {
 
 // GetCurrentSession handles GET /api/v1/pos/sessions/current
 func (h *POSHandler) GetCurrentSession(c *gin.Context) {
-	tenantID, err := middleware.GetTenantID(c)
+	businessID, err := middleware.GetBusinessID(c)
 	if err != nil {
 		utils.UnauthorizedResponse(c, "Tenant not found")
 		return
@@ -138,7 +138,7 @@ func (h *POSHandler) GetCurrentSession(c *gin.Context) {
 		return
 	}
 
-	session, err := h.posService.GetCurrentSession(cashierID, tenantID)
+	session, err := h.posService.GetCurrentSession(cashierID, businessID)
 	if err != nil {
 		utils.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
@@ -154,7 +154,7 @@ func (h *POSHandler) GetCurrentSession(c *gin.Context) {
 
 // GetSession handles GET /api/v1/pos/sessions/:id
 func (h *POSHandler) GetSession(c *gin.Context) {
-	tenantID, err := middleware.GetTenantID(c)
+	businessID, err := middleware.GetBusinessID(c)
 	if err != nil {
 		utils.UnauthorizedResponse(c, "Tenant not found")
 		return
@@ -166,7 +166,7 @@ func (h *POSHandler) GetSession(c *gin.Context) {
 		return
 	}
 
-	session, err := h.posService.GetSession(sessionID, tenantID)
+	session, err := h.posService.GetSession(sessionID, businessID)
 	if err != nil {
 		utils.NotFoundResponse(c, "Session not found")
 		return
@@ -177,7 +177,7 @@ func (h *POSHandler) GetSession(c *gin.Context) {
 
 // ListSessions handles GET /api/v1/pos/sessions
 func (h *POSHandler) ListSessions(c *gin.Context) {
-	tenantID, err := middleware.GetTenantID(c)
+	businessID, err := middleware.GetBusinessID(c)
 	if err != nil {
 		utils.UnauthorizedResponse(c, "Tenant not found")
 		return
@@ -200,7 +200,7 @@ func (h *POSHandler) ListSessions(c *gin.Context) {
 		Offset:    (page - 1) * perPage,
 	}
 
-	sessions, total, err := h.posService.ListSessions(tenantID, filters)
+	sessions, total, err := h.posService.ListSessions(businessID, filters)
 	if err != nil {
 		utils.InternalErrorResponse(c, "Failed to retrieve sessions")
 		return
@@ -211,7 +211,7 @@ func (h *POSHandler) ListSessions(c *gin.Context) {
 
 // LookupProduct handles GET /api/v1/products/lookup?q=xxx
 func (h *POSHandler) LookupProduct(c *gin.Context) {
-	tenantID, err := middleware.GetTenantID(c)
+	businessID, err := middleware.GetBusinessID(c)
 	if err != nil {
 		utils.UnauthorizedResponse(c, "Tenant not found")
 		return
@@ -223,7 +223,7 @@ func (h *POSHandler) LookupProduct(c *gin.Context) {
 		return
 	}
 
-	product, err := h.posService.LookupProduct(query, tenantID)
+	product, err := h.posService.LookupProduct(query, businessID)
 	if err != nil {
 		utils.NotFoundResponse(c, "Product not found")
 		return
@@ -234,7 +234,7 @@ func (h *POSHandler) LookupProduct(c *gin.Context) {
 
 // Checkout handles POST /api/v1/pos/checkout
 func (h *POSHandler) Checkout(c *gin.Context) {
-	tenantID, err := middleware.GetTenantID(c)
+	businessID, err := middleware.GetBusinessID(c)
 	if err != nil {
 		utils.UnauthorizedResponse(c, "Tenant not found")
 		return
@@ -267,7 +267,7 @@ func (h *POSHandler) Checkout(c *gin.Context) {
 	}
 
 	result, err := h.posService.Checkout(&services.POSCheckoutRequest{
-		TenantID:       tenantID,
+		BusinessID:       businessID,
 		CashierID:      cashierID,
 		SessionID:      sessionID,
 		CustomerName:   req.CustomerName,

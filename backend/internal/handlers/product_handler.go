@@ -70,7 +70,7 @@ func (h *ProductHandler) Create(c *gin.Context) {
 		return
 	}
 
-	tenantID, err := middleware.GetTenantID(c)
+	businessID, err := middleware.GetBusinessID(c)
 	if err != nil {
 		utils.UnauthorizedResponse(c, "Tenant not found")
 		return
@@ -112,7 +112,7 @@ func (h *ProductHandler) Create(c *gin.Context) {
 	}
 
 	serviceReq := &services.CreateProductRequest{
-		TenantID:          tenantID,
+		BusinessID:          businessID,
 		CategoryID:        categoryID,
 		Name:              req.Name,
 		Description:       req.Description,
@@ -146,13 +146,13 @@ func (h *ProductHandler) GetByID(c *gin.Context) {
 		return
 	}
 
-	tenantID, err := middleware.GetTenantID(c)
+	businessID, err := middleware.GetBusinessID(c)
 	if err != nil {
 		utils.UnauthorizedResponse(c, "Tenant not found")
 		return
 	}
 
-	product, err := h.productService.GetByID(productID, tenantID)
+	product, err := h.productService.GetByID(productID, businessID)
 	if err != nil {
 		utils.NotFoundResponse(c, err.Error())
 		return
@@ -175,7 +175,7 @@ func (h *ProductHandler) Update(c *gin.Context) {
 		return
 	}
 
-	tenantID, err := middleware.GetTenantID(c)
+	businessID, err := middleware.GetBusinessID(c)
 	if err != nil {
 		utils.UnauthorizedResponse(c, "Tenant not found")
 		return
@@ -247,7 +247,7 @@ func (h *ProductHandler) Update(c *gin.Context) {
 		serviceReq.Weight = &w
 	}
 
-	product, err := h.productService.Update(productID, tenantID, serviceReq)
+	product, err := h.productService.Update(productID, businessID, serviceReq)
 	if err != nil {
 		utils.ErrorResponse(c, http.StatusBadRequest, err.Error())
 		return
@@ -264,13 +264,13 @@ func (h *ProductHandler) Delete(c *gin.Context) {
 		return
 	}
 
-	tenantID, err := middleware.GetTenantID(c)
+	businessID, err := middleware.GetBusinessID(c)
 	if err != nil {
 		utils.UnauthorizedResponse(c, "Tenant not found")
 		return
 	}
 
-	if err := h.productService.Delete(productID, tenantID); err != nil {
+	if err := h.productService.Delete(productID, businessID); err != nil {
 		utils.ErrorResponse(c, http.StatusBadRequest, err.Error())
 		return
 	}
@@ -280,7 +280,7 @@ func (h *ProductHandler) Delete(c *gin.Context) {
 
 // List retrieves a paginated list of products
 func (h *ProductHandler) List(c *gin.Context) {
-	tenantID, err := middleware.GetTenantID(c)
+	businessID, err := middleware.GetBusinessID(c)
 	if err != nil {
 		utils.UnauthorizedResponse(c, "Tenant not found")
 		return
@@ -302,7 +302,7 @@ func (h *ProductHandler) List(c *gin.Context) {
 	}
 
 	req := &services.ListProductsRequest{
-		TenantID:   tenantID,
+		BusinessID:   businessID,
 		Search:     search,
 		Status:     status,
 		CategoryID: categoryID,

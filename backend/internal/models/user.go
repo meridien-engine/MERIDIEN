@@ -8,12 +8,11 @@ import (
 	"gorm.io/gorm"
 )
 
-// User represents a user in the system
+// User represents a user in the system (global — no tenant/business ownership)
 type User struct {
 	BaseModel
-	TenantID     uuid.UUID  `gorm:"type:uuid;not null;index" json:"tenant_id"`
-	Email        string     `gorm:"type:varchar(255);not null" json:"email"`
-	PasswordHash string     `gorm:"type:varchar(255);not null" json:"-"` // Never expose password hash
+	Email        string     `gorm:"type:varchar(255);not null;uniqueIndex" json:"email"`
+	PasswordHash string     `gorm:"type:varchar(255);not null" json:"-"`
 	FirstName    string     `gorm:"type:varchar(100);not null" json:"first_name"`
 	LastName     string     `gorm:"type:varchar(100);not null" json:"last_name"`
 	Role         string     `gorm:"type:varchar(50);not null;default:'user';index" json:"role"`
@@ -21,7 +20,7 @@ type User struct {
 	LastLoginAt  *time.Time `json:"last_login_at,omitempty"`
 
 	// Relationships
-	Tenant *Tenant `gorm:"foreignKey:TenantID" json:"tenant,omitempty"`
+	Memberships []UserBusinessMembership `gorm:"foreignKey:UserID" json:"memberships,omitempty"`
 }
 
 // TableName specifies the table name for User
@@ -31,16 +30,12 @@ func (User) TableName() string {
 
 // BeforeCreate hook to validate user before creation
 func (u *User) BeforeCreate(tx *gorm.DB) error {
-	// Call parent BeforeCreate for UUID generation
 	if u.ID == uuid.Nil {
 		u.ID = uuid.New()
 	}
-
-	// Set default role if not provided
 	if u.Role == "" {
 		u.Role = "user"
 	}
-
 	return nil
 }
 

@@ -25,7 +25,7 @@ func NewCustomerService(customerRepo *repositories.CustomerRepository) *Customer
 
 // CreateCustomerRequest represents a customer creation request
 type CreateCustomerRequest struct {
-	TenantID     uuid.UUID `json:"tenant_id"`
+	BusinessID     uuid.UUID `json:"business_id"`
 	FirstName    string    `json:"first_name"`
 	LastName     string    `json:"last_name"`
 	Email        string    `json:"email"`
@@ -63,7 +63,7 @@ type UpdateCustomerRequest struct {
 
 // ListCustomersRequest represents a request to list customers
 type ListCustomersRequest struct {
-	TenantID     uuid.UUID
+	BusinessID     uuid.UUID
 	Search       string
 	Status       string
 	CustomerType string
@@ -82,7 +82,7 @@ func (s *CustomerService) Create(req *CreateCustomerRequest) (*models.Customer, 
 
 	// Check if email already exists (if provided)
 	if req.Email != "" {
-		exists, err := s.customerRepo.ExistsByEmail(req.Email, req.TenantID)
+		exists, err := s.customerRepo.ExistsByEmail(req.Email, req.BusinessID)
 		if err != nil {
 			return nil, err
 		}
@@ -93,7 +93,7 @@ func (s *CustomerService) Create(req *CreateCustomerRequest) (*models.Customer, 
 
 	// Create customer
 	customer := &models.Customer{
-		TenantID:     req.TenantID,
+		BusinessID:     req.BusinessID,
 		FirstName:    strings.TrimSpace(req.FirstName),
 		LastName:     strings.TrimSpace(req.LastName),
 		Email:        strings.ToLower(strings.TrimSpace(req.Email)),
@@ -122,8 +122,8 @@ func (s *CustomerService) Create(req *CreateCustomerRequest) (*models.Customer, 
 }
 
 // GetByID retrieves a customer by ID
-func (s *CustomerService) GetByID(id, tenantID uuid.UUID) (*models.Customer, error) {
-	customer, err := s.customerRepo.FindByID(id, tenantID)
+func (s *CustomerService) GetByID(id, businessID uuid.UUID) (*models.Customer, error) {
+	customer, err := s.customerRepo.FindByID(id, businessID)
 	if err != nil {
 		return nil, err
 	}
@@ -131,9 +131,9 @@ func (s *CustomerService) GetByID(id, tenantID uuid.UUID) (*models.Customer, err
 }
 
 // Update updates a customer's information
-func (s *CustomerService) Update(id, tenantID uuid.UUID, req *UpdateCustomerRequest) (*models.Customer, error) {
+func (s *CustomerService) Update(id, businessID uuid.UUID, req *UpdateCustomerRequest) (*models.Customer, error) {
 	// Get existing customer
-	customer, err := s.customerRepo.FindByID(id, tenantID)
+	customer, err := s.customerRepo.FindByID(id, businessID)
 	if err != nil {
 		return nil, err
 	}
@@ -161,7 +161,7 @@ func (s *CustomerService) Update(id, tenantID uuid.UUID, req *UpdateCustomerRequ
 			}
 			// Check if email already exists for another customer
 			if email != customer.Email {
-				exists, err := s.customerRepo.ExistsByEmail(email, tenantID)
+				exists, err := s.customerRepo.ExistsByEmail(email, businessID)
 				if err != nil {
 					return nil, err
 				}
@@ -236,8 +236,8 @@ func (s *CustomerService) Update(id, tenantID uuid.UUID, req *UpdateCustomerRequ
 }
 
 // Delete soft deletes a customer
-func (s *CustomerService) Delete(id, tenantID uuid.UUID) error {
-	return s.customerRepo.Delete(id, tenantID)
+func (s *CustomerService) Delete(id, businessID uuid.UUID) error {
+	return s.customerRepo.Delete(id, businessID)
 }
 
 // List returns a paginated list of customers
@@ -267,12 +267,12 @@ func (s *CustomerService) List(req *ListCustomersRequest) ([]models.Customer, in
 		Offset:       offset,
 	}
 
-	return s.customerRepo.List(req.TenantID, filters)
+	return s.customerRepo.List(req.BusinessID, filters)
 }
 
 // validateCreateRequest validates the creation request
 func (s *CustomerService) validateCreateRequest(req *CreateCustomerRequest) error {
-	if req.TenantID == uuid.Nil {
+	if req.BusinessID == uuid.Nil {
 		return errors.New("tenant ID is required")
 	}
 

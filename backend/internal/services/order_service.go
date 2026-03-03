@@ -37,7 +37,7 @@ func NewOrderService(
 
 // CreateOrderRequest represents the request to create an order
 type CreateOrderRequest struct {
-	TenantID        uuid.UUID
+	BusinessID        uuid.UUID
 	CustomerID      uuid.UUID
 	Items           []OrderItemRequest
 	TaxAmount       string
@@ -80,7 +80,7 @@ type UpdateOrderRequest struct {
 // Create creates a new order
 func (s *OrderService) Create(req *CreateOrderRequest) (*models.Order, error) {
 	// Validate customer exists and is active (online orders only)
-	customer, err := s.customerRepo.FindByID(req.CustomerID, req.TenantID)
+	customer, err := s.customerRepo.FindByID(req.CustomerID, req.BusinessID)
 	if err != nil {
 		return nil, errors.New("customer not found")
 	}
@@ -95,7 +95,7 @@ func (s *OrderService) Create(req *CreateOrderRequest) (*models.Order, error) {
 	}
 
 	// Generate order number
-	orderNumber, err := s.orderRepo.GenerateOrderNumber(req.TenantID)
+	orderNumber, err := s.orderRepo.GenerateOrderNumber(req.BusinessID)
 	if err != nil {
 		return nil, errors.New("failed to generate order number")
 	}
@@ -106,7 +106,7 @@ func (s *OrderService) Create(req *CreateOrderRequest) (*models.Order, error) {
 
 	for _, itemReq := range req.Items {
 		// Validate product
-		product, err := s.productRepo.FindByID(itemReq.ProductID, req.TenantID)
+		product, err := s.productRepo.FindByID(itemReq.ProductID, req.BusinessID)
 		if err != nil {
 			return nil, errors.New("product not found: " + itemReq.ProductID.String())
 		}
@@ -192,7 +192,7 @@ func (s *OrderService) Create(req *CreateOrderRequest) (*models.Order, error) {
 
 	// Create order
 	order := &models.Order{
-		TenantID:             req.TenantID,
+		BusinessID:             req.BusinessID,
 		CustomerID:           &req.CustomerID,
 		OrderType:            models.OrderTypeOnline,
 		OrderNumber:          orderNumber,
@@ -223,7 +223,7 @@ func (s *OrderService) Create(req *CreateOrderRequest) (*models.Order, error) {
 	}
 
 	// Reload with relationships
-	createdOrder, err := s.orderRepo.FindByID(order.ID, req.TenantID)
+	createdOrder, err := s.orderRepo.FindByID(order.ID, req.BusinessID)
 	if err != nil {
 		return nil, errors.New("failed to retrieve created order")
 	}
@@ -232,8 +232,8 @@ func (s *OrderService) Create(req *CreateOrderRequest) (*models.Order, error) {
 }
 
 // GetByID retrieves an order by ID
-func (s *OrderService) GetByID(id uuid.UUID, tenantID uuid.UUID) (*models.Order, error) {
-	order, err := s.orderRepo.FindByID(id, tenantID)
+func (s *OrderService) GetByID(id uuid.UUID, businessID uuid.UUID) (*models.Order, error) {
+	order, err := s.orderRepo.FindByID(id, businessID)
 	if err != nil {
 		return nil, errors.New("order not found")
 	}
@@ -241,14 +241,14 @@ func (s *OrderService) GetByID(id uuid.UUID, tenantID uuid.UUID) (*models.Order,
 }
 
 // List retrieves a list of orders with filters
-func (s *OrderService) List(tenantID uuid.UUID, filters repositories.OrderListFilters) ([]models.Order, int64, error) {
-	return s.orderRepo.List(tenantID, filters)
+func (s *OrderService) List(businessID uuid.UUID, filters repositories.OrderListFilters) ([]models.Order, int64, error) {
+	return s.orderRepo.List(businessID, filters)
 }
 
 // Update updates an order
-func (s *OrderService) Update(id uuid.UUID, tenantID uuid.UUID, req *UpdateOrderRequest) (*models.Order, error) {
+func (s *OrderService) Update(id uuid.UUID, businessID uuid.UUID, req *UpdateOrderRequest) (*models.Order, error) {
 	// Get existing order
-	order, err := s.orderRepo.FindByID(id, tenantID)
+	order, err := s.orderRepo.FindByID(id, businessID)
 	if err != nil {
 		return nil, errors.New("order not found")
 	}
@@ -312,9 +312,9 @@ func (s *OrderService) Update(id uuid.UUID, tenantID uuid.UUID, req *UpdateOrder
 }
 
 // Delete soft deletes an order
-func (s *OrderService) Delete(id uuid.UUID, tenantID uuid.UUID) error {
+func (s *OrderService) Delete(id uuid.UUID, businessID uuid.UUID) error {
 	// Get order
-	order, err := s.orderRepo.FindByID(id, tenantID)
+	order, err := s.orderRepo.FindByID(id, businessID)
 	if err != nil {
 		return errors.New("order not found")
 	}
@@ -324,12 +324,12 @@ func (s *OrderService) Delete(id uuid.UUID, tenantID uuid.UUID) error {
 		return errors.New("only draft orders can be deleted")
 	}
 
-	return s.orderRepo.Delete(id, tenantID)
+	return s.orderRepo.Delete(id, businessID)
 }
 
 // ConfirmOrder confirms an order (pending → confirmed)
-func (s *OrderService) ConfirmOrder(id uuid.UUID, tenantID uuid.UUID) (*models.Order, error) {
-	order, err := s.orderRepo.FindByID(id, tenantID)
+func (s *OrderService) ConfirmOrder(id uuid.UUID, businessID uuid.UUID) (*models.Order, error) {
+	order, err := s.orderRepo.FindByID(id, businessID)
 	if err != nil {
 		return nil, errors.New("order not found")
 	}
@@ -342,7 +342,7 @@ func (s *OrderService) ConfirmOrder(id uuid.UUID, tenantID uuid.UUID) (*models.O
 	// Re-check stock availability
 	for _, item := range order.Items {
 		if item.ProductID != nil {
-			product, err := s.productRepo.FindByID(*item.ProductID, tenantID)
+			product, err := s.productRepo.FindByID(*item.ProductID, businessID)
 			if err != nil {
 				continue // Product might be deleted, skip check
 			}
@@ -363,8 +363,8 @@ func (s *OrderService) ConfirmOrder(id uuid.UUID, tenantID uuid.UUID) (*models.O
 }
 
 // ShipOrder marks an order as shipped (processing → shipped)
-func (s *OrderService) ShipOrder(id uuid.UUID, tenantID uuid.UUID) (*models.Order, error) {
-	order, err := s.orderRepo.FindByID(id, tenantID)
+func (s *OrderService) ShipOrder(id uuid.UUID, businessID uuid.UUID) (*models.Order, error) {
+	order, err := s.orderRepo.FindByID(id, businessID)
 	if err != nil {
 		return nil, errors.New("order not found")
 	}
@@ -377,7 +377,7 @@ func (s *OrderService) ShipOrder(id uuid.UUID, tenantID uuid.UUID) (*models.Orde
 	// Deduct inventory
 	for _, item := range order.Items {
 		if item.ProductID != nil {
-			product, err := s.productRepo.FindByID(*item.ProductID, tenantID)
+			product, err := s.productRepo.FindByID(*item.ProductID, businessID)
 			if err != nil {
 				continue // Product deleted, skip
 			}
@@ -402,15 +402,15 @@ func (s *OrderService) ShipOrder(id uuid.UUID, tenantID uuid.UUID) (*models.Orde
 	if db := database.GetDB(); db != nil {
 		oldVal, _ := json.Marshal(map[string]string{"status": oldStatus})
 		newVal, _ := json.Marshal(map[string]string{"status": order.Status})
-		_ = db.Exec("INSERT INTO audit_logs (tenant_id, user_id, order_id, action, old_value, new_value) VALUES (?,?,?,?,?::jsonb,?::jsonb)", tenantID, nil, order.ID, "STATUS_CHANGE", string(oldVal), string(newVal))
+		_ = db.Exec("INSERT INTO audit_logs (business_id, user_id, order_id, action, old_value, new_value) VALUES (?,?,?,?,?::jsonb,?::jsonb)", businessID, nil, order.ID, "STATUS_CHANGE", string(oldVal), string(newVal))
 	}
 
 	return order, nil
 }
 
 // DeliverOrder marks an order as delivered (shipped → delivered)
-func (s *OrderService) DeliverOrder(id uuid.UUID, tenantID uuid.UUID) (*models.Order, error) {
-	order, err := s.orderRepo.FindByID(id, tenantID)
+func (s *OrderService) DeliverOrder(id uuid.UUID, businessID uuid.UUID) (*models.Order, error) {
+	order, err := s.orderRepo.FindByID(id, businessID)
 	if err != nil {
 		return nil, errors.New("order not found")
 	}
@@ -432,15 +432,15 @@ func (s *OrderService) DeliverOrder(id uuid.UUID, tenantID uuid.UUID) (*models.O
 	if db := database.GetDB(); db != nil {
 		oldVal, _ := json.Marshal(map[string]string{"status": oldStatus})
 		newVal, _ := json.Marshal(map[string]string{"status": order.Status})
-		_ = db.Exec("INSERT INTO audit_logs (tenant_id, user_id, order_id, action, old_value, new_value) VALUES (?,?,?,?,?::jsonb,?::jsonb)", tenantID, nil, order.ID, "STATUS_CHANGE", string(oldVal), string(newVal))
+		_ = db.Exec("INSERT INTO audit_logs (business_id, user_id, order_id, action, old_value, new_value) VALUES (?,?,?,?,?::jsonb,?::jsonb)", businessID, nil, order.ID, "STATUS_CHANGE", string(oldVal), string(newVal))
 	}
 
 	return order, nil
 }
 
 // CancelOrder cancels an order
-func (s *OrderService) CancelOrder(id uuid.UUID, tenantID uuid.UUID) (*models.Order, error) {
-	order, err := s.orderRepo.FindByID(id, tenantID)
+func (s *OrderService) CancelOrder(id uuid.UUID, businessID uuid.UUID) (*models.Order, error) {
+	order, err := s.orderRepo.FindByID(id, businessID)
 	if err != nil {
 		return nil, errors.New("order not found")
 	}
@@ -464,15 +464,15 @@ func (s *OrderService) CancelOrder(id uuid.UUID, tenantID uuid.UUID) (*models.Or
 	if db := database.GetDB(); db != nil {
 		oldVal, _ := json.Marshal(map[string]string{"status": oldStatus})
 		newVal, _ := json.Marshal(map[string]string{"status": order.Status})
-		_ = db.Exec("INSERT INTO audit_logs (tenant_id, user_id, order_id, action, old_value, new_value) VALUES (?,?,?,?,?::jsonb,?::jsonb)", tenantID, nil, order.ID, "STATUS_CHANGE", string(oldVal), string(newVal))
+		_ = db.Exec("INSERT INTO audit_logs (business_id, user_id, order_id, action, old_value, new_value) VALUES (?,?,?,?,?::jsonb,?::jsonb)", businessID, nil, order.ID, "STATUS_CHANGE", string(oldVal), string(newVal))
 	}
 
 	return order, nil
 }
 
 // CollectOrder marks a delivered order as collected (delivered -> collected)
-func (s *OrderService) CollectOrder(id uuid.UUID, tenantID uuid.UUID) (*models.Order, error) {
-	order, err := s.orderRepo.FindByID(id, tenantID)
+func (s *OrderService) CollectOrder(id uuid.UUID, businessID uuid.UUID) (*models.Order, error) {
+	order, err := s.orderRepo.FindByID(id, businessID)
 	if err != nil {
 		return nil, errors.New("order not found")
 	}
@@ -491,16 +491,16 @@ func (s *OrderService) CollectOrder(id uuid.UUID, tenantID uuid.UUID) (*models.O
 	if db := database.GetDB(); db != nil {
 		oldVal, _ := json.Marshal(map[string]string{"status": oldStatus})
 		newVal, _ := json.Marshal(map[string]string{"status": order.Status})
-		_ = db.Exec("INSERT INTO audit_logs (tenant_id, user_id, order_id, action, old_value, new_value) VALUES (?,?,?,?,?::jsonb,?::jsonb)", tenantID, nil, order.ID, "STATUS_CHANGE", string(oldVal), string(newVal))
+		_ = db.Exec("INSERT INTO audit_logs (business_id, user_id, order_id, action, old_value, new_value) VALUES (?,?,?,?,?::jsonb,?::jsonb)", businessID, nil, order.ID, "STATUS_CHANGE", string(oldVal), string(newVal))
 	}
 
 	return order, nil
 }
 
 // RecordPayment records a payment for an order
-func (s *OrderService) RecordPayment(orderID uuid.UUID, tenantID uuid.UUID, paymentMethod string, amount string, transactionRef, notes string) (*models.Payment, error) {
+func (s *OrderService) RecordPayment(orderID uuid.UUID, businessID uuid.UUID, paymentMethod string, amount string, transactionRef, notes string) (*models.Payment, error) {
 	// Get order
-	order, err := s.orderRepo.FindByID(orderID, tenantID)
+	order, err := s.orderRepo.FindByID(orderID, businessID)
 	if err != nil {
 		return nil, errors.New("order not found")
 	}
@@ -523,7 +523,7 @@ func (s *OrderService) RecordPayment(orderID uuid.UUID, tenantID uuid.UUID, paym
 
 	// Create payment
 	payment := &models.Payment{
-		TenantID:             tenantID,
+		BusinessID:             businessID,
 		OrderID:              orderID,
 		PaymentDate:          time.Now(),
 		PaymentMethod:        paymentMethod,
@@ -549,6 +549,6 @@ func (s *OrderService) RecordPayment(orderID uuid.UUID, tenantID uuid.UUID, paym
 }
 
 // GetOrderPayments retrieves all payments for an order
-func (s *OrderService) GetOrderPayments(orderID uuid.UUID, tenantID uuid.UUID) ([]models.Payment, error) {
-	return s.paymentRepo.ListByOrder(orderID, tenantID)
+func (s *OrderService) GetOrderPayments(orderID uuid.UUID, businessID uuid.UUID) ([]models.Payment, error) {
+	return s.paymentRepo.ListByOrder(orderID, businessID)
 }

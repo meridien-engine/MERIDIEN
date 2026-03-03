@@ -33,16 +33,16 @@ type POSSessionFilters struct {
 
 // Create persists a new POS session
 func (r *POSSessionRepository) Create(s *models.POSSession) error {
-	return tenantTx(r.db, s.TenantID, func(tx *gorm.DB) error {
+	return businessTx(r.db, s.BusinessID, func(tx *gorm.DB) error {
 		return tx.Create(s).Error
 	})
 }
 
-// FindByID retrieves a session by ID within a tenant
-func (r *POSSessionRepository) FindByID(id, tenantID uuid.UUID) (*models.POSSession, error) {
+// FindByID retrieves a session by ID within a business
+func (r *POSSessionRepository) FindByID(id, businessID uuid.UUID) (*models.POSSession, error) {
 	var session models.POSSession
-	err := tenantTx(r.db, tenantID, func(tx *gorm.DB) error {
-		return tx.Where("id = ? AND tenant_id = ?", id, tenantID).
+	err := businessTx(r.db, businessID, func(tx *gorm.DB) error {
+		return tx.Where("id = ? AND business_id = ?", id, businessID).
 			Preload("Cashier").
 			First(&session).Error
 	})
@@ -56,11 +56,11 @@ func (r *POSSessionRepository) FindByID(id, tenantID uuid.UUID) (*models.POSSess
 }
 
 // FindOpenByUser retrieves the currently open session for a cashier
-func (r *POSSessionRepository) FindOpenByUser(cashierID, tenantID uuid.UUID) (*models.POSSession, error) {
+func (r *POSSessionRepository) FindOpenByUser(cashierID, businessID uuid.UUID) (*models.POSSession, error) {
 	var session models.POSSession
-	err := tenantTx(r.db, tenantID, func(tx *gorm.DB) error {
-		return tx.Where("cashier_id = ? AND tenant_id = ? AND status = ?",
-			cashierID, tenantID, models.POSSessionStatusOpen).
+	err := businessTx(r.db, businessID, func(tx *gorm.DB) error {
+		return tx.Where("cashier_id = ? AND business_id = ? AND status = ?",
+			cashierID, businessID, models.POSSessionStatusOpen).
 			Preload("Cashier").
 			First(&session).Error
 	})
@@ -75,18 +75,18 @@ func (r *POSSessionRepository) FindOpenByUser(cashierID, tenantID uuid.UUID) (*m
 
 // Update saves changes to an existing session
 func (r *POSSessionRepository) Update(s *models.POSSession) error {
-	return tenantTx(r.db, s.TenantID, func(tx *gorm.DB) error {
+	return businessTx(r.db, s.BusinessID, func(tx *gorm.DB) error {
 		return tx.Save(s).Error
 	})
 }
 
-// List returns paginated sessions for a tenant
-func (r *POSSessionRepository) List(tenantID uuid.UUID, filters POSSessionFilters) ([]models.POSSession, int64, error) {
+// List returns paginated sessions for a business
+func (r *POSSessionRepository) List(businessID uuid.UUID, filters POSSessionFilters) ([]models.POSSession, int64, error) {
 	var sessions []models.POSSession
 	var total int64
 
-	err := tenantTx(r.db, tenantID, func(tx *gorm.DB) error {
-		query := tx.Model(&models.POSSession{}).Where("tenant_id = ?", tenantID)
+	err := businessTx(r.db, businessID, func(tx *gorm.DB) error {
+		query := tx.Model(&models.POSSession{}).Where("business_id = ?", businessID)
 
 		if filters.Status != "" {
 			query = query.Where("status = ?", filters.Status)
@@ -136,19 +136,19 @@ func (r *POSSessionRepository) SumCashPayments(session *models.POSSession) (deci
 	}
 
 	err := r.db.Transaction(func(tx *gorm.DB) error {
-		sql := fmt.Sprintf("SET LOCAL app.current_tenant = '%s'", session.TenantID.String())
+		sql := fmt.Sprintf("SET LOCAL app.current_business = '%s'", session.BusinessID.String())
 		if err := tx.Exec(sql).Error; err != nil {
 			return err
 		}
 		return tx.Raw(`
 			SELECT COALESCE(SUM(p.amount), 0)
 			FROM payments p
-			WHERE p.tenant_id = ?
+			WHERE p.business_id = ?
 			  AND p.payment_method = 'cash'
 			  AND p.deleted_at IS NULL
 			  AND p.created_at >= ?
 			  AND p.created_at <= ?`,
-			session.TenantID, session.OpenedAt, closedAt).
+			session.BusinessID, session.OpenedAt, closedAt).
 			Scan(&total).Error
 	})
 	if err != nil {

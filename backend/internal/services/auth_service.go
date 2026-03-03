@@ -18,66 +18,56 @@ type tokenBlacklist interface {
 
 // AuthService handles authentication business logic
 type AuthService struct {
-	userRepo   *repositories.UserRepository
-	tenantRepo *repositories.TenantRepository
-	jwtManager *utils.JWTManager
-	blacklist  tokenBlacklist
+	userRepo     *repositories.UserRepository
+	businessRepo *repositories.BusinessRepository
+	jwtManager   *utils.JWTManager
+	blacklist    tokenBlacklist
 }
 
 // NewAuthService creates a new auth service instance.
 // blacklist may be nil; if so, token revocation is a no-op.
 func NewAuthService(
 	userRepo *repositories.UserRepository,
-	tenantRepo *repositories.TenantRepository,
+	businessRepo *repositories.BusinessRepository,
 	jwtManager *utils.JWTManager,
 	blacklist tokenBlacklist,
 ) *AuthService {
 	return &AuthService{
-		userRepo:   userRepo,
-		tenantRepo: tenantRepo,
-		jwtManager: jwtManager,
-		blacklist:  blacklist,
+		userRepo:     userRepo,
+		businessRepo: businessRepo,
+		jwtManager:   jwtManager,
+		blacklist:    blacklist,
 	}
 }
 
 // RegisterRequest represents a user registration request
 type RegisterRequest struct {
-	TenantID  uuid.UUID `json:"tenant_id"`
-	Email     string    `json:"email"`
-	Password  string    `json:"password"`
-	FirstName string    `json:"first_name"`
-	LastName  string    `json:"last_name"`
-	Role      string    `json:"role"`
+	Email     string `json:"email"`
+	Password  string `json:"password"`
+	FirstName string `json:"first_name"`
+	LastName  string `json:"last_name"`
 }
 
 // LoginRequest represents a user login request
 type LoginRequest struct {
-	TenantID uuid.UUID `json:"tenant_id"`
-	Email    string    `json:"email"`
-	Password string    `json:"password"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
 }
 
-// AuthResponse represents an authentication response
+// AuthResponse represents a generic (step-1) authentication response
 type AuthResponse struct {
 	Token string       `json:"token"`
 	User  *models.User `json:"user"`
 }
 
-// Register creates a new user account
+// Register creates a new user account and returns a generic JWT
 func (s *AuthService) Register(req *RegisterRequest) (*AuthResponse, error) {
-	// Validate input
 	if err := s.validateRegisterRequest(req); err != nil {
 		return nil, err
 	}
 
-	// Check if tenant exists
-	tenant, err := s.tenantRepo.FindByID(req.TenantID)
-	if err != nil {
-		return nil, errors.New("invalid tenant")
-	}
-
-	// Check if user already exists
-	exists, err := s.userRepo.ExistsByEmail(req.Email, req.TenantID)
+	// Check if email already exists globally
+	exists, err := s.userRepo.ExistsByEmail(req.Email)
 	if err != nil {
 		return nil, err
 	}
@@ -85,142 +75,93 @@ func (s *AuthService) Register(req *RegisterRequest) (*AuthResponse, error) {
 		return nil, errors.New("user with this email already exists")
 	}
 
-	// Check tenant user limit
-	userCount, err := s.userRepo.CountByTenant(req.TenantID)
-	if err != nil {
-		return nil, err
-	}
-	if userCount >= int64(tenant.MaxUsers) {
-		return nil, errors.New("tenant has reached maximum user limit")
-	}
-
 	// Create user
 	user := &models.User{
-		TenantID:  req.TenantID,
 		Email:     strings.ToLower(strings.TrimSpace(req.Email)),
 		FirstName: strings.TrimSpace(req.FirstName),
 		LastName:  strings.TrimSpace(req.LastName),
-		Role:      req.Role,
+		Role:      "user",
 		IsActive:  true,
 	}
 
-	// Set password
 	if err := user.SetPassword(req.Password); err != nil {
 		return nil, errors.New("failed to hash password")
 	}
 
-	// Save to database
 	if err := s.userRepo.Create(user); err != nil {
 		return nil, errors.New("failed to create user")
 	}
 
-	// Generate JWT token
-	token, err := s.jwtManager.GenerateToken(user.ID, user.TenantID, user.Email, user.Role)
+	// Issue generic token (no business yet)
+	token, err := s.jwtManager.GenerateGenericToken(user.ID, user.Email)
 	if err != nil {
 		return nil, errors.New("failed to generate token")
 	}
 
-	// Load tenant relationship
-	user.Tenant = tenant
-
-	return &AuthResponse{
-		Token: token,
-		User:  user,
-	}, nil
+	return &AuthResponse{Token: token, User: user}, nil
 }
 
-// Login authenticates a user and returns a JWT token
+// Login authenticates a user and returns a generic JWT
 func (s *AuthService) Login(req *LoginRequest) (*AuthResponse, error) {
-	// Validate input
 	if err := s.validateLoginRequest(req); err != nil {
 		return nil, err
 	}
 
-	// Find user by email
-	user, err := s.userRepo.FindByEmail(strings.ToLower(strings.TrimSpace(req.Email)), req.TenantID)
+	user, err := s.userRepo.FindByEmail(strings.ToLower(strings.TrimSpace(req.Email)))
 	if err != nil {
 		return nil, errors.New("invalid email or password")
 	}
 
-	// Check if user is active
 	if !user.IsActive {
 		return nil, errors.New("account is disabled")
 	}
 
-	// Verify password
 	if !user.CheckPassword(req.Password) {
 		return nil, errors.New("invalid email or password")
 	}
 
-	// Update last login
-	if err := s.userRepo.UpdateLastLogin(user.ID, user.TenantID); err != nil {
-		// Log error but don't fail the login
-	}
+	// Best-effort update last login
+	_ = s.userRepo.UpdateLastLogin(user.ID)
 
-	// Generate JWT token
-	token, err := s.jwtManager.GenerateToken(user.ID, user.TenantID, user.Email, user.Role)
+	// Issue generic token
+	token, err := s.jwtManager.GenerateGenericToken(user.ID, user.Email)
 	if err != nil {
 		return nil, errors.New("failed to generate token")
 	}
 
-	return &AuthResponse{
-		Token: token,
-		User:  user,
-	}, nil
+	return &AuthResponse{Token: token, User: user}, nil
 }
 
-// DiscoverTenants authenticates the email/password across all tenants and returns matching tenants.
-func (s *AuthService) DiscoverTenants(email, password string) ([]*models.Tenant, error) {
-	if err := utils.ValidateEmail(email); err != nil {
-		return nil, err
-	}
-	if password == "" {
-		return nil, errors.New("password is required")
-	}
+// GetUserBusinesses returns all businesses the user belongs to
+func (s *AuthService) GetUserBusinesses(userID uuid.UUID) ([]*models.Business, error) {
+	return s.businessRepo.GetUserBusinesses(userID)
+}
 
-	users, err := s.userRepo.FindAllByEmail(strings.ToLower(strings.TrimSpace(email)))
+// UseBusiness issues a scoped JWT for the given business if the user is a member
+func (s *AuthService) UseBusiness(userID, businessID uuid.UUID) (string, string, error) {
+	membership, err := s.businessRepo.GetMembership(userID, businessID)
 	if err != nil {
-		return nil, errors.New("invalid email or password")
+		return "", "", errors.New("you are not a member of this business")
 	}
 
-	var tenants []*models.Tenant
-	for _, u := range users {
-		// Check password for each user record (per-tenant credentials)
-		if !u.IsActive {
-			continue
-		}
-
-		if u.CheckPassword(password) {
-			if u.Tenant != nil {
-				tenants = append(tenants, u.Tenant)
-			} else {
-				t, terr := s.tenantRepo.FindByID(u.TenantID)
-				if terr == nil {
-					tenants = append(tenants, t)
-				}
-			}
-		}
+	if membership.Status != "active" {
+		return "", "", errors.New("membership is not active")
 	}
 
-	if len(tenants) == 0 {
-		return nil, errors.New("invalid email or password")
+	token, err := s.jwtManager.GenerateScopedToken(userID, businessID, "", membership.Role)
+	if err != nil {
+		return "", "", errors.New("failed to generate token")
 	}
 
-	return tenants, nil
-}
-
-// GetTenantBySlug returns tenant by slug via repository
-func (s *AuthService) GetTenantBySlug(slug string) (*models.Tenant, error) {
-	return s.tenantRepo.FindBySlug(slug)
+	return token, membership.Role, nil
 }
 
 // GetCurrentUser retrieves the current user by ID
-func (s *AuthService) GetCurrentUser(userID, tenantID uuid.UUID) (*models.User, error) {
-	user, err := s.userRepo.FindByID(userID, tenantID)
+func (s *AuthService) GetCurrentUser(userID uuid.UUID) (*models.User, error) {
+	user, err := s.userRepo.FindByID(userID)
 	if err != nil {
 		return nil, errors.New("user not found")
 	}
-
 	return user, nil
 }
 
@@ -235,7 +176,6 @@ func (s *AuthService) RefreshToken(tokenString string) (string, error) {
 }
 
 // RevokeToken blacklists the given token so it cannot be used again.
-// It is a no-op when no blacklist is configured or if the token is invalid/already expired.
 func (s *AuthService) RevokeToken(tokenString string) {
 	if s.blacklist == nil {
 		return
@@ -245,57 +185,33 @@ func (s *AuthService) RevokeToken(tokenString string) {
 		return
 	}
 	ttl := time.Until(claims.ExpiresAt.Time)
-	// Ignore errors — revocation is best-effort.
 	_ = s.blacklist.Add(claims.ID, ttl)
 }
 
 // validateRegisterRequest validates the registration request
 func (s *AuthService) validateRegisterRequest(req *RegisterRequest) error {
-	if req.TenantID == uuid.Nil {
-		return errors.New("tenant ID is required")
-	}
-
 	if err := utils.ValidateEmail(req.Email); err != nil {
 		return err
 	}
-
 	if err := utils.ValidatePassword(req.Password); err != nil {
 		return err
 	}
-
 	if err := utils.ValidateName(req.FirstName, "first name"); err != nil {
 		return err
 	}
-
 	if err := utils.ValidateName(req.LastName, "last name"); err != nil {
 		return err
 	}
-
-	// Default role to "user" if not provided
-	if req.Role == "" {
-		req.Role = "user"
-	}
-
-	if err := utils.ValidateRole(req.Role); err != nil {
-		return err
-	}
-
 	return nil
 }
 
 // validateLoginRequest validates the login request
 func (s *AuthService) validateLoginRequest(req *LoginRequest) error {
-	if req.TenantID == uuid.Nil {
-		return errors.New("tenant ID is required")
-	}
-
 	if err := utils.ValidateEmail(req.Email); err != nil {
 		return err
 	}
-
 	if req.Password == "" {
 		return errors.New("password is required")
 	}
-
 	return nil
 }

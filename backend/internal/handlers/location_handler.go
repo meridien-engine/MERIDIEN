@@ -37,15 +37,15 @@ type UpdateLocationRequest struct {
 
 // Create creates a new location
 func (h *LocationHandler) Create(c *gin.Context) {
-	tenantIDVal, exists := c.Get("tenant_id")
+	businessIDVal, exists := c.Get("business_id")
 	if !exists {
-		utils.ErrorResponse(c, http.StatusUnauthorized, "tenant_id not found in context")
+		utils.ErrorResponse(c, http.StatusUnauthorized, "business_id not found in context")
 		return
 	}
 
-	tenantID, ok := tenantIDVal.(uuid.UUID)
+	businessID, ok := businessIDVal.(uuid.UUID)
 	if !ok {
-		utils.ErrorResponse(c, http.StatusUnauthorized, "invalid tenant_id format")
+		utils.ErrorResponse(c, http.StatusUnauthorized, "invalid business_id format")
 		return
 	}
 
@@ -62,7 +62,7 @@ func (h *LocationHandler) Create(c *gin.Context) {
 		return
 	}
 
-	location, err := h.locationService.CreateLocation(tenantID, req.City, req.Zone, shippingFee)
+	location, err := h.locationService.CreateLocation(businessID, req.City, req.Zone, shippingFee)
 	if err != nil {
 		utils.ErrorResponse(c, http.StatusBadRequest, "failed to create location")
 		return
@@ -73,15 +73,15 @@ func (h *LocationHandler) Create(c *gin.Context) {
 
 // List retrieves all locations for a tenant
 func (h *LocationHandler) List(c *gin.Context) {
-	tenantIDVal, exists := c.Get("tenant_id")
+	businessIDVal, exists := c.Get("business_id")
 	if !exists {
-		utils.ErrorResponse(c, http.StatusUnauthorized, "tenant_id not found in context")
+		utils.ErrorResponse(c, http.StatusUnauthorized, "business_id not found in context")
 		return
 	}
 
-	tenantID, ok := tenantIDVal.(uuid.UUID)
+	businessID, ok := businessIDVal.(uuid.UUID)
 	if !ok {
-		utils.ErrorResponse(c, http.StatusUnauthorized, "invalid tenant_id format")
+		utils.ErrorResponse(c, http.StatusUnauthorized, "invalid business_id format")
 		return
 	}
 
@@ -98,7 +98,7 @@ func (h *LocationHandler) List(c *gin.Context) {
 		}
 	}
 
-	locations, total, err := h.locationService.ListLocations(tenantID, page, pageSize)
+	locations, total, err := h.locationService.ListLocations(businessID, page, pageSize)
 	if err != nil {
 		utils.ErrorResponse(c, http.StatusInternalServerError, "failed to list locations")
 		return
@@ -121,15 +121,15 @@ func (h *LocationHandler) List(c *gin.Context) {
 
 // GetByID retrieves a specific location
 func (h *LocationHandler) GetByID(c *gin.Context) {
-	tenantIDVal, exists := c.Get("tenant_id")
+	businessIDVal, exists := c.Get("business_id")
 	if !exists {
-		utils.ErrorResponse(c, http.StatusUnauthorized, "tenant_id not found in context")
+		utils.ErrorResponse(c, http.StatusUnauthorized, "business_id not found in context")
 		return
 	}
 
-	tenantID, ok := tenantIDVal.(uuid.UUID)
+	businessID, ok := businessIDVal.(uuid.UUID)
 	if !ok {
-		utils.ErrorResponse(c, http.StatusUnauthorized, "invalid tenant_id format")
+		utils.ErrorResponse(c, http.StatusUnauthorized, "invalid business_id format")
 		return
 	}
 
@@ -139,7 +139,7 @@ func (h *LocationHandler) GetByID(c *gin.Context) {
 		return
 	}
 
-	location, err := h.locationService.GetLocation(tenantID, locationID)
+	location, err := h.locationService.GetLocation(businessID, locationID)
 	if err != nil {
 		utils.ErrorResponse(c, http.StatusNotFound, "location not found")
 		return
@@ -150,15 +150,15 @@ func (h *LocationHandler) GetByID(c *gin.Context) {
 
 // Update updates a location
 func (h *LocationHandler) Update(c *gin.Context) {
-	tenantIDVal, exists := c.Get("tenant_id")
+	businessIDVal, exists := c.Get("business_id")
 	if !exists {
-		utils.ErrorResponse(c, http.StatusUnauthorized, "tenant_id not found in context")
+		utils.ErrorResponse(c, http.StatusUnauthorized, "business_id not found in context")
 		return
 	}
 
-	tenantID, ok := tenantIDVal.(uuid.UUID)
+	businessID, ok := businessIDVal.(uuid.UUID)
 	if !ok {
-		utils.ErrorResponse(c, http.StatusUnauthorized, "invalid tenant_id format")
+		utils.ErrorResponse(c, http.StatusUnauthorized, "invalid business_id format")
 		return
 	}
 
@@ -195,12 +195,12 @@ func (h *LocationHandler) Update(c *gin.Context) {
 		return
 	}
 
-	if err := h.locationService.UpdateLocation(tenantID, locationID, updates); err != nil {
+	if err := h.locationService.UpdateLocation(businessID, locationID, updates); err != nil {
 		utils.ErrorResponse(c, http.StatusBadRequest, "failed to update location")
 		return
 	}
 
-	location, err := h.locationService.GetLocation(tenantID, locationID)
+	location, err := h.locationService.GetLocation(businessID, locationID)
 	if err != nil {
 		utils.ErrorResponse(c, http.StatusInternalServerError, "failed to retrieve updated location")
 		return
@@ -211,15 +211,15 @@ func (h *LocationHandler) Update(c *gin.Context) {
 
 // Delete deletes a location
 func (h *LocationHandler) Delete(c *gin.Context) {
-	tenantIDVal, exists := c.Get("tenant_id")
+	businessIDVal, exists := c.Get("business_id")
 	if !exists {
-		utils.ErrorResponse(c, http.StatusUnauthorized, "tenant_id not found in context")
+		utils.ErrorResponse(c, http.StatusUnauthorized, "business_id not found in context")
 		return
 	}
 
-	tenantID, ok := tenantIDVal.(uuid.UUID)
+	businessID, ok := businessIDVal.(uuid.UUID)
 	if !ok {
-		utils.ErrorResponse(c, http.StatusUnauthorized, "invalid tenant_id format")
+		utils.ErrorResponse(c, http.StatusUnauthorized, "invalid business_id format")
 		return
 	}
 
@@ -229,7 +229,7 @@ func (h *LocationHandler) Delete(c *gin.Context) {
 		return
 	}
 
-	if err := h.locationService.DeleteLocation(tenantID, locationID); err != nil {
+	if err := h.locationService.DeleteLocation(businessID, locationID); err != nil {
 		utils.ErrorResponse(c, http.StatusBadRequest, "failed to delete location")
 		return
 	}

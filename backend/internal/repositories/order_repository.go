@@ -36,16 +36,16 @@ type OrderListFilters struct {
 
 // Create creates a new order with items
 func (r *OrderRepository) Create(order *models.Order) error {
-	return tenantTx(r.db, order.TenantID, func(tx *gorm.DB) error {
+	return businessTx(r.db, order.BusinessID, func(tx *gorm.DB) error {
 		return tx.Create(order).Error
 	})
 }
 
 // FindByID finds an order by ID with all relationships
-func (r *OrderRepository) FindByID(id uuid.UUID, tenantID uuid.UUID) (*models.Order, error) {
+func (r *OrderRepository) FindByID(id uuid.UUID, businessID uuid.UUID) (*models.Order, error) {
 	var order models.Order
-	err := tenantTx(r.db, tenantID, func(tx *gorm.DB) error {
-		return tx.Where("id = ? AND tenant_id = ?", id, tenantID).
+	err := businessTx(r.db, businessID, func(tx *gorm.DB) error {
+		return tx.Where("id = ? AND business_id = ?", id, businessID).
 			Preload("Customer").
 			Preload("Items").
 			Preload("Items.Product").
@@ -59,10 +59,10 @@ func (r *OrderRepository) FindByID(id uuid.UUID, tenantID uuid.UUID) (*models.Or
 }
 
 // FindByOrderNumber finds an order by order number
-func (r *OrderRepository) FindByOrderNumber(orderNumber string, tenantID uuid.UUID) (*models.Order, error) {
+func (r *OrderRepository) FindByOrderNumber(orderNumber string, businessID uuid.UUID) (*models.Order, error) {
 	var order models.Order
-	err := tenantTx(r.db, tenantID, func(tx *gorm.DB) error {
-		return tx.Where("order_number = ? AND tenant_id = ?", orderNumber, tenantID).
+	err := businessTx(r.db, businessID, func(tx *gorm.DB) error {
+		return tx.Where("order_number = ? AND business_id = ?", orderNumber, businessID).
 			Preload("Customer").
 			Preload("Items").
 			Preload("Payments").
@@ -75,12 +75,12 @@ func (r *OrderRepository) FindByOrderNumber(orderNumber string, tenantID uuid.UU
 }
 
 // List returns a paginated list of orders with filters
-func (r *OrderRepository) List(tenantID uuid.UUID, filters OrderListFilters) ([]models.Order, int64, error) {
+func (r *OrderRepository) List(businessID uuid.UUID, filters OrderListFilters) ([]models.Order, int64, error) {
 	var orders []models.Order
 	var total int64
 
-	err := tenantTx(r.db, tenantID, func(tx *gorm.DB) error {
-		query := tx.Model(&models.Order{}).Where("tenant_id = ?", tenantID)
+	err := businessTx(r.db, businessID, func(tx *gorm.DB) error {
+		query := tx.Model(&models.Order{}).Where("business_id = ?", businessID)
 
 		if filters.CustomerID != uuid.Nil {
 			query = query.Where("customer_id = ?", filters.CustomerID)
@@ -137,12 +137,12 @@ func (r *OrderRepository) List(tenantID uuid.UUID, filters OrderListFilters) ([]
 
 // Update updates an order with optimistic locking
 func (r *OrderRepository) Update(order *models.Order) error {
-	return tenantTx(r.db, order.TenantID, func(tx *gorm.DB) error {
+	return businessTx(r.db, order.BusinessID, func(tx *gorm.DB) error {
 		prevVersion := order.Version
 		order.Version = prevVersion + 1
 
 		res := tx.Model(&models.Order{}).
-			Where("id = ? AND tenant_id = ? AND version = ?", order.ID, order.TenantID, prevVersion).
+			Where("id = ? AND business_id = ? AND version = ?", order.ID, order.BusinessID, prevVersion).
 			Select("*").
 			Updates(order)
 
@@ -157,20 +157,20 @@ func (r *OrderRepository) Update(order *models.Order) error {
 }
 
 // Delete soft deletes an order
-func (r *OrderRepository) Delete(id uuid.UUID, tenantID uuid.UUID) error {
-	return tenantTx(r.db, tenantID, func(tx *gorm.DB) error {
-		return tx.Where("id = ? AND tenant_id = ?", id, tenantID).Delete(&models.Order{}).Error
+func (r *OrderRepository) Delete(id uuid.UUID, businessID uuid.UUID) error {
+	return businessTx(r.db, businessID, func(tx *gorm.DB) error {
+		return tx.Where("id = ? AND business_id = ?", id, businessID).Delete(&models.Order{}).Error
 	})
 }
 
 // GenerateOrderNumber generates a unique order number for the tenant
-func (r *OrderRepository) GenerateOrderNumber(tenantID uuid.UUID) (string, error) {
+func (r *OrderRepository) GenerateOrderNumber(businessID uuid.UUID) (string, error) {
 	today := time.Now().Format("20060102")
 	prefix := "ORD-" + today + "-"
 
 	var lastOrder models.Order
-	err := tenantTx(r.db, tenantID, func(tx *gorm.DB) error {
-		return tx.Where("tenant_id = ? AND order_number LIKE ?", tenantID, prefix+"%").
+	err := businessTx(r.db, businessID, func(tx *gorm.DB) error {
+		return tx.Where("business_id = ? AND order_number LIKE ?", businessID, prefix+"%").
 			Order("order_number DESC").
 			First(&lastOrder).Error
 	})
@@ -193,20 +193,20 @@ func (r *OrderRepository) GenerateOrderNumber(tenantID uuid.UUID) (string, error
 }
 
 // UpdateStatus updates the order status
-func (r *OrderRepository) UpdateStatus(id uuid.UUID, tenantID uuid.UUID, status string) error {
-	return tenantTx(r.db, tenantID, func(tx *gorm.DB) error {
+func (r *OrderRepository) UpdateStatus(id uuid.UUID, businessID uuid.UUID, status string) error {
+	return businessTx(r.db, businessID, func(tx *gorm.DB) error {
 		res := tx.Model(&models.Order{}).
-			Where("id = ? AND tenant_id = ?", id, tenantID).
+			Where("id = ? AND business_id = ?", id, businessID).
 			Update("status", status)
 		return res.Error
 	})
 }
 
 // UpdatePaymentStatus updates the payment status and paid amount
-func (r *OrderRepository) UpdatePaymentStatus(id uuid.UUID, tenantID uuid.UUID, paymentStatus string, paidAmount string) error {
-	return tenantTx(r.db, tenantID, func(tx *gorm.DB) error {
+func (r *OrderRepository) UpdatePaymentStatus(id uuid.UUID, businessID uuid.UUID, paymentStatus string, paidAmount string) error {
+	return businessTx(r.db, businessID, func(tx *gorm.DB) error {
 		res := tx.Model(&models.Order{}).
-			Where("id = ? AND tenant_id = ?", id, tenantID).
+			Where("id = ? AND business_id = ?", id, businessID).
 			Updates(map[string]interface{}{
 				"payment_status": paymentStatus,
 				"paid_amount":    paidAmount,
@@ -216,35 +216,35 @@ func (r *OrderRepository) UpdatePaymentStatus(id uuid.UUID, tenantID uuid.UUID, 
 }
 
 // CountByTenant returns the total number of orders for a tenant
-func (r *OrderRepository) CountByTenant(tenantID uuid.UUID) (int64, error) {
+func (r *OrderRepository) CountByTenant(businessID uuid.UUID) (int64, error) {
 	var count int64
-	err := tenantTx(r.db, tenantID, func(tx *gorm.DB) error {
-		return tx.Model(&models.Order{}).Where("tenant_id = ?", tenantID).Count(&count).Error
+	err := businessTx(r.db, businessID, func(tx *gorm.DB) error {
+		return tx.Model(&models.Order{}).Where("business_id = ?", businessID).Count(&count).Error
 	})
 	return count, err
 }
 
 // CountByStatus returns the count of orders by status for a tenant
-func (r *OrderRepository) CountByStatus(tenantID uuid.UUID, status string) (int64, error) {
+func (r *OrderRepository) CountByStatus(businessID uuid.UUID, status string) (int64, error) {
 	var count int64
-	err := tenantTx(r.db, tenantID, func(tx *gorm.DB) error {
+	err := businessTx(r.db, businessID, func(tx *gorm.DB) error {
 		return tx.Model(&models.Order{}).
-			Where("tenant_id = ? AND status = ?", tenantID, status).
+			Where("business_id = ? AND status = ?", businessID, status).
 			Count(&count).Error
 	})
 	return count, err
 }
 
 // GetTotalSales returns total sales amount for a tenant within a date range
-func (r *OrderRepository) GetTotalSales(tenantID uuid.UUID, fromDate, toDate time.Time) (string, error) {
+func (r *OrderRepository) GetTotalSales(businessID uuid.UUID, fromDate, toDate time.Time) (string, error) {
 	var total struct {
 		Sum string
 	}
 
-	err := tenantTx(r.db, tenantID, func(tx *gorm.DB) error {
+	err := businessTx(r.db, businessID, func(tx *gorm.DB) error {
 		query := tx.Model(&models.Order{}).
 			Select("COALESCE(SUM(total_amount), 0) as sum").
-			Where("tenant_id = ? AND status NOT IN (?)", tenantID, []string{models.OrderStatusDraft, models.OrderStatusCancelled})
+			Where("business_id = ? AND status NOT IN (?)", businessID, []string{models.OrderStatusDraft, models.OrderStatusCancelled})
 
 		if !fromDate.IsZero() {
 			query = query.Where("order_date >= ?", fromDate)

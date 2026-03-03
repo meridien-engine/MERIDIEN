@@ -84,7 +84,7 @@ func (h *OrderHandler) Create(c *gin.Context) {
 	}
 
 	// Get tenant ID from context
-	tenantID, err := middleware.GetTenantID(c)
+	businessID, err := middleware.GetBusinessID(c)
 	if err != nil {
 		utils.UnauthorizedResponse(c, "Tenant not found")
 		return
@@ -117,7 +117,7 @@ func (h *OrderHandler) Create(c *gin.Context) {
 
 	// Create service request
 	serviceReq := &services.CreateOrderRequest{
-		TenantID:       tenantID,
+		BusinessID:       businessID,
 		CustomerID:     customerID,
 		Items:          items,
 		TaxAmount:      req.TaxAmount,
@@ -149,7 +149,7 @@ func (h *OrderHandler) Create(c *gin.Context) {
 // GET /api/v1/orders
 func (h *OrderHandler) List(c *gin.Context) {
 	// Get tenant ID from context
-	tenantID, err := middleware.GetTenantID(c)
+	businessID, err := middleware.GetBusinessID(c)
 	if err != nil {
 		utils.UnauthorizedResponse(c, "Tenant not found")
 		return
@@ -202,7 +202,7 @@ func (h *OrderHandler) List(c *gin.Context) {
 	filters.Offset = (page - 1) * perPage
 
 	// Get orders
-	orders, total, err := h.orderService.List(tenantID, filters)
+	orders, total, err := h.orderService.List(businessID, filters)
 	if err != nil {
 		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to retrieve orders")
 		return
@@ -216,7 +216,7 @@ func (h *OrderHandler) List(c *gin.Context) {
 // GET /api/v1/orders/:id
 func (h *OrderHandler) GetByID(c *gin.Context) {
 	// Get tenant ID from context
-	tenantID, err := middleware.GetTenantID(c)
+	businessID, err := middleware.GetBusinessID(c)
 	if err != nil {
 		utils.UnauthorizedResponse(c, "Tenant not found")
 		return
@@ -230,7 +230,7 @@ func (h *OrderHandler) GetByID(c *gin.Context) {
 	}
 
 	// Get order
-	order, err := h.orderService.GetByID(orderID, tenantID)
+	order, err := h.orderService.GetByID(orderID, businessID)
 	if err != nil {
 		utils.NotFoundResponse(c, "Order not found")
 		return
@@ -249,7 +249,7 @@ func (h *OrderHandler) Update(c *gin.Context) {
 	}
 
 	// Get tenant ID from context
-	tenantID, err := middleware.GetTenantID(c)
+	businessID, err := middleware.GetBusinessID(c)
 	if err != nil {
 		utils.UnauthorizedResponse(c, "Tenant not found")
 		return
@@ -283,7 +283,7 @@ func (h *OrderHandler) Update(c *gin.Context) {
 	}
 
 	// Update order
-	order, err := h.orderService.Update(orderID, tenantID, serviceReq)
+	order, err := h.orderService.Update(orderID, businessID, serviceReq)
 	if err != nil {
 		utils.ErrorResponse(c, http.StatusBadRequest, err.Error())
 		return
@@ -296,7 +296,7 @@ func (h *OrderHandler) Update(c *gin.Context) {
 // DELETE /api/v1/orders/:id
 func (h *OrderHandler) Delete(c *gin.Context) {
 	// Get tenant ID from context
-	tenantID, err := middleware.GetTenantID(c)
+	businessID, err := middleware.GetBusinessID(c)
 	if err != nil {
 		utils.UnauthorizedResponse(c, "Tenant not found")
 		return
@@ -310,7 +310,7 @@ func (h *OrderHandler) Delete(c *gin.Context) {
 	}
 
 	// Delete order
-	if err := h.orderService.Delete(orderID, tenantID); err != nil {
+	if err := h.orderService.Delete(orderID, businessID); err != nil {
 		utils.ErrorResponse(c, http.StatusBadRequest, err.Error())
 		return
 	}
@@ -322,7 +322,7 @@ func (h *OrderHandler) Delete(c *gin.Context) {
 // POST /api/v1/orders/:id/confirm
 func (h *OrderHandler) Confirm(c *gin.Context) {
 	// Get tenant ID from context
-	tenantID, err := middleware.GetTenantID(c)
+	businessID, err := middleware.GetBusinessID(c)
 	if err != nil {
 		utils.UnauthorizedResponse(c, "Tenant not found")
 		return
@@ -336,7 +336,7 @@ func (h *OrderHandler) Confirm(c *gin.Context) {
 	}
 
 	// Confirm order
-	order, err := h.orderService.ConfirmOrder(orderID, tenantID)
+	order, err := h.orderService.ConfirmOrder(orderID, businessID)
 	if err != nil {
 		utils.ErrorResponse(c, http.StatusBadRequest, err.Error())
 		return
@@ -349,7 +349,7 @@ func (h *OrderHandler) Confirm(c *gin.Context) {
 // POST /api/v1/orders/:id/ship
 func (h *OrderHandler) Ship(c *gin.Context) {
 	// Get tenant ID from context
-	tenantID, err := middleware.GetTenantID(c)
+	businessID, err := middleware.GetBusinessID(c)
 	if err != nil {
 		utils.UnauthorizedResponse(c, "Tenant not found")
 		return
@@ -363,7 +363,7 @@ func (h *OrderHandler) Ship(c *gin.Context) {
 	}
 
 	// Ship order
-	order, err := h.orderService.ShipOrder(orderID, tenantID)
+	order, err := h.orderService.ShipOrder(orderID, businessID)
 	if err != nil {
 		utils.ErrorResponse(c, http.StatusBadRequest, err.Error())
 		return
@@ -376,7 +376,7 @@ func (h *OrderHandler) Ship(c *gin.Context) {
 // POST /api/v1/orders/:id/deliver
 func (h *OrderHandler) Deliver(c *gin.Context) {
 	// Get tenant ID from context
-	tenantID, err := middleware.GetTenantID(c)
+	businessID, err := middleware.GetBusinessID(c)
 	if err != nil {
 		utils.UnauthorizedResponse(c, "Tenant not found")
 		return
@@ -390,7 +390,7 @@ func (h *OrderHandler) Deliver(c *gin.Context) {
 	}
 
 	// Deliver order
-	order, err := h.orderService.DeliverOrder(orderID, tenantID)
+	order, err := h.orderService.DeliverOrder(orderID, businessID)
 	if err != nil {
 		utils.ErrorResponse(c, http.StatusBadRequest, err.Error())
 		return
@@ -403,7 +403,7 @@ func (h *OrderHandler) Deliver(c *gin.Context) {
 // POST /api/v1/orders/:id/collect
 func (h *OrderHandler) Collect(c *gin.Context) {
 	// Get tenant ID from context
-	tenantID, err := middleware.GetTenantID(c)
+	businessID, err := middleware.GetBusinessID(c)
 	if err != nil {
 		utils.UnauthorizedResponse(c, "Tenant not found")
 		return
@@ -417,7 +417,7 @@ func (h *OrderHandler) Collect(c *gin.Context) {
 	}
 
 	// Collect order
-	order, err := h.orderService.CollectOrder(orderID, tenantID)
+	order, err := h.orderService.CollectOrder(orderID, businessID)
 	if err != nil {
 		utils.ErrorResponse(c, http.StatusBadRequest, err.Error())
 		return
@@ -430,7 +430,7 @@ func (h *OrderHandler) Collect(c *gin.Context) {
 // POST /api/v1/orders/:id/cancel
 func (h *OrderHandler) Cancel(c *gin.Context) {
 	// Get tenant ID from context
-	tenantID, err := middleware.GetTenantID(c)
+	businessID, err := middleware.GetBusinessID(c)
 	if err != nil {
 		utils.UnauthorizedResponse(c, "Tenant not found")
 		return
@@ -444,7 +444,7 @@ func (h *OrderHandler) Cancel(c *gin.Context) {
 	}
 
 	// Cancel order
-	order, err := h.orderService.CancelOrder(orderID, tenantID)
+	order, err := h.orderService.CancelOrder(orderID, businessID)
 	if err != nil {
 		utils.ErrorResponse(c, http.StatusBadRequest, err.Error())
 		return
@@ -463,7 +463,7 @@ func (h *OrderHandler) RecordPayment(c *gin.Context) {
 	}
 
 	// Get tenant ID from context
-	tenantID, err := middleware.GetTenantID(c)
+	businessID, err := middleware.GetBusinessID(c)
 	if err != nil {
 		utils.UnauthorizedResponse(c, "Tenant not found")
 		return
@@ -479,7 +479,7 @@ func (h *OrderHandler) RecordPayment(c *gin.Context) {
 	// Record payment
 	payment, err := h.orderService.RecordPayment(
 		orderID,
-		tenantID,
+		businessID,
 		req.PaymentMethod,
 		req.Amount,
 		req.TransactionReference,
@@ -497,7 +497,7 @@ func (h *OrderHandler) RecordPayment(c *gin.Context) {
 // GET /api/v1/orders/:id/payments
 func (h *OrderHandler) ListPayments(c *gin.Context) {
 	// Get tenant ID from context
-	tenantID, err := middleware.GetTenantID(c)
+	businessID, err := middleware.GetBusinessID(c)
 	if err != nil {
 		utils.UnauthorizedResponse(c, "Tenant not found")
 		return
@@ -511,7 +511,7 @@ func (h *OrderHandler) ListPayments(c *gin.Context) {
 	}
 
 	// Get payments
-	payments, err := h.orderService.GetOrderPayments(orderID, tenantID)
+	payments, err := h.orderService.GetOrderPayments(orderID, businessID)
 	if err != nil {
 		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to retrieve payments")
 		return

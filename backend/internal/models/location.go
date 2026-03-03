@@ -10,7 +10,7 @@ import (
 
 type Location struct {
 	ID          uuid.UUID       `json:"id" gorm:"type:uuid;primaryKey"`
-	TenantID    uuid.UUID       `json:"tenant_id" gorm:"type:uuid;index"`
+	BusinessID  uuid.UUID       `json:"business_id" gorm:"type:uuid;index"`
 	City        string          `json:"city" gorm:"type:varchar(255);not null"`
 	Zone        string          `json:"zone" gorm:"type:varchar(255)"`
 	ShippingFee decimal.Decimal `json:"shipping_fee" gorm:"type:decimal(15,2);not null;default:0.00"`

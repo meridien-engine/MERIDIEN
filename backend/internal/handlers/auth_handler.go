@@ -17,32 +17,26 @@ type AuthHandler struct {
 
 // NewAuthHandler creates a new auth handler instance
 func NewAuthHandler(authService *services.AuthService) *AuthHandler {
-	return &AuthHandler{
-		authService: authService,
-	}
+	return &AuthHandler{authService: authService}
 }
 
 // RegisterRequest represents the registration request body
 type RegisterRequest struct {
-	TenantSlug string `json:"tenant_slug" binding:"required"`
-	Email      string `json:"email" binding:"required"`
-	Password   string `json:"password" binding:"required"`
-	FirstName  string `json:"first_name" binding:"required"`
-	LastName   string `json:"last_name" binding:"required"`
-	Role       string `json:"role"`
+	Email     string `json:"email" binding:"required"`
+	Password  string `json:"password" binding:"required"`
+	FirstName string `json:"first_name" binding:"required"`
+	LastName  string `json:"last_name" binding:"required"`
 }
 
 // LoginRequest represents the login request body
 type LoginRequest struct {
-	TenantSlug string `json:"tenant_slug"`
-	Email      string `json:"email" binding:"required"`
-	Password   string `json:"password" binding:"required"`
+	Email    string `json:"email" binding:"required"`
+	Password string `json:"password" binding:"required"`
 }
 
 // UserResponse represents the user data in responses (without password)
 type UserResponse struct {
 	ID        uuid.UUID `json:"id"`
-	TenantID  uuid.UUID `json:"tenant_id"`
 	Email     string    `json:"email"`
 	FirstName string    `json:"first_name"`
 	LastName  string    `json:"last_name"`
@@ -59,36 +53,21 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		return
 	}
 
-	// For MVP, we'll use the demo tenant
-	// In production, you'd look up tenant by slug
-	tenantID := uuid.MustParse("bae1577c-1b95-4a0e-8eae-9a44654278b2") // Demo tenant ID
-
-	// Default role to "user" if not provided
-	if req.Role == "" {
-		req.Role = "user"
-	}
-
-	// Create service request
 	serviceReq := &services.RegisterRequest{
-		TenantID:  tenantID,
 		Email:     req.Email,
 		Password:  req.Password,
 		FirstName: req.FirstName,
 		LastName:  req.LastName,
-		Role:      req.Role,
 	}
 
-	// Register user
 	response, err := h.authService.Register(serviceReq)
 	if err != nil {
 		utils.ErrorResponse(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	// Build response
 	userResp := UserResponse{
 		ID:        response.User.ID,
-		TenantID:  response.User.TenantID,
 		Email:     response.User.Email,
 		FirstName: response.User.FirstName,
 		LastName:  response.User.LastName,
@@ -102,7 +81,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
 	})
 }
 
-// Login handles user authentication
+// Login handles user authentication and returns a generic JWT
 // POST /api/v1/auth/login
 func (h *AuthHandler) Login(c *gin.Context) {
 	var req LoginRequest
@@ -111,54 +90,19 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
-	// If tenant slug is not provided, attempt workspace discovery by email/password
-	if req.TenantSlug == "" {
-		tenants, err := h.authService.DiscoverTenants(req.Email, req.Password)
-		if err != nil {
-			utils.ErrorResponse(c, http.StatusUnauthorized, err.Error())
-			return
-		}
-
-		// Return tenant list (id, slug, name) for the client to choose
-		result := make([]gin.H, 0, len(tenants))
-		for _, t := range tenants {
-			result = append(result, gin.H{
-				"id":        t.ID,
-				"slug":      t.Slug,
-				"name":      t.Name,
-				"is_active": t.SubscriptionStatus == "active",
-			})
-		}
-
-		utils.SuccessResponse(c, http.StatusOK, "Workspaces found", gin.H{"workspaces": result})
-		return
-	}
-
-	// Tenant slug provided: perform normal login for that tenant
-	tenant, err := h.authService.GetTenantBySlug(req.TenantSlug)
-	if err != nil {
-		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid tenant")
-		return
-	}
-
-	// Create service request
 	serviceReq := &services.LoginRequest{
-		TenantID: tenant.ID,
 		Email:    req.Email,
 		Password: req.Password,
 	}
 
-	// Login user
 	response, err := h.authService.Login(serviceReq)
 	if err != nil {
 		utils.ErrorResponse(c, http.StatusUnauthorized, err.Error())
 		return
 	}
 
-	// Build response
 	userResp := UserResponse{
 		ID:        response.User.ID,
-		TenantID:  response.User.TenantID,
 		Email:     response.User.Email,
 		FirstName: response.User.FirstName,
 		LastName:  response.User.LastName,
@@ -169,36 +113,74 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	utils.SuccessResponse(c, http.StatusOK, "Login successful", gin.H{
 		"token": response.Token,
 		"user":  userResp,
+		"type":  "generic",
 	})
 }
 
-// GetCurrentUser returns the currently authenticated user
-// GET /api/v1/auth/me
-func (h *AuthHandler) GetCurrentUser(c *gin.Context) {
-	// Get user ID from context (set by auth middleware)
+// GetUserBusinesses returns all businesses the authenticated user belongs to
+// GET /api/v1/auth/businesses
+func (h *AuthHandler) GetUserBusinesses(c *gin.Context) {
 	userID, err := middleware.GetUserID(c)
 	if err != nil {
 		utils.UnauthorizedResponse(c, "User not authenticated")
 		return
 	}
 
-	tenantID, err := middleware.GetTenantID(c)
+	businesses, err := h.authService.GetUserBusinesses(userID)
 	if err != nil {
-		utils.UnauthorizedResponse(c, "Tenant not found")
+		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to retrieve businesses")
 		return
 	}
 
-	// Get user from database
-	user, err := h.authService.GetCurrentUser(userID, tenantID)
+	utils.SuccessResponse(c, http.StatusOK, "Businesses retrieved", businesses)
+}
+
+// UseBusiness issues a scoped JWT for the selected business
+// POST /api/v1/auth/use-business/:id
+func (h *AuthHandler) UseBusiness(c *gin.Context) {
+	userID, err := middleware.GetUserID(c)
+	if err != nil {
+		utils.UnauthorizedResponse(c, "User not authenticated")
+		return
+	}
+
+	businessIDStr := c.Param("id")
+	businessID, err := uuid.Parse(businessIDStr)
+	if err != nil {
+		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid business ID")
+		return
+	}
+
+	token, role, err := h.authService.UseBusiness(userID, businessID)
+	if err != nil {
+		utils.ErrorResponse(c, http.StatusForbidden, err.Error())
+		return
+	}
+
+	utils.SuccessResponse(c, http.StatusOK, "Business selected", gin.H{
+		"token": token,
+		"role":  role,
+		"type":  "scoped",
+	})
+}
+
+// GetCurrentUser returns the currently authenticated user
+// GET /api/v1/auth/me
+func (h *AuthHandler) GetCurrentUser(c *gin.Context) {
+	userID, err := middleware.GetUserID(c)
+	if err != nil {
+		utils.UnauthorizedResponse(c, "User not authenticated")
+		return
+	}
+
+	user, err := h.authService.GetCurrentUser(userID)
 	if err != nil {
 		utils.NotFoundResponse(c, "User not found")
 		return
 	}
 
-	// Build response
 	userResp := UserResponse{
 		ID:        user.ID,
-		TenantID:  user.TenantID,
 		Email:     user.Email,
 		FirstName: user.FirstName,
 		LastName:  user.LastName,
@@ -222,19 +204,16 @@ func (h *AuthHandler) Logout(c *gin.Context) {
 // RefreshToken refreshes the JWT token
 // POST /api/v1/auth/refresh
 func (h *AuthHandler) RefreshToken(c *gin.Context) {
-	// Get current token from Authorization header
 	authHeader := c.GetHeader("Authorization")
 	if authHeader == "" {
 		utils.UnauthorizedResponse(c, "Authorization header is required")
 		return
 	}
 
-	// Extract token
 	parts := gin.H{}
 	if len(authHeader) > 7 && authHeader[:7] == "Bearer " {
 		tokenString := authHeader[7:]
 
-		// Refresh token
 		newToken, err := h.authService.RefreshToken(tokenString)
 		if err != nil {
 			utils.UnauthorizedResponse(c, "Invalid or expired token")

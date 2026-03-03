@@ -27,7 +27,7 @@ func NewProductService(productRepo *repositories.ProductRepository, categoryRepo
 
 // CreateProductRequest represents a product creation request
 type CreateProductRequest struct {
-	TenantID          uuid.UUID
+	BusinessID          uuid.UUID
 	CategoryID        *uuid.UUID
 	Name              string
 	Description       string
@@ -66,7 +66,7 @@ type UpdateProductRequest struct {
 
 // ListProductsRequest represents a request to list products
 type ListProductsRequest struct {
-	TenantID    uuid.UUID
+	BusinessID    uuid.UUID
 	Search      string
 	Status      string
 	CategoryID  uuid.UUID
@@ -88,7 +88,7 @@ func (s *ProductService) Create(req *CreateProductRequest) (*models.Product, err
 
 	// Validate category if provided
 	if req.CategoryID != nil {
-		_, err := s.categoryRepo.FindByID(*req.CategoryID, req.TenantID)
+		_, err := s.categoryRepo.FindByID(*req.CategoryID, req.BusinessID)
 		if err != nil {
 			return nil, errors.New("invalid category")
 		}
@@ -96,7 +96,7 @@ func (s *ProductService) Create(req *CreateProductRequest) (*models.Product, err
 
 	// Check if SKU already exists
 	if req.SKU != "" {
-		exists, err := s.productRepo.ExistsBySKU(req.SKU, req.TenantID)
+		exists, err := s.productRepo.ExistsBySKU(req.SKU, req.BusinessID)
 		if err != nil {
 			return nil, err
 		}
@@ -107,7 +107,7 @@ func (s *ProductService) Create(req *CreateProductRequest) (*models.Product, err
 
 	// Check if barcode already exists
 	if req.Barcode != "" {
-		exists, err := s.productRepo.ExistsByBarcode(req.Barcode, req.TenantID)
+		exists, err := s.productRepo.ExistsByBarcode(req.Barcode, req.BusinessID)
 		if err != nil {
 			return nil, err
 		}
@@ -121,7 +121,7 @@ func (s *ProductService) Create(req *CreateProductRequest) (*models.Product, err
 
 	// Create product
 	product := &models.Product{
-		TenantID:          req.TenantID,
+		BusinessID:          req.BusinessID,
 		CategoryID:        req.CategoryID,
 		Name:              strings.TrimSpace(req.Name),
 		Slug:              productSlug,
@@ -149,14 +149,14 @@ func (s *ProductService) Create(req *CreateProductRequest) (*models.Product, err
 }
 
 // GetByID retrieves a product by ID
-func (s *ProductService) GetByID(id, tenantID uuid.UUID) (*models.Product, error) {
-	return s.productRepo.FindByID(id, tenantID)
+func (s *ProductService) GetByID(id, businessID uuid.UUID) (*models.Product, error) {
+	return s.productRepo.FindByID(id, businessID)
 }
 
 // Update updates a product's information
-func (s *ProductService) Update(id, tenantID uuid.UUID, req *UpdateProductRequest) (*models.Product, error) {
+func (s *ProductService) Update(id, businessID uuid.UUID, req *UpdateProductRequest) (*models.Product, error) {
 	// Get existing product
-	product, err := s.productRepo.FindByID(id, tenantID)
+	product, err := s.productRepo.FindByID(id, businessID)
 	if err != nil {
 		return nil, err
 	}
@@ -164,7 +164,7 @@ func (s *ProductService) Update(id, tenantID uuid.UUID, req *UpdateProductReques
 	// Update fields if provided
 	if req.CategoryID != nil {
 		if *req.CategoryID != uuid.Nil {
-			_, err := s.categoryRepo.FindByID(*req.CategoryID, tenantID)
+			_, err := s.categoryRepo.FindByID(*req.CategoryID, businessID)
 			if err != nil {
 				return nil, errors.New("invalid category")
 			}
@@ -188,7 +188,7 @@ func (s *ProductService) Update(id, tenantID uuid.UUID, req *UpdateProductReques
 	if req.SKU != nil {
 		sku := strings.TrimSpace(*req.SKU)
 		if sku != product.SKU && sku != "" {
-			exists, err := s.productRepo.ExistsBySKU(sku, tenantID)
+			exists, err := s.productRepo.ExistsBySKU(sku, businessID)
 			if err != nil {
 				return nil, err
 			}
@@ -202,7 +202,7 @@ func (s *ProductService) Update(id, tenantID uuid.UUID, req *UpdateProductReques
 	if req.Barcode != nil {
 		barcode := strings.TrimSpace(*req.Barcode)
 		if barcode != product.Barcode && barcode != "" {
-			exists, err := s.productRepo.ExistsByBarcode(barcode, tenantID)
+			exists, err := s.productRepo.ExistsByBarcode(barcode, businessID)
 			if err != nil {
 				return nil, err
 			}
@@ -275,8 +275,8 @@ func (s *ProductService) Update(id, tenantID uuid.UUID, req *UpdateProductReques
 }
 
 // Delete soft deletes a product
-func (s *ProductService) Delete(id, tenantID uuid.UUID) error {
-	return s.productRepo.Delete(id, tenantID)
+func (s *ProductService) Delete(id, businessID uuid.UUID) error {
+	return s.productRepo.Delete(id, businessID)
 }
 
 // List returns a paginated list of products
@@ -309,20 +309,20 @@ func (s *ProductService) List(req *ListProductsRequest) ([]models.Product, int64
 		Offset:     offset,
 	}
 
-	return s.productRepo.List(req.TenantID, filters)
+	return s.productRepo.List(req.BusinessID, filters)
 }
 
 // UpdateStock updates product stock quantity
-func (s *ProductService) UpdateStock(id, tenantID uuid.UUID, quantity int) error {
+func (s *ProductService) UpdateStock(id, businessID uuid.UUID, quantity int) error {
 	if quantity < 0 {
 		return errors.New("stock quantity cannot be negative")
 	}
-	return s.productRepo.UpdateStock(id, tenantID, quantity)
+	return s.productRepo.UpdateStock(id, businessID, quantity)
 }
 
 // validateCreateRequest validates the creation request
 func (s *ProductService) validateCreateRequest(req *CreateProductRequest) error {
-	if req.TenantID == uuid.Nil {
+	if req.BusinessID == uuid.Nil {
 		return errors.New("tenant ID is required")
 	}
 

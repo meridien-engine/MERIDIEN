@@ -21,19 +21,13 @@ func NewUserRepository(db *gorm.DB) *UserRepository {
 
 // Create creates a new user in the database
 func (r *UserRepository) Create(user *models.User) error {
-	return tenantTx(r.db, user.TenantID, func(tx *gorm.DB) error {
-		return tx.Create(user).Error
-	})
+	return r.db.Create(user).Error
 }
 
-// FindByID finds a user by ID within a specific tenant
-func (r *UserRepository) FindByID(id, tenantID uuid.UUID) (*models.User, error) {
+// FindByID finds a user by ID
+func (r *UserRepository) FindByID(id uuid.UUID) (*models.User, error) {
 	var user models.User
-	err := tenantTx(r.db, tenantID, func(tx *gorm.DB) error {
-		return tx.Where("id = ? AND tenant_id = ?", id, tenantID).
-			Preload("Tenant").
-			First(&user).Error
-	})
+	err := r.db.Where("id = ?", id).First(&user).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errors.New("user not found")
@@ -43,14 +37,10 @@ func (r *UserRepository) FindByID(id, tenantID uuid.UUID) (*models.User, error) 
 	return &user, nil
 }
 
-// FindByEmail finds a user by email within a specific tenant
-func (r *UserRepository) FindByEmail(email string, tenantID uuid.UUID) (*models.User, error) {
+// FindByEmail finds a user by email (global — no business filter)
+func (r *UserRepository) FindByEmail(email string) (*models.User, error) {
 	var user models.User
-	err := tenantTx(r.db, tenantID, func(tx *gorm.DB) error {
-		return tx.Where("email = ? AND tenant_id = ?", email, tenantID).
-			Preload("Tenant").
-			First(&user).Error
-	})
+	err := r.db.Where("email = ?", email).First(&user).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errors.New("user not found")
@@ -62,104 +52,34 @@ func (r *UserRepository) FindByEmail(email string, tenantID uuid.UUID) (*models.
 
 // Update updates a user's information
 func (r *UserRepository) Update(user *models.User) error {
-	return tenantTx(r.db, user.TenantID, func(tx *gorm.DB) error {
-		return tx.Save(user).Error
-	})
+	return r.db.Save(user).Error
 }
 
 // Delete soft deletes a user
-func (r *UserRepository) Delete(id, tenantID uuid.UUID) error {
-	return tenantTx(r.db, tenantID, func(tx *gorm.DB) error {
-		result := tx.Where("id = ? AND tenant_id = ?", id, tenantID).Delete(&models.User{})
-		if result.Error != nil {
-			return result.Error
-		}
-		if result.RowsAffected == 0 {
-			return errors.New("user not found")
-		}
-		return nil
-	})
+func (r *UserRepository) Delete(id uuid.UUID) error {
+	result := r.db.Where("id = ?", id).Delete(&models.User{})
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return errors.New("user not found")
+	}
+	return nil
 }
 
 // UpdateLastLogin updates the user's last login timestamp
-func (r *UserRepository) UpdateLastLogin(id, tenantID uuid.UUID) error {
+func (r *UserRepository) UpdateLastLogin(id uuid.UUID) error {
 	now := time.Now()
-	return tenantTx(r.db, tenantID, func(tx *gorm.DB) error {
-		return tx.Model(&models.User{}).
-			Where("id = ? AND tenant_id = ?", id, tenantID).
-			Update("last_login_at", &now).Error
-	})
+	return r.db.Model(&models.User{}).
+		Where("id = ?", id).
+		Update("last_login_at", &now).Error
 }
 
-// List returns all users for a tenant with pagination
-func (r *UserRepository) List(tenantID uuid.UUID, limit, offset int) ([]models.User, int64, error) {
-	var users []models.User
-	var total int64
-
-	err := tenantTx(r.db, tenantID, func(tx *gorm.DB) error {
-		if err := tx.Model(&models.User{}).
-			Where("tenant_id = ?", tenantID).
-			Count(&total).Error; err != nil {
-			return err
-		}
-		return tx.Where("tenant_id = ?", tenantID).
-			Limit(limit).
-			Offset(offset).
-			Order("created_at DESC").
-			Find(&users).Error
-	})
-	if err != nil {
-		return nil, 0, err
-	}
-	return users, total, nil
-}
-
-// CountByTenant returns the number of users for a tenant
-func (r *UserRepository) CountByTenant(tenantID uuid.UUID) (int64, error) {
+// ExistsByEmail checks if a user with the given email exists
+func (r *UserRepository) ExistsByEmail(email string) (bool, error) {
 	var count int64
-	err := tenantTx(r.db, tenantID, func(tx *gorm.DB) error {
-		return tx.Model(&models.User{}).
-			Where("tenant_id = ?", tenantID).
-			Count(&count).Error
-	})
-	return count, err
-}
-
-// ExistsByEmail checks if a user with the given email exists in the tenant
-func (r *UserRepository) ExistsByEmail(email string, tenantID uuid.UUID) (bool, error) {
-	var count int64
-	err := tenantTx(r.db, tenantID, func(tx *gorm.DB) error {
-		return tx.Model(&models.User{}).
-			Where("email = ? AND tenant_id = ?", email, tenantID).
-			Count(&count).Error
-	})
+	err := r.db.Model(&models.User{}).
+		Where("email = ?", email).
+		Count(&count).Error
 	return count > 0, err
-}
-
-// FindAllByEmail finds all users with the given email across all active tenants.
-// Used for workspace discovery during login.
-func (r *UserRepository) FindAllByEmail(email string) ([]models.User, error) {
-	// Tenants table has no RLS — query directly
-	var tenantIDs []uuid.UUID
-	if err := r.db.Model(&models.Tenant{}).
-		Where("subscription_status = ?", "active").
-		Pluck("id", &tenantIDs).Error; err != nil {
-		return nil, err
-	}
-
-	var allUsers []models.User
-	for _, tenantID := range tenantIDs {
-		var user models.User
-		err := tenantTx(r.db, tenantID, func(tx *gorm.DB) error {
-			return tx.Where("email = ? AND tenant_id = ?", email, tenantID).
-				Preload("Tenant").
-				First(&user).Error
-		})
-		if err == nil {
-			allUsers = append(allUsers, user)
-		} else if !errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, err
-		}
-	}
-	return allUsers, nil
 }

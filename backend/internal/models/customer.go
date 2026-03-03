@@ -9,7 +9,7 @@ import (
 // Customer represents a customer in the system
 type Customer struct {
 	BaseModel
-	TenantID uuid.UUID `gorm:"type:uuid;not null;index" json:"tenant_id"`
+	BusinessID uuid.UUID `gorm:"type:uuid;not null;index" json:"business_id"`
 
 	// Basic Information
 	FirstName string `gorm:"type:varchar(100);not null" json:"first_name"`
@@ -42,7 +42,7 @@ type Customer struct {
 	CustomFields JSONB  `gorm:"type:jsonb;default:'{}'" json:"custom_fields,omitempty"`
 
 	// Relationships
-	Tenant *Tenant `gorm:"foreignKey:TenantID" json:"tenant,omitempty"`
+	Business *Business `gorm:"foreignKey:BusinessID" json:"business,omitempty"`
 }
 
 // TableName specifies the table name for Customer

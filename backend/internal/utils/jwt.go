@@ -8,12 +8,19 @@ import (
 	"github.com/google/uuid"
 )
 
-// JWTClaims represents the claims in the JWT token
+// Token type constants
+const (
+	TokenTypeGeneric = "generic"
+	TokenTypeScoped  = "scoped"
+)
+
+// JWTClaims represents the claims in a JWT token
 type JWTClaims struct {
-	UserID   uuid.UUID `json:"user_id"`
-	TenantID uuid.UUID `json:"tenant_id"`
-	Email    string    `json:"email"`
-	Role     string    `json:"role"`
+	UserID     uuid.UUID  `json:"user_id"`
+	BusinessID *uuid.UUID `json:"business_id,omitempty"`
+	Email      string     `json:"email"`
+	Role       string     `json:"role,omitempty"`
+	Type       string     `json:"type"` // "generic" | "scoped"
 	jwt.RegisteredClaims
 }
 
@@ -31,13 +38,12 @@ func NewJWTManager(secretKey string, expirationHours int) *JWTManager {
 	}
 }
 
-// GenerateToken generates a new JWT token for a user
-func (m *JWTManager) GenerateToken(userID, tenantID uuid.UUID, email, role string) (string, error) {
+// GenerateGenericToken creates a token without a business scope (step 1 of login)
+func (m *JWTManager) GenerateGenericToken(userID uuid.UUID, email string) (string, error) {
 	claims := JWTClaims{
-		UserID:   userID,
-		TenantID: tenantID,
-		Email:    email,
-		Role:     role,
+		UserID: userID,
+		Email:  email,
+		Type:   TokenTypeGeneric,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ID:        uuid.New().String(),
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * time.Duration(m.expirationHours))),
@@ -46,15 +52,38 @@ func (m *JWTManager) GenerateToken(userID, tenantID uuid.UUID, email, role strin
 			Issuer:    "MERIDIEN",
 		},
 	}
-
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString([]byte(m.secretKey))
+}
+
+// GenerateScopedToken creates a token scoped to a specific business (step 2 of login)
+func (m *JWTManager) GenerateScopedToken(userID, businessID uuid.UUID, email, role string) (string, error) {
+	claims := JWTClaims{
+		UserID:     userID,
+		BusinessID: &businessID,
+		Email:      email,
+		Role:       role,
+		Type:       TokenTypeScoped,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ID:        uuid.New().String(),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * time.Duration(m.expirationHours))),
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
+			NotBefore: jwt.NewNumericDate(time.Now()),
+			Issuer:    "MERIDIEN",
+		},
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	return token.SignedString([]byte(m.secretKey))
+}
+
+// GenerateToken is a backward-compatible wrapper that issues a scoped token
+func (m *JWTManager) GenerateToken(userID, businessID uuid.UUID, email, role string) (string, error) {
+	return m.GenerateScopedToken(userID, businessID, email, role)
 }
 
 // ValidateToken validates a JWT token and returns the claims
 func (m *JWTManager) ValidateToken(tokenString string) (*JWTClaims, error) {
 	token, err := jwt.ParseWithClaims(tokenString, &JWTClaims{}, func(token *jwt.Token) (interface{}, error) {
-		// Verify signing method
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, errors.New("invalid signing method")
 		}
@@ -77,13 +106,19 @@ func (m *JWTManager) ValidateToken(tokenString string) (*JWTClaims, error) {
 	return claims, nil
 }
 
-// RefreshToken generates a new token with extended expiration
+// RefreshToken generates a new token with extended expiration (preserves type)
 func (m *JWTManager) RefreshToken(tokenString string) (string, error) {
 	claims, err := m.ValidateToken(tokenString)
 	if err != nil {
 		return "", err
 	}
 
-	// Generate new token with same user info
-	return m.GenerateToken(claims.UserID, claims.TenantID, claims.Email, claims.Role)
+	if claims.Type == TokenTypeGeneric {
+		return m.GenerateGenericToken(claims.UserID, claims.Email)
+	}
+
+	if claims.BusinessID == nil {
+		return "", errors.New("scoped token missing business_id")
+	}
+	return m.GenerateScopedToken(claims.UserID, *claims.BusinessID, claims.Email, claims.Role)
 }

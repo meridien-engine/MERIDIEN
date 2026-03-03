@@ -21,16 +21,16 @@ func NewProductRepository(db *gorm.DB) *ProductRepository {
 
 // Create creates a new product
 func (r *ProductRepository) Create(product *models.Product) error {
-	return tenantTx(r.db, product.TenantID, func(tx *gorm.DB) error {
+	return businessTx(r.db, product.BusinessID, func(tx *gorm.DB) error {
 		return tx.Create(product).Error
 	})
 }
 
-// FindByID finds a product by ID within a specific tenant
-func (r *ProductRepository) FindByID(id, tenantID uuid.UUID) (*models.Product, error) {
+// FindByID finds a product by ID within a specific business
+func (r *ProductRepository) FindByID(id, businessID uuid.UUID) (*models.Product, error) {
 	var product models.Product
-	err := tenantTx(r.db, tenantID, func(tx *gorm.DB) error {
-		return tx.Where("id = ? AND tenant_id = ?", id, tenantID).Preload("Category").First(&product).Error
+	err := businessTx(r.db, businessID, func(tx *gorm.DB) error {
+		return tx.Where("id = ? AND business_id = ?", id, businessID).Preload("Category").First(&product).Error
 	})
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -41,11 +41,11 @@ func (r *ProductRepository) FindByID(id, tenantID uuid.UUID) (*models.Product, e
 	return &product, nil
 }
 
-// FindByBarcode finds a product by barcode within a specific tenant
-func (r *ProductRepository) FindByBarcode(barcode string, tenantID uuid.UUID) (*models.Product, error) {
+// FindByBarcode finds a product by barcode within a specific business
+func (r *ProductRepository) FindByBarcode(barcode string, businessID uuid.UUID) (*models.Product, error) {
 	var product models.Product
-	err := tenantTx(r.db, tenantID, func(tx *gorm.DB) error {
-		return tx.Where("barcode = ? AND tenant_id = ?", barcode, tenantID).Preload("Category").First(&product).Error
+	err := businessTx(r.db, businessID, func(tx *gorm.DB) error {
+		return tx.Where("barcode = ? AND business_id = ?", barcode, businessID).Preload("Category").First(&product).Error
 	})
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -56,11 +56,11 @@ func (r *ProductRepository) FindByBarcode(barcode string, tenantID uuid.UUID) (*
 	return &product, nil
 }
 
-// FindBySKU finds a product by SKU within a specific tenant
-func (r *ProductRepository) FindBySKU(sku string, tenantID uuid.UUID) (*models.Product, error) {
+// FindBySKU finds a product by SKU within a specific business
+func (r *ProductRepository) FindBySKU(sku string, businessID uuid.UUID) (*models.Product, error) {
 	var product models.Product
-	err := tenantTx(r.db, tenantID, func(tx *gorm.DB) error {
-		return tx.Where("sku = ? AND tenant_id = ?", sku, tenantID).Preload("Category").First(&product).Error
+	err := businessTx(r.db, businessID, func(tx *gorm.DB) error {
+		return tx.Where("sku = ? AND business_id = ?", sku, businessID).Preload("Category").First(&product).Error
 	})
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -73,15 +73,15 @@ func (r *ProductRepository) FindBySKU(sku string, tenantID uuid.UUID) (*models.P
 
 // Update updates a product's information
 func (r *ProductRepository) Update(product *models.Product) error {
-	return tenantTx(r.db, product.TenantID, func(tx *gorm.DB) error {
+	return businessTx(r.db, product.BusinessID, func(tx *gorm.DB) error {
 		return tx.Save(product).Error
 	})
 }
 
 // Delete soft deletes a product
-func (r *ProductRepository) Delete(id, tenantID uuid.UUID) error {
-	return tenantTx(r.db, tenantID, func(tx *gorm.DB) error {
-		result := tx.Where("id = ? AND tenant_id = ?", id, tenantID).Delete(&models.Product{})
+func (r *ProductRepository) Delete(id, businessID uuid.UUID) error {
+	return businessTx(r.db, businessID, func(tx *gorm.DB) error {
+		result := tx.Where("id = ? AND business_id = ?", id, businessID).Delete(&models.Product{})
 		if result.Error != nil {
 			return result.Error
 		}
@@ -92,13 +92,13 @@ func (r *ProductRepository) Delete(id, tenantID uuid.UUID) error {
 	})
 }
 
-// List returns products for a tenant with pagination and filters
-func (r *ProductRepository) List(tenantID uuid.UUID, filters ProductListFilters) ([]models.Product, int64, error) {
+// List returns products for a business with pagination and filters
+func (r *ProductRepository) List(businessID uuid.UUID, filters ProductListFilters) ([]models.Product, int64, error) {
 	var products []models.Product
 	var total int64
 
-	err := tenantTx(r.db, tenantID, func(tx *gorm.DB) error {
-		query := tx.Model(&models.Product{}).Where("tenant_id = ?", tenantID)
+	err := businessTx(r.db, businessID, func(tx *gorm.DB) error {
+		query := tx.Model(&models.Product{}).Where("business_id = ?", businessID)
 
 		if filters.Search != "" {
 			searchPattern := "%" + filters.Search + "%"
@@ -155,31 +155,31 @@ func (r *ProductRepository) List(tenantID uuid.UUID, filters ProductListFilters)
 }
 
 // UpdateStock updates product stock quantity
-func (r *ProductRepository) UpdateStock(id, tenantID uuid.UUID, quantity int) error {
-	return tenantTx(r.db, tenantID, func(tx *gorm.DB) error {
+func (r *ProductRepository) UpdateStock(id, businessID uuid.UUID, quantity int) error {
+	return businessTx(r.db, businessID, func(tx *gorm.DB) error {
 		return tx.Model(&models.Product{}).
-			Where("id = ? AND tenant_id = ?", id, tenantID).
+			Where("id = ? AND business_id = ?", id, businessID).
 			Update("stock_quantity", quantity).Error
 	})
 }
 
-// ExistsBySKU checks if a product with the given SKU exists in the tenant
-func (r *ProductRepository) ExistsBySKU(sku string, tenantID uuid.UUID) (bool, error) {
+// ExistsBySKU checks if a product with the given SKU exists in the business
+func (r *ProductRepository) ExistsBySKU(sku string, businessID uuid.UUID) (bool, error) {
 	var count int64
-	err := tenantTx(r.db, tenantID, func(tx *gorm.DB) error {
+	err := businessTx(r.db, businessID, func(tx *gorm.DB) error {
 		return tx.Model(&models.Product{}).
-			Where("sku = ? AND tenant_id = ?", sku, tenantID).
+			Where("sku = ? AND business_id = ?", sku, businessID).
 			Count(&count).Error
 	})
 	return count > 0, err
 }
 
-// ExistsByBarcode checks if a product with the given barcode exists in the tenant
-func (r *ProductRepository) ExistsByBarcode(barcode string, tenantID uuid.UUID) (bool, error) {
+// ExistsByBarcode checks if a product with the given barcode exists in the business
+func (r *ProductRepository) ExistsByBarcode(barcode string, businessID uuid.UUID) (bool, error) {
 	var count int64
-	err := tenantTx(r.db, tenantID, func(tx *gorm.DB) error {
+	err := businessTx(r.db, businessID, func(tx *gorm.DB) error {
 		return tx.Model(&models.Product{}).
-			Where("barcode = ? AND tenant_id = ?", barcode, tenantID).
+			Where("barcode = ? AND business_id = ?", barcode, businessID).
 			Count(&count).Error
 	})
 	return count > 0, err

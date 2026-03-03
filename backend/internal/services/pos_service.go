@@ -41,7 +41,7 @@ func NewPOSService(
 
 // OpenSessionRequest is the input for opening a new POS session
 type OpenSessionRequest struct {
-	TenantID     uuid.UUID
+	BusinessID     uuid.UUID
 	CashierID    uuid.UUID
 	OpeningFloat string
 }
@@ -50,7 +50,7 @@ type OpenSessionRequest struct {
 // Returns an error if the cashier already has an open session.
 func (s *POSService) OpenSession(req *OpenSessionRequest) (*models.POSSession, error) {
 	// Check for an existing open session
-	existing, err := s.sessionRepo.FindOpenByUser(req.CashierID, req.TenantID)
+	existing, err := s.sessionRepo.FindOpenByUser(req.CashierID, req.BusinessID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check existing sessions: %w", err)
 	}
@@ -70,7 +70,7 @@ func (s *POSService) OpenSession(req *OpenSessionRequest) (*models.POSSession, e
 	}
 
 	session := &models.POSSession{
-		TenantID:     req.TenantID,
+		BusinessID:     req.BusinessID,
 		CashierID:    req.CashierID,
 		Status:       models.POSSessionStatusOpen,
 		OpeningFloat: openingFloat,
@@ -87,14 +87,14 @@ func (s *POSService) OpenSession(req *OpenSessionRequest) (*models.POSSession, e
 // CloseSessionRequest is the input for closing a POS session
 type CloseSessionRequest struct {
 	SessionID   uuid.UUID
-	TenantID    uuid.UUID
+	BusinessID    uuid.UUID
 	CashierID   uuid.UUID
 	ClosingCash string
 }
 
 // CloseSession closes the given session and records the reconciliation values.
 func (s *POSService) CloseSession(req *CloseSessionRequest) (*models.POSSession, error) {
-	session, err := s.sessionRepo.FindByID(req.SessionID, req.TenantID)
+	session, err := s.sessionRepo.FindByID(req.SessionID, req.BusinessID)
 	if err != nil {
 		return nil, errors.New("session not found")
 	}
@@ -139,36 +139,36 @@ func (s *POSService) CloseSession(req *CloseSessionRequest) (*models.POSSession,
 }
 
 // GetCurrentSession returns the open session for a cashier, or nil if none
-func (s *POSService) GetCurrentSession(cashierID, tenantID uuid.UUID) (*models.POSSession, error) {
-	return s.sessionRepo.FindOpenByUser(cashierID, tenantID)
+func (s *POSService) GetCurrentSession(cashierID, businessID uuid.UUID) (*models.POSSession, error) {
+	return s.sessionRepo.FindOpenByUser(cashierID, businessID)
 }
 
 // GetSession returns a specific session by ID
-func (s *POSService) GetSession(id, tenantID uuid.UUID) (*models.POSSession, error) {
-	return s.sessionRepo.FindByID(id, tenantID)
+func (s *POSService) GetSession(id, businessID uuid.UUID) (*models.POSSession, error) {
+	return s.sessionRepo.FindByID(id, businessID)
 }
 
 // ListSessions returns a paginated list of sessions for a tenant
-func (s *POSService) ListSessions(tenantID uuid.UUID, f repositories.POSSessionFilters) ([]models.POSSession, int64, error) {
-	return s.sessionRepo.List(tenantID, f)
+func (s *POSService) ListSessions(businessID uuid.UUID, f repositories.POSSessionFilters) ([]models.POSSession, int64, error) {
+	return s.sessionRepo.List(businessID, f)
 }
 
 // ── Product lookup ───────────────────────────────────────────────────────────
 
 // LookupProduct finds a product by barcode (exact) then SKU (exact)
-func (s *POSService) LookupProduct(query string, tenantID uuid.UUID) (*models.Product, error) {
+func (s *POSService) LookupProduct(query string, businessID uuid.UUID) (*models.Product, error) {
 	if query == "" {
 		return nil, errors.New("query cannot be empty")
 	}
 
 	// Try barcode first
-	product, err := s.productRepo.FindByBarcode(query, tenantID)
+	product, err := s.productRepo.FindByBarcode(query, businessID)
 	if err == nil {
 		return product, nil
 	}
 
 	// Fall back to SKU
-	product, err = s.productRepo.FindBySKU(query, tenantID)
+	product, err = s.productRepo.FindBySKU(query, businessID)
 	if err == nil {
 		return product, nil
 	}
@@ -186,7 +186,7 @@ type POSCheckoutItem struct {
 
 // POSCheckoutRequest is the input for completing a POS sale
 type POSCheckoutRequest struct {
-	TenantID       uuid.UUID
+	BusinessID       uuid.UUID
 	CashierID      uuid.UUID
 	SessionID      uuid.UUID
 	CustomerName   string
@@ -205,7 +205,7 @@ type POSCheckoutResult struct {
 // Checkout atomically creates an order, deducts inventory, and records the cash payment
 func (s *POSService) Checkout(req *POSCheckoutRequest) (*POSCheckoutResult, error) {
 	// 1. Validate the session
-	session, err := s.sessionRepo.FindByID(req.SessionID, req.TenantID)
+	session, err := s.sessionRepo.FindByID(req.SessionID, req.BusinessID)
 	if err != nil {
 		return nil, errors.New("session not found")
 	}
@@ -255,7 +255,7 @@ func (s *POSService) Checkout(req *POSCheckoutRequest) (*POSCheckoutResult, erro
 			return nil, fmt.Errorf("invalid product ID: %s", item.ProductID)
 		}
 
-		product, err := s.productRepo.FindByID(productID, req.TenantID)
+		product, err := s.productRepo.FindByID(productID, req.BusinessID)
 		if err != nil {
 			return nil, fmt.Errorf("product not found: %s", item.ProductID)
 		}
@@ -298,7 +298,7 @@ func (s *POSService) Checkout(req *POSCheckoutRequest) (*POSCheckoutResult, erro
 	change := cashTendered.Sub(totalAmount)
 
 	// 7. Generate order number
-	orderNumber, err := s.orderRepo.GenerateOrderNumber(req.TenantID)
+	orderNumber, err := s.orderRepo.GenerateOrderNumber(req.BusinessID)
 	if err != nil {
 		return nil, errors.New("failed to generate order number")
 	}
@@ -310,7 +310,7 @@ func (s *POSService) Checkout(req *POSCheckoutRequest) (*POSCheckoutResult, erro
 
 	// 8. Create order
 	order := &models.Order{
-		TenantID:       req.TenantID,
+		BusinessID:       req.BusinessID,
 		CustomerID:     nil,
 		OrderType:      models.OrderTypePOS,
 		CustomerName:   customerName,
@@ -342,7 +342,7 @@ func (s *POSService) Checkout(req *POSCheckoutRequest) (*POSCheckoutResult, erro
 
 	// 10. Record cash payment
 	payment := &models.Payment{
-		TenantID:      req.TenantID,
+		BusinessID:      req.BusinessID,
 		OrderID:       order.ID,
 		PaymentDate:   time.Now(),
 		PaymentMethod: models.PaymentMethodCash,
@@ -356,7 +356,7 @@ func (s *POSService) Checkout(req *POSCheckoutRequest) (*POSCheckoutResult, erro
 	}
 
 	// 11. Reload order with relationships
-	createdOrder, err := s.orderRepo.FindByID(order.ID, req.TenantID)
+	createdOrder, err := s.orderRepo.FindByID(order.ID, req.BusinessID)
 	if err != nil {
 		createdOrder = order // fall back to the unsaved struct
 	}

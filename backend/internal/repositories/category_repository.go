@@ -20,16 +20,16 @@ func NewCategoryRepository(db *gorm.DB) *CategoryRepository {
 
 // Create creates a new category
 func (r *CategoryRepository) Create(category *models.Category) error {
-	return tenantTx(r.db, category.TenantID, func(tx *gorm.DB) error {
+	return businessTx(r.db, category.BusinessID, func(tx *gorm.DB) error {
 		return tx.Create(category).Error
 	})
 }
 
 // FindByID finds a category by ID within a specific tenant
-func (r *CategoryRepository) FindByID(id, tenantID uuid.UUID) (*models.Category, error) {
+func (r *CategoryRepository) FindByID(id, businessID uuid.UUID) (*models.Category, error) {
 	var category models.Category
-	err := tenantTx(r.db, tenantID, func(tx *gorm.DB) error {
-		return tx.Where("id = ? AND tenant_id = ?", id, tenantID).
+	err := businessTx(r.db, businessID, func(tx *gorm.DB) error {
+		return tx.Where("id = ? AND business_id = ?", id, businessID).
 			Preload("Parent").Preload("Children").First(&category).Error
 	})
 	if err != nil {
@@ -42,10 +42,10 @@ func (r *CategoryRepository) FindByID(id, tenantID uuid.UUID) (*models.Category,
 }
 
 // FindBySlug finds a category by slug within a specific tenant
-func (r *CategoryRepository) FindBySlug(slug string, tenantID uuid.UUID) (*models.Category, error) {
+func (r *CategoryRepository) FindBySlug(slug string, businessID uuid.UUID) (*models.Category, error) {
 	var category models.Category
-	err := tenantTx(r.db, tenantID, func(tx *gorm.DB) error {
-		return tx.Where("slug = ? AND tenant_id = ?", slug, tenantID).
+	err := businessTx(r.db, businessID, func(tx *gorm.DB) error {
+		return tx.Where("slug = ? AND business_id = ?", slug, businessID).
 			Preload("Parent").Preload("Children").First(&category).Error
 	})
 	if err != nil {
@@ -59,15 +59,15 @@ func (r *CategoryRepository) FindBySlug(slug string, tenantID uuid.UUID) (*model
 
 // Update updates a category's information
 func (r *CategoryRepository) Update(category *models.Category) error {
-	return tenantTx(r.db, category.TenantID, func(tx *gorm.DB) error {
+	return businessTx(r.db, category.BusinessID, func(tx *gorm.DB) error {
 		return tx.Save(category).Error
 	})
 }
 
 // Delete soft deletes a category
-func (r *CategoryRepository) Delete(id, tenantID uuid.UUID) error {
-	return tenantTx(r.db, tenantID, func(tx *gorm.DB) error {
-		result := tx.Where("id = ? AND tenant_id = ?", id, tenantID).Delete(&models.Category{})
+func (r *CategoryRepository) Delete(id, businessID uuid.UUID) error {
+	return businessTx(r.db, businessID, func(tx *gorm.DB) error {
+		result := tx.Where("id = ? AND business_id = ?", id, businessID).Delete(&models.Category{})
 		if result.Error != nil {
 			return result.Error
 		}
@@ -79,10 +79,10 @@ func (r *CategoryRepository) Delete(id, tenantID uuid.UUID) error {
 }
 
 // List returns all categories for a tenant
-func (r *CategoryRepository) List(tenantID uuid.UUID) ([]models.Category, error) {
+func (r *CategoryRepository) List(businessID uuid.UUID) ([]models.Category, error) {
 	var categories []models.Category
-	err := tenantTx(r.db, tenantID, func(tx *gorm.DB) error {
-		return tx.Where("tenant_id = ?", tenantID).
+	err := businessTx(r.db, businessID, func(tx *gorm.DB) error {
+		return tx.Where("business_id = ?", businessID).
 			Preload("Parent").Preload("Children").
 			Order("name ASC").
 			Find(&categories).Error
@@ -91,10 +91,10 @@ func (r *CategoryRepository) List(tenantID uuid.UUID) ([]models.Category, error)
 }
 
 // ListRootCategories returns all root categories (no parent) for a tenant
-func (r *CategoryRepository) ListRootCategories(tenantID uuid.UUID) ([]models.Category, error) {
+func (r *CategoryRepository) ListRootCategories(businessID uuid.UUID) ([]models.Category, error) {
 	var categories []models.Category
-	err := tenantTx(r.db, tenantID, func(tx *gorm.DB) error {
-		return tx.Where("tenant_id = ? AND parent_id IS NULL", tenantID).
+	err := businessTx(r.db, businessID, func(tx *gorm.DB) error {
+		return tx.Where("business_id = ? AND parent_id IS NULL", businessID).
 			Preload("Children").
 			Order("name ASC").
 			Find(&categories).Error
@@ -103,11 +103,11 @@ func (r *CategoryRepository) ListRootCategories(tenantID uuid.UUID) ([]models.Ca
 }
 
 // ExistsBySlug checks if a category with the given slug exists in the tenant
-func (r *CategoryRepository) ExistsBySlug(slug string, tenantID uuid.UUID) (bool, error) {
+func (r *CategoryRepository) ExistsBySlug(slug string, businessID uuid.UUID) (bool, error) {
 	var count int64
-	err := tenantTx(r.db, tenantID, func(tx *gorm.DB) error {
+	err := businessTx(r.db, businessID, func(tx *gorm.DB) error {
 		return tx.Model(&models.Category{}).
-			Where("slug = ? AND tenant_id = ?", slug, tenantID).
+			Where("slug = ? AND business_id = ?", slug, businessID).
 			Count(&count).Error
 	})
 	return count > 0, err

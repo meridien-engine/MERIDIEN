@@ -10,7 +10,7 @@ import (
 
 type Courier struct {
 	ID        uuid.UUID      `json:"id" gorm:"type:uuid;primaryKey"`
-	TenantID  uuid.UUID      `json:"tenant_id" gorm:"type:uuid;index"`
+	BusinessID uuid.UUID      `json:"business_id" gorm:"type:uuid;index"`
 	Name      string         `json:"name" gorm:"type:varchar(255);not null"`
 	CreatedAt time.Time      `json:"created_at"`
 	UpdatedAt time.Time      `json:"updated_at"`

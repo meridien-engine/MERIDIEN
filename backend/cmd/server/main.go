@@ -48,7 +48,7 @@ func main() {
 
 	// Initialize repositories
 	userRepo := repositories.NewUserRepository(database.DB)
-	tenantRepo := repositories.NewTenantRepository(database.DB)
+	businessRepo := repositories.NewBusinessRepository(database.DB)
 	customerRepo := repositories.NewCustomerRepository(database.DB)
 	productRepo := repositories.NewProductRepository(database.DB)
 	categoryRepo := repositories.NewCategoryRepository(database.DB)
@@ -56,6 +56,10 @@ func main() {
 	paymentRepo := repositories.NewPaymentRepository(database.DB)
 	courierRepo := repositories.NewCourierRepository(database.DB)
 	locationRepo := repositories.NewLocationRepository(database.DB)
+	posSessionRepo := repositories.NewPOSSessionRepository(database.DB)
+	storeRepo := repositories.NewStoreRepository(database.DB)
+	joinReqRepo := repositories.NewJoinRequestRepository(database.DB)
+	invitationRepo := repositories.NewInvitationRepository(database.DB)
 
 	// Initialize JWT manager
 	jwtManager := utils.NewJWTManager(cfg.JWT.Secret, cfg.JWT.ExpirationHours)
@@ -68,73 +72,65 @@ func main() {
 		authRateLimiter = middleware.NewRateLimiter(cache.Client, 10, time.Minute)
 	}
 
-	posSessionRepo := repositories.NewPOSSessionRepository(database.DB)
-
 	// Initialize services
-	authService := services.NewAuthService(userRepo, tenantRepo, jwtManager, tokenBlacklist)
+	authService := services.NewAuthService(userRepo, businessRepo, jwtManager, tokenBlacklist)
+	businessService := services.NewBusinessService(businessRepo)
+	membershipService := services.NewMembershipService(joinReqRepo, invitationRepo, businessRepo, userRepo)
 	customerService := services.NewCustomerService(customerRepo)
 	productService := services.NewProductService(productRepo, categoryRepo)
 	orderService := services.NewOrderService(orderRepo, customerRepo, productRepo, paymentRepo)
 	reportService := services.NewReportService(courierRepo)
 	locationService := services.NewLocationService(locationRepo)
 	posService := services.NewPOSService(posSessionRepo, orderRepo, productRepo, paymentRepo, orderService)
+	storeService := services.NewStoreService(storeRepo)
 
 	// Initialize handlers
 	authHandler := handlers.NewAuthHandler(authService)
+	businessHandler := handlers.NewBusinessHandler(businessService)
+	membershipHandler := handlers.NewMembershipHandler(membershipService)
 	customerHandler := handlers.NewCustomerHandler(customerService)
 	productHandler := handlers.NewProductHandler(productService)
 	orderHandler := handlers.NewOrderHandler(orderService)
 	reportHandler := handlers.NewReportHandler(reportService)
 	locationHandler := handlers.NewLocationHandler(locationService)
 	posHandler := handlers.NewPOSHandler(posService)
+	storeHandler := handlers.NewStoreHandler(storeService)
 
 	// Initialize middleware
 	authMiddleware := middleware.NewAuthMiddleware(jwtManager, tokenBlacklist)
 
 	// Setup router
-	r := router.Setup(cfg.App.Debug, authHandler, customerHandler, productHandler, orderHandler, reportHandler, locationHandler, posHandler, authMiddleware, authRateLimiter)
+	r := router.Setup(
+		cfg.App.Debug,
+		authHandler,
+		customerHandler,
+		productHandler,
+		orderHandler,
+		reportHandler,
+		locationHandler,
+		posHandler,
+		businessHandler,
+		storeHandler,
+		membershipHandler,
+		authMiddleware,
+		authRateLimiter,
+	)
 
-	// Start server in goroutine
+	// Start server
 	go func() {
 		addr := fmt.Sprintf(":%s", cfg.App.Port)
 		log.Printf("🌐 Server listening on http://localhost%s", addr)
 		log.Printf("📊 Health check: http://localhost%s/health", addr)
-		log.Printf("🔌 API endpoint: http://localhost%s/api/v1/ping", addr)
-		log.Printf("🔐 Auth endpoints:")
-		log.Printf("   POST http://localhost%s/api/v1/auth/register", addr)
-		log.Printf("   POST http://localhost%s/api/v1/auth/login", addr)
-		log.Printf("   GET  http://localhost%s/api/v1/auth/me (protected)", addr)
-		log.Printf("👥 Customer endpoints:")
-		log.Printf("   GET    http://localhost%s/api/v1/customers (protected)", addr)
-		log.Printf("   POST   http://localhost%s/api/v1/customers (protected)", addr)
-		log.Printf("   GET    http://localhost%s/api/v1/customers/:id (protected)", addr)
-		log.Printf("   PUT    http://localhost%s/api/v1/customers/:id (protected)", addr)
-		log.Printf("   DELETE http://localhost%s/api/v1/customers/:id (protected)", addr)
-		log.Printf("📦 Product endpoints:")
-		log.Printf("   GET    http://localhost%s/api/v1/products (protected)", addr)
-		log.Printf("   POST   http://localhost%s/api/v1/products (protected)", addr)
-		log.Printf("   GET    http://localhost%s/api/v1/products/:id (protected)", addr)
-		log.Printf("   PUT    http://localhost%s/api/v1/products/:id (protected)", addr)
-		log.Printf("   DELETE http://localhost%s/api/v1/products/:id (protected)", addr)
-		log.Printf("🛒 Order endpoints:")
-		log.Printf("   GET    http://localhost%s/api/v1/orders (protected)", addr)
-		log.Printf("   POST   http://localhost%s/api/v1/orders (protected)", addr)
-		log.Printf("   GET    http://localhost%s/api/v1/orders/:id (protected)", addr)
-		log.Printf("   PUT    http://localhost%s/api/v1/orders/:id (protected)", addr)
-		log.Printf("   DELETE http://localhost%s/api/v1/orders/:id (protected)", addr)
-		log.Printf("   POST   http://localhost%s/api/v1/orders/:id/confirm (protected)", addr)
-		log.Printf("   POST   http://localhost%s/api/v1/orders/:id/ship (protected)", addr)
-		log.Printf("   POST   http://localhost%s/api/v1/orders/:id/deliver (protected)", addr)
-		log.Printf("   POST   http://localhost%s/api/v1/orders/:id/cancel (protected)", addr)
-		log.Printf("   POST   http://localhost%s/api/v1/orders/:id/payments (protected)", addr)
-		log.Printf("   GET    http://localhost%s/api/v1/orders/:id/payments (protected)", addr)
+		log.Printf("🔐 Auth: POST /api/v1/auth/register | POST /api/v1/auth/login")
+		log.Printf("🏢 Businesses: GET /api/v1/auth/businesses | POST /api/v1/auth/use-business/:id")
+		log.Printf("📦 Business categories: GET /api/v1/business-categories")
 
 		if err := r.Run(addr); err != nil {
 			log.Fatalf("❌ Failed to start server: %v", err)
 		}
 	}()
 
-	// Wait for interrupt signal to gracefully shutdown the server
+	// Wait for interrupt signal to gracefully shutdown
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit

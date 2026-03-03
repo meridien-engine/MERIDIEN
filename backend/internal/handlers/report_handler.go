@@ -23,20 +23,20 @@ func NewReportHandler(reportService *services.ReportService) *ReportHandler {
 // Shows delivered vs collected amounts per courier
 func (h *ReportHandler) GetCourierReconciliation(c *gin.Context) {
 	// Get tenant ID from context (set by middleware)
-	tenantIDVal, exists := c.Get("tenant_id")
+	businessIDVal, exists := c.Get("business_id")
 	if !exists {
-		utils.ErrorResponse(c, http.StatusUnauthorized, "tenant_id not found in context")
+		utils.ErrorResponse(c, http.StatusUnauthorized, "business_id not found in context")
 		return
 	}
 
-	tenantID, ok := tenantIDVal.(uuid.UUID)
+	businessID, ok := businessIDVal.(uuid.UUID)
 	if !ok {
-		utils.ErrorResponse(c, http.StatusUnauthorized, "invalid tenant_id format")
+		utils.ErrorResponse(c, http.StatusUnauthorized, "invalid business_id format")
 		return
 	}
 
 	// Get reconciliation report
-	reconciliation, err := h.reportService.GetCourierReconciliation(tenantID)
+	reconciliation, err := h.reportService.GetCourierReconciliation(businessID)
 	if err != nil {
 		utils.ErrorResponse(c, http.StatusInternalServerError, "failed to get courier reconciliation")
 		return

@@ -17,7 +17,7 @@ const (
 // Order represents a sales order in the system
 type Order struct {
 	BaseModel
-	TenantID     uuid.UUID  `gorm:"type:uuid;not null;index" json:"tenant_id"`
+	BusinessID   uuid.UUID  `gorm:"type:uuid;not null;index" json:"business_id"`
 	CustomerID   *uuid.UUID `gorm:"type:uuid;index" json:"customer_id,omitempty"`
 	OrderType    string     `gorm:"type:varchar(20);not null;default:'online'" json:"order_type"`
 	CustomerName string     `gorm:"type:varchar(255)" json:"customer_name,omitempty"`
@@ -59,7 +59,7 @@ type Order struct {
 	CustomFields  JSONB  `gorm:"type:jsonb;default:'{}'" json:"custom_fields,omitempty"`
 
 	// Relationships
-	Tenant   *Tenant     `gorm:"foreignKey:TenantID" json:"tenant,omitempty"`
+	Business *Business   `gorm:"foreignKey:BusinessID" json:"business,omitempty"`
 	Customer *Customer   `gorm:"foreignKey:CustomerID;references:ID" json:"customer,omitempty"`
 	Items    []OrderItem `gorm:"foreignKey:OrderID" json:"items,omitempty"`
 	Payments []Payment   `gorm:"foreignKey:OrderID" json:"payments,omitempty"`
@@ -97,7 +97,7 @@ type OrderItem struct {
 // Payment represents a payment made against an order
 type Payment struct {
 	BaseModel
-	TenantID uuid.UUID `gorm:"type:uuid;not null;index" json:"tenant_id"`
+	BusinessID uuid.UUID `gorm:"type:uuid;not null;index" json:"business_id"`
 	OrderID  uuid.UUID `gorm:"type:uuid;not null;index" json:"order_id"`
 
 	// Payment Information
@@ -113,8 +113,8 @@ type Payment struct {
 	Notes string `gorm:"type:text" json:"notes,omitempty"`
 
 	// Relationships
-	Tenant *Tenant `gorm:"foreignKey:TenantID" json:"tenant,omitempty"`
-	Order  *Order  `gorm:"foreignKey:OrderID" json:"order,omitempty"`
+	Business *Business `gorm:"foreignKey:BusinessID" json:"business,omitempty"`
+	Order    *Order    `gorm:"foreignKey:OrderID" json:"order,omitempty"`
 }
 
 // TableName specifies the table name for Order

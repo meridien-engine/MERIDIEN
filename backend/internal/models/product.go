@@ -9,7 +9,7 @@ import (
 // Product represents a product in the inventory
 type Product struct {
 	BaseModel
-	TenantID   uuid.UUID  `gorm:"type:uuid;not null;index" json:"tenant_id"`
+	BusinessID uuid.UUID  `gorm:"type:uuid;not null;index" json:"business_id"`
 	CategoryID *uuid.UUID `gorm:"type:uuid" json:"category_id,omitempty"`
 
 	// Basic Information
@@ -42,7 +42,7 @@ type Product struct {
 	CustomFields JSONB  `gorm:"type:jsonb;default:'{}'" json:"custom_fields,omitempty"`
 
 	// Relationships
-	Tenant   *Tenant   `gorm:"foreignKey:TenantID" json:"tenant,omitempty"`
+	Business *Business `gorm:"foreignKey:BusinessID" json:"business,omitempty"`
 	Category *Category `gorm:"foreignKey:CategoryID" json:"category,omitempty"`
 }
 

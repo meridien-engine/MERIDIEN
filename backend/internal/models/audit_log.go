@@ -9,7 +9,7 @@ import (
 // AuditLog records immutable actions for orders and finance
 type AuditLog struct {
 	ID        uuid.UUID  `gorm:"type:uuid;primary_key;default:uuid_generate_v4()" json:"id"`
-	TenantID  uuid.UUID  `gorm:"type:uuid;not null;index" json:"tenant_id"`
+	BusinessID uuid.UUID `gorm:"type:uuid;not null;index" json:"business_id"`
 	UserID    *uuid.UUID `gorm:"type:uuid" json:"user_id,omitempty"`
 	OrderID   *uuid.UUID `gorm:"type:uuid;index" json:"order_id,omitempty"`
 	Action    string     `gorm:"type:varchar(50);not null" json:"action"`

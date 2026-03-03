@@ -21,16 +21,16 @@ func NewCustomerRepository(db *gorm.DB) *CustomerRepository {
 
 // Create creates a new customer
 func (r *CustomerRepository) Create(customer *models.Customer) error {
-	return tenantTx(r.db, customer.TenantID, func(tx *gorm.DB) error {
+	return businessTx(r.db, customer.BusinessID, func(tx *gorm.DB) error {
 		return tx.Create(customer).Error
 	})
 }
 
-// FindByID finds a customer by ID within a specific tenant
-func (r *CustomerRepository) FindByID(id, tenantID uuid.UUID) (*models.Customer, error) {
+// FindByID finds a customer by ID within a specific business
+func (r *CustomerRepository) FindByID(id, businessID uuid.UUID) (*models.Customer, error) {
 	var customer models.Customer
-	err := tenantTx(r.db, tenantID, func(tx *gorm.DB) error {
-		return tx.Where("id = ? AND tenant_id = ?", id, tenantID).First(&customer).Error
+	err := businessTx(r.db, businessID, func(tx *gorm.DB) error {
+		return tx.Where("id = ? AND business_id = ?", id, businessID).First(&customer).Error
 	})
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -41,11 +41,11 @@ func (r *CustomerRepository) FindByID(id, tenantID uuid.UUID) (*models.Customer,
 	return &customer, nil
 }
 
-// FindByEmail finds a customer by email within a specific tenant
-func (r *CustomerRepository) FindByEmail(email string, tenantID uuid.UUID) (*models.Customer, error) {
+// FindByEmail finds a customer by email within a specific business
+func (r *CustomerRepository) FindByEmail(email string, businessID uuid.UUID) (*models.Customer, error) {
 	var customer models.Customer
-	err := tenantTx(r.db, tenantID, func(tx *gorm.DB) error {
-		return tx.Where("email = ? AND tenant_id = ?", email, tenantID).First(&customer).Error
+	err := businessTx(r.db, businessID, func(tx *gorm.DB) error {
+		return tx.Where("email = ? AND business_id = ?", email, businessID).First(&customer).Error
 	})
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -58,15 +58,15 @@ func (r *CustomerRepository) FindByEmail(email string, tenantID uuid.UUID) (*mod
 
 // Update updates a customer's information
 func (r *CustomerRepository) Update(customer *models.Customer) error {
-	return tenantTx(r.db, customer.TenantID, func(tx *gorm.DB) error {
+	return businessTx(r.db, customer.BusinessID, func(tx *gorm.DB) error {
 		return tx.Save(customer).Error
 	})
 }
 
 // Delete soft deletes a customer
-func (r *CustomerRepository) Delete(id, tenantID uuid.UUID) error {
-	return tenantTx(r.db, tenantID, func(tx *gorm.DB) error {
-		result := tx.Where("id = ? AND tenant_id = ?", id, tenantID).Delete(&models.Customer{})
+func (r *CustomerRepository) Delete(id, businessID uuid.UUID) error {
+	return businessTx(r.db, businessID, func(tx *gorm.DB) error {
+		result := tx.Where("id = ? AND business_id = ?", id, businessID).Delete(&models.Customer{})
 		if result.Error != nil {
 			return result.Error
 		}
@@ -77,13 +77,13 @@ func (r *CustomerRepository) Delete(id, tenantID uuid.UUID) error {
 	})
 }
 
-// List returns customers for a tenant with pagination and filters
-func (r *CustomerRepository) List(tenantID uuid.UUID, filters ListFilters) ([]models.Customer, int64, error) {
+// List returns customers for a business with pagination and filters
+func (r *CustomerRepository) List(businessID uuid.UUID, filters ListFilters) ([]models.Customer, int64, error) {
 	var customers []models.Customer
 	var total int64
 
-	err := tenantTx(r.db, tenantID, func(tx *gorm.DB) error {
-		query := tx.Model(&models.Customer{}).Where("tenant_id = ?", tenantID)
+	err := businessTx(r.db, businessID, func(tx *gorm.DB) error {
+		query := tx.Model(&models.Customer{}).Where("business_id = ?", businessID)
 
 		if filters.Search != "" {
 			searchPattern := "%" + filters.Search + "%"
@@ -130,21 +130,12 @@ func (r *CustomerRepository) List(tenantID uuid.UUID, filters ListFilters) ([]mo
 	return customers, total, nil
 }
 
-// CountByTenant returns the number of customers for a tenant
-func (r *CustomerRepository) CountByTenant(tenantID uuid.UUID) (int64, error) {
+// ExistsByEmail checks if a customer with the given email exists in the business
+func (r *CustomerRepository) ExistsByEmail(email string, businessID uuid.UUID) (bool, error) {
 	var count int64
-	err := tenantTx(r.db, tenantID, func(tx *gorm.DB) error {
-		return tx.Model(&models.Customer{}).Where("tenant_id = ?", tenantID).Count(&count).Error
-	})
-	return count, err
-}
-
-// ExistsByEmail checks if a customer with the given email exists in the tenant
-func (r *CustomerRepository) ExistsByEmail(email string, tenantID uuid.UUID) (bool, error) {
-	var count int64
-	err := tenantTx(r.db, tenantID, func(tx *gorm.DB) error {
+	err := businessTx(r.db, businessID, func(tx *gorm.DB) error {
 		return tx.Model(&models.Customer{}).
-			Where("email = ? AND tenant_id = ?", email, tenantID).
+			Where("email = ? AND business_id = ?", email, businessID).
 			Count(&count).Error
 	})
 	return count > 0, err

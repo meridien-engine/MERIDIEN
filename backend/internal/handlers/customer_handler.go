@@ -70,7 +70,7 @@ func (h *CustomerHandler) Create(c *gin.Context) {
 	}
 
 	// Get tenant ID from context
-	tenantID, err := middleware.GetTenantID(c)
+	businessID, err := middleware.GetBusinessID(c)
 	if err != nil {
 		utils.UnauthorizedResponse(c, "Tenant not found")
 		return
@@ -78,7 +78,7 @@ func (h *CustomerHandler) Create(c *gin.Context) {
 
 	// Create service request
 	serviceReq := &services.CreateCustomerRequest{
-		TenantID:     tenantID,
+		BusinessID:     businessID,
 		FirstName:    req.FirstName,
 		LastName:     req.LastName,
 		Email:        req.Email,
@@ -116,14 +116,14 @@ func (h *CustomerHandler) GetByID(c *gin.Context) {
 	}
 
 	// Get tenant ID from context
-	tenantID, err := middleware.GetTenantID(c)
+	businessID, err := middleware.GetBusinessID(c)
 	if err != nil {
 		utils.UnauthorizedResponse(c, "Tenant not found")
 		return
 	}
 
 	// Get customer
-	customer, err := h.customerService.GetByID(customerID, tenantID)
+	customer, err := h.customerService.GetByID(customerID, businessID)
 	if err != nil {
 		utils.NotFoundResponse(c, err.Error())
 		return
@@ -149,7 +149,7 @@ func (h *CustomerHandler) Update(c *gin.Context) {
 	}
 
 	// Get tenant ID from context
-	tenantID, err := middleware.GetTenantID(c)
+	businessID, err := middleware.GetBusinessID(c)
 	if err != nil {
 		utils.UnauthorizedResponse(c, "Tenant not found")
 		return
@@ -175,7 +175,7 @@ func (h *CustomerHandler) Update(c *gin.Context) {
 	}
 
 	// Update customer
-	customer, err := h.customerService.Update(customerID, tenantID, serviceReq)
+	customer, err := h.customerService.Update(customerID, businessID, serviceReq)
 	if err != nil {
 		utils.ErrorResponse(c, http.StatusBadRequest, err.Error())
 		return
@@ -195,14 +195,14 @@ func (h *CustomerHandler) Delete(c *gin.Context) {
 	}
 
 	// Get tenant ID from context
-	tenantID, err := middleware.GetTenantID(c)
+	businessID, err := middleware.GetBusinessID(c)
 	if err != nil {
 		utils.UnauthorizedResponse(c, "Tenant not found")
 		return
 	}
 
 	// Delete customer
-	if err := h.customerService.Delete(customerID, tenantID); err != nil {
+	if err := h.customerService.Delete(customerID, businessID); err != nil {
 		utils.ErrorResponse(c, http.StatusBadRequest, err.Error())
 		return
 	}
@@ -214,7 +214,7 @@ func (h *CustomerHandler) Delete(c *gin.Context) {
 // GET /api/v1/customers
 func (h *CustomerHandler) List(c *gin.Context) {
 	// Get tenant ID from context
-	tenantID, err := middleware.GetTenantID(c)
+	businessID, err := middleware.GetBusinessID(c)
 	if err != nil {
 		utils.UnauthorizedResponse(c, "Tenant not found")
 		return
@@ -231,7 +231,7 @@ func (h *CustomerHandler) List(c *gin.Context) {
 
 	// Create service request
 	req := &services.ListCustomersRequest{
-		TenantID:     tenantID,
+		BusinessID:     businessID,
 		Search:       search,
 		Status:       status,
 		CustomerType: customerType,

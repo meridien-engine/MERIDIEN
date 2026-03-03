@@ -8,7 +8,7 @@ import (
 // Category represents a product category
 type Category struct {
 	BaseModel
-	TenantID uuid.UUID `gorm:"type:uuid;not null;index" json:"tenant_id"`
+	BusinessID uuid.UUID `gorm:"type:uuid;not null;index" json:"business_id"`
 
 	// Category Information
 	Name        string     `gorm:"type:varchar(255);not null" json:"name"`
@@ -17,10 +17,10 @@ type Category struct {
 	ParentID    *uuid.UUID `gorm:"type:uuid" json:"parent_id,omitempty"`
 
 	// Relationships
-	Tenant   *Tenant     `gorm:"foreignKey:TenantID" json:"tenant,omitempty"`
-	Parent   *Category   `gorm:"foreignKey:ParentID" json:"parent,omitempty"`
-	Children []Category  `gorm:"foreignKey:ParentID" json:"children,omitempty"`
-	Products []Product   `gorm:"foreignKey:CategoryID" json:"products,omitempty"`
+	Business *Business  `gorm:"foreignKey:BusinessID" json:"business,omitempty"`
+	Parent   *Category  `gorm:"foreignKey:ParentID" json:"parent,omitempty"`
+	Children []Category `gorm:"foreignKey:ParentID" json:"children,omitempty"`
+	Products []Product  `gorm:"foreignKey:CategoryID" json:"products,omitempty"`
 }
 
 // TableName specifies the table name for Category

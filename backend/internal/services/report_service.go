@@ -18,6 +18,6 @@ func NewReportService(courierRepo *repositories.CourierRepository) *ReportServic
 
 // GetCourierReconciliation returns cash reconciliation data for all couriers
 // Shows how much money is stuck with each courier waiting to be collected
-func (s *ReportService) GetCourierReconciliation(tenantID uuid.UUID) ([]models.CourierReconciliation, error) {
-	return s.courierRepo.GetReconciliationReport(tenantID)
+func (s *ReportService) GetCourierReconciliation(businessID uuid.UUID) ([]models.CourierReconciliation, error) {
+	return s.courierRepo.GetReconciliationReport(businessID)
 }

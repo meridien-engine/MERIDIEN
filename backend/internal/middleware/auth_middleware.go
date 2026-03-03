@@ -28,50 +28,83 @@ func NewAuthMiddleware(jwtManager *utils.JWTManager, blacklist blacklistChecker)
 	}
 }
 
-// RequireAuth middleware validates JWT token
+// parseAndValidate extracts and validates the JWT from the Authorization header.
+// Returns the claims or aborts the request.
+func (m *AuthMiddleware) parseAndValidate(c *gin.Context) (*utils.JWTClaims, bool) {
+	authHeader := c.GetHeader("Authorization")
+	if authHeader == "" {
+		utils.UnauthorizedResponse(c, "Authorization header is required")
+		c.Abort()
+		return nil, false
+	}
+
+	parts := strings.SplitN(authHeader, " ", 2)
+	if len(parts) != 2 || parts[0] != "Bearer" {
+		utils.UnauthorizedResponse(c, "Invalid authorization header format")
+		c.Abort()
+		return nil, false
+	}
+
+	claims, err := m.jwtManager.ValidateToken(parts[1])
+	if err != nil {
+		utils.UnauthorizedResponse(c, "Invalid or expired token")
+		c.Abort()
+		return nil, false
+	}
+
+	// Check if the token has been revoked (fail open on Redis errors)
+	if m.blacklist != nil && claims.ID != "" {
+		revoked, err := m.blacklist.IsBlacklisted(claims.ID)
+		if err == nil && revoked {
+			utils.UnauthorizedResponse(c, "Token has been revoked")
+			c.Abort()
+			return nil, false
+		}
+	}
+
+	return claims, true
+}
+
+// RequireAuth middleware validates a SCOPED JWT token.
+// Generic tokens are rejected — the client must call use-business first.
 func (m *AuthMiddleware) RequireAuth() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// Get token from Authorization header
-		authHeader := c.GetHeader("Authorization")
-		if authHeader == "" {
-			utils.UnauthorizedResponse(c, "Authorization header is required")
-			c.Abort()
+		claims, ok := m.parseAndValidate(c)
+		if !ok {
 			return
 		}
 
-		// Check if it's a Bearer token
-		parts := strings.SplitN(authHeader, " ", 2)
-		if len(parts) != 2 || parts[0] != "Bearer" {
-			utils.UnauthorizedResponse(c, "Invalid authorization header format")
+		if claims.Type != utils.TokenTypeScoped {
+			utils.UnauthorizedResponse(c, "A scoped token is required; call /auth/use-business first")
 			c.Abort()
 			return
-		}
-
-		tokenString := parts[1]
-
-		// Validate token
-		claims, err := m.jwtManager.ValidateToken(tokenString)
-		if err != nil {
-			utils.UnauthorizedResponse(c, "Invalid or expired token")
-			c.Abort()
-			return
-		}
-
-		// Check if the token has been revoked (fail open on Redis errors)
-		if m.blacklist != nil && claims.ID != "" {
-			revoked, err := m.blacklist.IsBlacklisted(claims.ID)
-			if err == nil && revoked {
-				utils.UnauthorizedResponse(c, "Token has been revoked")
-				c.Abort()
-				return
-			}
 		}
 
 		// Set user info in context
 		c.Set("user_id", claims.UserID)
-		c.Set("tenant_id", claims.TenantID)
+		c.Set("business_id", claims.BusinessID)
 		c.Set("email", claims.Email)
 		c.Set("role", claims.Role)
+		c.Set("token_type", claims.Type)
+
+		c.Next()
+	}
+}
+
+// RequireGenericAuth middleware accepts both generic and scoped tokens.
+// Used for endpoints that don't need a business context (e.g., list businesses).
+func (m *AuthMiddleware) RequireGenericAuth() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		claims, ok := m.parseAndValidate(c)
+		if !ok {
+			return
+		}
+
+		c.Set("user_id", claims.UserID)
+		c.Set("business_id", claims.BusinessID)
+		c.Set("email", claims.Email)
+		c.Set("role", claims.Role)
+		c.Set("token_type", claims.Type)
 
 		c.Next()
 	}
@@ -100,7 +133,6 @@ func (m *AuthMiddleware) RequireRole(roles ...string) gin.HandlerFunc {
 			return
 		}
 
-		// Check if user has one of the required roles
 		hasRole := false
 		for _, requiredRole := range roles {
 			if role == requiredRole {
@@ -125,28 +157,40 @@ func GetUserID(c *gin.Context) (uuid.UUID, error) {
 	if !exists {
 		return uuid.Nil, utils.NewError("user ID not found in context")
 	}
-
 	id, ok := userID.(uuid.UUID)
 	if !ok {
 		return uuid.Nil, utils.NewError("invalid user ID type")
 	}
-
 	return id, nil
 }
 
-// GetTenantID retrieves the tenant ID from context
-func GetTenantID(c *gin.Context) (uuid.UUID, error) {
-	tenantID, exists := c.Get("tenant_id")
+// GetBusinessID retrieves the business ID from context (set by scoped token)
+func GetBusinessID(c *gin.Context) (uuid.UUID, error) {
+	businessID, exists := c.Get("business_id")
 	if !exists {
-		return uuid.Nil, utils.NewError("tenant ID not found in context")
+		return uuid.Nil, utils.NewError("business ID not found in context")
 	}
 
-	id, ok := tenantID.(uuid.UUID)
-	if !ok {
-		return uuid.Nil, utils.NewError("invalid tenant ID type")
+	// business_id is stored as *uuid.UUID from the JWT claims
+	if ptr, ok := businessID.(*uuid.UUID); ok {
+		if ptr == nil {
+			return uuid.Nil, utils.NewError("business ID is nil")
+		}
+		return *ptr, nil
 	}
 
-	return id, nil
+	// Fallback: direct uuid.UUID
+	if id, ok := businessID.(uuid.UUID); ok {
+		return id, nil
+	}
+
+	return uuid.Nil, utils.NewError("invalid business ID type")
+}
+
+// GetTenantID is an alias for GetBusinessID kept for backward compatibility.
+// Deprecated: use GetBusinessID.
+func GetTenantID(c *gin.Context) (uuid.UUID, error) {
+	return GetBusinessID(c)
 }
 
 // GetEmail retrieves the email from context
@@ -155,12 +199,10 @@ func GetEmail(c *gin.Context) (string, error) {
 	if !exists {
 		return "", utils.NewError("email not found in context")
 	}
-
 	e, ok := email.(string)
 	if !ok {
 		return "", utils.NewError("invalid email type")
 	}
-
 	return e, nil
 }
 
@@ -170,11 +212,9 @@ func GetRole(c *gin.Context) (string, error) {
 	if !exists {
 		return "", utils.NewError("role not found in context")
 	}
-
 	r, ok := role.(string)
 	if !ok {
 		return "", utils.NewError("invalid role type")
 	}
-
 	return r, nil
 }

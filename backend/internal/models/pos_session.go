@@ -16,7 +16,7 @@ const (
 // POSSession represents a cashier's cash drawer session
 type POSSession struct {
 	BaseModel
-	TenantID     uuid.UUID        `gorm:"type:uuid;not null;index" json:"tenant_id"`
+	BusinessID   uuid.UUID        `gorm:"type:uuid;not null;index" json:"business_id"`
 	CashierID    uuid.UUID        `gorm:"type:uuid;not null;index" json:"cashier_id"`
 	Status       string           `gorm:"type:varchar(20);not null;default:'open'" json:"status"`
 	OpeningFloat decimal.Decimal  `gorm:"type:decimal(15,2);not null;default:0.00" json:"opening_float"`

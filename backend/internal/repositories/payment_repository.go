@@ -19,16 +19,16 @@ func NewPaymentRepository(db *gorm.DB) *PaymentRepository {
 
 // Create creates a new payment
 func (r *PaymentRepository) Create(payment *models.Payment) error {
-	return tenantTx(r.db, payment.TenantID, func(tx *gorm.DB) error {
+	return businessTx(r.db, payment.BusinessID, func(tx *gorm.DB) error {
 		return tx.Create(payment).Error
 	})
 }
 
 // FindByID finds a payment by ID
-func (r *PaymentRepository) FindByID(id uuid.UUID, tenantID uuid.UUID) (*models.Payment, error) {
+func (r *PaymentRepository) FindByID(id uuid.UUID, businessID uuid.UUID) (*models.Payment, error) {
 	var payment models.Payment
-	err := tenantTx(r.db, tenantID, func(tx *gorm.DB) error {
-		return tx.Where("id = ? AND tenant_id = ?", id, tenantID).
+	err := businessTx(r.db, businessID, func(tx *gorm.DB) error {
+		return tx.Where("id = ? AND business_id = ?", id, businessID).
 			Preload("Order").First(&payment).Error
 	})
 	if err != nil {
@@ -38,10 +38,10 @@ func (r *PaymentRepository) FindByID(id uuid.UUID, tenantID uuid.UUID) (*models.
 }
 
 // ListByOrder returns all payments for an order
-func (r *PaymentRepository) ListByOrder(orderID uuid.UUID, tenantID uuid.UUID) ([]models.Payment, error) {
+func (r *PaymentRepository) ListByOrder(orderID uuid.UUID, businessID uuid.UUID) ([]models.Payment, error) {
 	var payments []models.Payment
-	err := tenantTx(r.db, tenantID, func(tx *gorm.DB) error {
-		return tx.Where("order_id = ? AND tenant_id = ?", orderID, tenantID).
+	err := businessTx(r.db, businessID, func(tx *gorm.DB) error {
+		return tx.Where("order_id = ? AND business_id = ?", orderID, businessID).
 			Order("payment_date DESC").
 			Find(&payments).Error
 	})
@@ -49,12 +49,12 @@ func (r *PaymentRepository) ListByOrder(orderID uuid.UUID, tenantID uuid.UUID) (
 }
 
 // List returns a paginated list of payments
-func (r *PaymentRepository) List(tenantID uuid.UUID, limit, offset int) ([]models.Payment, int64, error) {
+func (r *PaymentRepository) List(businessID uuid.UUID, limit, offset int) ([]models.Payment, int64, error) {
 	var payments []models.Payment
 	var total int64
 
-	err := tenantTx(r.db, tenantID, func(tx *gorm.DB) error {
-		query := tx.Model(&models.Payment{}).Where("tenant_id = ?", tenantID)
+	err := businessTx(r.db, businessID, func(tx *gorm.DB) error {
+		query := tx.Model(&models.Payment{}).Where("business_id = ?", businessID)
 		if err := query.Count(&total).Error; err != nil {
 			return err
 		}
@@ -71,28 +71,28 @@ func (r *PaymentRepository) List(tenantID uuid.UUID, limit, offset int) ([]model
 
 // Update updates a payment
 func (r *PaymentRepository) Update(payment *models.Payment) error {
-	return tenantTx(r.db, payment.TenantID, func(tx *gorm.DB) error {
+	return businessTx(r.db, payment.BusinessID, func(tx *gorm.DB) error {
 		return tx.Save(payment).Error
 	})
 }
 
 // Delete soft deletes a payment
-func (r *PaymentRepository) Delete(id uuid.UUID, tenantID uuid.UUID) error {
-	return tenantTx(r.db, tenantID, func(tx *gorm.DB) error {
-		return tx.Where("id = ? AND tenant_id = ?", id, tenantID).Delete(&models.Payment{}).Error
+func (r *PaymentRepository) Delete(id uuid.UUID, businessID uuid.UUID) error {
+	return businessTx(r.db, businessID, func(tx *gorm.DB) error {
+		return tx.Where("id = ? AND business_id = ?", id, businessID).Delete(&models.Payment{}).Error
 	})
 }
 
 // GetTotalByOrder returns the total amount paid for an order
-func (r *PaymentRepository) GetTotalByOrder(orderID uuid.UUID, tenantID uuid.UUID) (decimal.Decimal, error) {
+func (r *PaymentRepository) GetTotalByOrder(orderID uuid.UUID, businessID uuid.UUID) (decimal.Decimal, error) {
 	var total struct {
 		Sum string
 	}
 
-	err := tenantTx(r.db, tenantID, func(tx *gorm.DB) error {
+	err := businessTx(r.db, businessID, func(tx *gorm.DB) error {
 		return tx.Model(&models.Payment{}).
 			Select("COALESCE(SUM(amount), 0) as sum").
-			Where("order_id = ? AND tenant_id = ? AND status = ?", orderID, tenantID, "completed").
+			Where("order_id = ? AND business_id = ? AND status = ?", orderID, businessID, "completed").
 			Scan(&total).Error
 	})
 	if err != nil {
@@ -107,11 +107,11 @@ func (r *PaymentRepository) GetTotalByOrder(orderID uuid.UUID, tenantID uuid.UUI
 }
 
 // CountByOrder returns the number of payments for an order
-func (r *PaymentRepository) CountByOrder(orderID uuid.UUID, tenantID uuid.UUID) (int64, error) {
+func (r *PaymentRepository) CountByOrder(orderID uuid.UUID, businessID uuid.UUID) (int64, error) {
 	var count int64
-	err := tenantTx(r.db, tenantID, func(tx *gorm.DB) error {
+	err := businessTx(r.db, businessID, func(tx *gorm.DB) error {
 		return tx.Model(&models.Payment{}).
-			Where("order_id = ? AND tenant_id = ?", orderID, tenantID).
+			Where("order_id = ? AND business_id = ?", orderID, businessID).
 			Count(&count).Error
 	})
 	return count, err
