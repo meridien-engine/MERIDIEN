@@ -3,8 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/localization/localization_extension.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../data/models/product_model.dart';
 import '../providers/product_provider.dart';
-import '../widgets/product_card.dart';
 
 class ProductListScreen extends ConsumerStatefulWidget {
   const ProductListScreen({super.key});
@@ -15,14 +15,13 @@ class ProductListScreen extends ConsumerStatefulWidget {
 
 class _ProductListScreenState extends ConsumerState<ProductListScreen> {
   final _searchController = TextEditingController();
-  String? _selectedCategory;
   bool? _activeOnly;
   bool? _inStockOnly;
 
   @override
   void initState() {
     super.initState();
-    Future.microtask(() => _loadProducts());
+    Future.microtask(_loadProducts);
   }
 
   @override
@@ -33,8 +32,9 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
 
   void _loadProducts() {
     ref.read(productListProvider.notifier).loadProducts(
-          search: _searchController.text.trim().isEmpty ? null : _searchController.text.trim(),
-          category: _selectedCategory,
+          search: _searchController.text.trim().isEmpty
+              ? null
+              : _searchController.text.trim(),
           active: _activeOnly,
           inStock: _inStockOnly,
         );
@@ -62,9 +62,8 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
       ),
       body: Column(
         children: [
-          // Search Bar
           Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
             child: TextField(
               controller: _searchController,
               decoration: InputDecoration(
@@ -82,66 +81,51 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
+                isDense: true,
               ),
               onChanged: _handleSearch,
             ),
           ),
-
-          // Product List
           Expanded(
             child: state.when(
-              initial: () => const Center(
-                child: Text('Search for products'),
+              initial: () => Center(
+                child: Text(
+                  context.loc.searchProducts,
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodyMedium
+                      ?.copyWith(color: AppColors.textSecondary),
+                ),
               ),
-              loading: () => const Center(
-                child: CircularProgressIndicator(),
-              ),
+              loading: () => const Center(child: CircularProgressIndicator()),
               loaded: (products, total, page, hasMore) {
                 if (products.isEmpty) {
                   return Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(
-                          Icons.inventory_2_outlined,
-                          size: 64,
-                          color: AppColors.textSecondary,
-                        ),
+                        Icon(Icons.inventory_2_outlined,
+                            size: 64, color: AppColors.textSecondary),
                         const SizedBox(height: 16),
-                        Text(
-                          'No products found',
-                          style: Theme.of(context).textTheme.titleMedium,
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Start by creating your first product',
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: AppColors.textSecondary,
-                              ),
-                        ),
+                        Text(context.loc.noDataFound,
+                            style: Theme.of(context).textTheme.titleMedium),
                       ],
                     ),
                   );
                 }
 
                 return RefreshIndicator(
-                  onRefresh: () => ref.read(productListProvider.notifier).refresh(),
-                  child: GridView.builder(
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      childAspectRatio: 0.75,
-                      crossAxisSpacing: 12,
-                      mainAxisSpacing: 12,
-                    ),
+                  onRefresh: () =>
+                      ref.read(productListProvider.notifier).refresh(),
+                  child: ListView.separated(
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 80),
                     itemCount: products.length,
-                    padding: const EdgeInsets.all(16),
-                    itemBuilder: (context, index) {
-                      final product = products[index];
-                      return ProductCard(
-                        product: product,
-                        onTap: () => context.push('/products/${product.id}'),
-                      );
-                    },
+                    separatorBuilder: (_, __) => const SizedBox(height: 4),
+                    itemBuilder: (context, index) => _ProductTile(
+                      product: products[index],
+                      onTap: () =>
+                          context.push('/products/${products[index].id}'),
+                    ),
                   ),
                 );
               },
@@ -149,32 +133,19 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(
-                      Icons.error_outline_rounded,
-                      size: 64,
-                      color: AppColors.error,
-                    ),
+                    Icon(Icons.error_outline_rounded,
+                        size: 64, color: AppColors.error),
                     const SizedBox(height: 16),
-                    Text(
-                      'Error loading products',
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                    const SizedBox(height: 8),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 32),
-                      child: Text(
-                        message,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: AppColors.textSecondary,
-                            ),
+                    Text(message,
                         textAlign: TextAlign.center,
-                      ),
-                    ),
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodyMedium
+                            ?.copyWith(color: AppColors.textSecondary)),
                     const SizedBox(height: 16),
                     ElevatedButton(
-                      onPressed: _loadProducts,
-                      child: const Text('Retry'),
-                    ),
+                        onPressed: _loadProducts,
+                        child: Text(context.loc.tryAgain)),
                   ],
                 ),
               ),
@@ -193,41 +164,21 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Filter Products'),
+        title: Text(context.loc.filters),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            DropdownButtonFormField<String>(
-              value: _selectedCategory,
-              decoration: InputDecoration(
-                labelText: 'Category',
-                border: const OutlineInputBorder(),
-              ),
-              items: const [
-                DropdownMenuItem(value: null, child: Text('All')),
-                DropdownMenuItem(value: 'electronics', child: Text('Electronics')),
-                DropdownMenuItem(value: 'clothing', child: Text('Clothing')),
-                DropdownMenuItem(value: 'food', child: Text('Food')),
-                DropdownMenuItem(value: 'other', child: Text('Other')),
-              ],
-              onChanged: (value) {
-                setState(() => _selectedCategory = value);
-              },
-            ),
-            const SizedBox(height: 16),
             SwitchListTile(
-              title: const Text('Active only'),
+              title: Text(context.loc.active),
               value: _activeOnly ?? false,
-              onChanged: (value) {
-                setState(() => _activeOnly = value ? true : null);
-              },
+              onChanged: (v) =>
+                  setState(() => _activeOnly = v ? true : null),
             ),
             SwitchListTile(
-              title: const Text('In stock only'),
+              title: Text(context.loc.inStock),
               value: _inStockOnly ?? false,
-              onChanged: (value) {
-                setState(() => _inStockOnly = value ? true : null);
-              },
+              onChanged: (v) =>
+                  setState(() => _inStockOnly = v ? true : null),
             ),
           ],
         ),
@@ -235,23 +186,136 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
           TextButton(
             onPressed: () {
               setState(() {
-                _selectedCategory = null;
                 _activeOnly = null;
                 _inStockOnly = null;
               });
               Navigator.pop(context);
               _loadProducts();
             },
-            child: const Text('Clear'),
+            child: Text(context.loc.clearFilters),
           ),
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
               _loadProducts();
             },
-            child: const Text('Apply'),
+            child: Text(context.loc.applyFilters),
           ),
         ],
+      ),
+    );
+  }
+}
+
+// ─── Product Tile ─────────────────────────────────────────────────────────────
+
+class _ProductTile extends StatelessWidget {
+  final ProductModel product;
+  final VoidCallback onTap;
+
+  const _ProductTile({required this.product, required this.onTap});
+
+  Color get _stockColor {
+    if (product.isOutOfStock) return AppColors.error;
+    if (product.isLowStock) return AppColors.warning;
+    return AppColors.success;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: EdgeInsets.zero,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          child: Row(
+            children: [
+              // Icon placeholder (no image)
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  Icons.inventory_2_outlined,
+                  size: 22,
+                  color: AppColors.primary.withValues(alpha: 0.6),
+                ),
+              ),
+              const SizedBox(width: 12),
+
+              // Name + SKU
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      product.name,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    if (product.sku != null && product.sku!.isNotEmpty) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        product.sku!,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: AppColors.textSecondary,
+                            ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+
+              // Price + stock dot
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    '${product.sellingPrice}',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                  ),
+                  if (product.trackInventory) ...[
+                    const SizedBox(height: 4),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 6,
+                          height: 6,
+                          decoration: BoxDecoration(
+                            color: _stockColor,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          product.stockQuantity.toString(),
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: _stockColor,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ],
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

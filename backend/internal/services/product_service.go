@@ -2,6 +2,7 @@ package services
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/google/uuid"
@@ -116,8 +117,12 @@ func (s *ProductService) Create(req *CreateProductRequest) (*models.Product, err
 		}
 	}
 
-	// Generate slug from name
-	productSlug := slug.Make(req.Name)
+	// Generate a unique slug: base slug + short UUID suffix to avoid collisions
+	baseSlug := slug.Make(req.Name)
+	if baseSlug == "" {
+		baseSlug = "product"
+	}
+	productSlug := fmt.Sprintf("%s-%s", baseSlug, uuid.New().String()[:8])
 
 	// Create product
 	product := &models.Product{
