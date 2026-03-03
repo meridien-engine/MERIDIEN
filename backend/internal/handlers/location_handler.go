@@ -6,6 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/mu7ammad-3li/MERIDIEN/backend/internal/middleware"
 	"github.com/mu7ammad-3li/MERIDIEN/backend/internal/services"
 	"github.com/mu7ammad-3li/MERIDIEN/backend/internal/utils"
 	"github.com/shopspring/decimal"
@@ -37,15 +38,9 @@ type UpdateLocationRequest struct {
 
 // Create creates a new location
 func (h *LocationHandler) Create(c *gin.Context) {
-	businessIDVal, exists := c.Get("business_id")
-	if !exists {
-		utils.ErrorResponse(c, http.StatusUnauthorized, "business_id not found in context")
-		return
-	}
-
-	businessID, ok := businessIDVal.(uuid.UUID)
-	if !ok {
-		utils.ErrorResponse(c, http.StatusUnauthorized, "invalid business_id format")
+	businessID, err := middleware.GetBusinessID(c)
+	if err != nil {
+		utils.ErrorResponse(c, http.StatusUnauthorized, err.Error())
 		return
 	}
 
@@ -73,15 +68,9 @@ func (h *LocationHandler) Create(c *gin.Context) {
 
 // List retrieves all locations for a tenant
 func (h *LocationHandler) List(c *gin.Context) {
-	businessIDVal, exists := c.Get("business_id")
-	if !exists {
-		utils.ErrorResponse(c, http.StatusUnauthorized, "business_id not found in context")
-		return
-	}
-
-	businessID, ok := businessIDVal.(uuid.UUID)
-	if !ok {
-		utils.ErrorResponse(c, http.StatusUnauthorized, "invalid business_id format")
+	businessID, err := middleware.GetBusinessID(c)
+	if err != nil {
+		utils.ErrorResponse(c, http.StatusUnauthorized, err.Error())
 		return
 	}
 
@@ -121,15 +110,9 @@ func (h *LocationHandler) List(c *gin.Context) {
 
 // GetByID retrieves a specific location
 func (h *LocationHandler) GetByID(c *gin.Context) {
-	businessIDVal, exists := c.Get("business_id")
-	if !exists {
-		utils.ErrorResponse(c, http.StatusUnauthorized, "business_id not found in context")
-		return
-	}
-
-	businessID, ok := businessIDVal.(uuid.UUID)
-	if !ok {
-		utils.ErrorResponse(c, http.StatusUnauthorized, "invalid business_id format")
+	businessID, err := middleware.GetBusinessID(c)
+	if err != nil {
+		utils.ErrorResponse(c, http.StatusUnauthorized, err.Error())
 		return
 	}
 
@@ -150,15 +133,9 @@ func (h *LocationHandler) GetByID(c *gin.Context) {
 
 // Update updates a location
 func (h *LocationHandler) Update(c *gin.Context) {
-	businessIDVal, exists := c.Get("business_id")
-	if !exists {
-		utils.ErrorResponse(c, http.StatusUnauthorized, "business_id not found in context")
-		return
-	}
-
-	businessID, ok := businessIDVal.(uuid.UUID)
-	if !ok {
-		utils.ErrorResponse(c, http.StatusUnauthorized, "invalid business_id format")
+	businessID, err := middleware.GetBusinessID(c)
+	if err != nil {
+		utils.ErrorResponse(c, http.StatusUnauthorized, err.Error())
 		return
 	}
 
@@ -211,15 +188,9 @@ func (h *LocationHandler) Update(c *gin.Context) {
 
 // Delete deletes a location
 func (h *LocationHandler) Delete(c *gin.Context) {
-	businessIDVal, exists := c.Get("business_id")
-	if !exists {
-		utils.ErrorResponse(c, http.StatusUnauthorized, "business_id not found in context")
-		return
-	}
-
-	businessID, ok := businessIDVal.(uuid.UUID)
-	if !ok {
-		utils.ErrorResponse(c, http.StatusUnauthorized, "invalid business_id format")
+	businessID, err := middleware.GetBusinessID(c)
+	if err != nil {
+		utils.ErrorResponse(c, http.StatusUnauthorized, err.Error())
 		return
 	}
 

@@ -141,17 +141,17 @@ func Setup(
 			// Order routes
 			orders := protected.Group("/orders")
 			{
-				orders.POST("", authMiddleware.RequireRole(rbac.RoleOperator, rbac.RoleOwner), orderHandler.Create)
+				orders.POST("", authMiddleware.RequireRole(rbac.RoleOperator, rbac.RoleAdmin, rbac.RoleOwner), orderHandler.Create)
 				orders.GET("", orderHandler.List)
 				orders.GET("/:id", orderHandler.GetByID)
 				orders.PUT("/:id", orderHandler.Update)
 				orders.DELETE("/:id", orderHandler.Delete)
 
 				orders.POST("/:id/confirm", orderHandler.Confirm)
-				orders.POST("/:id/ship", authMiddleware.RequireRole(rbac.RoleOperator, rbac.RoleOwner), orderHandler.Ship)
-				orders.POST("/:id/deliver", authMiddleware.RequireRole(rbac.RoleOperator, rbac.RoleOwner), orderHandler.Deliver)
+				orders.POST("/:id/ship", authMiddleware.RequireRole(rbac.RoleOperator, rbac.RoleAdmin, rbac.RoleOwner), orderHandler.Ship)
+				orders.POST("/:id/deliver", authMiddleware.RequireRole(rbac.RoleOperator, rbac.RoleAdmin, rbac.RoleOwner), orderHandler.Deliver)
 				orders.POST("/:id/cancel", orderHandler.Cancel)
-				orders.POST("/:id/collect", authMiddleware.RequireRole(rbac.RoleCollector, rbac.RoleOwner), orderHandler.Collect)
+				orders.POST("/:id/collect", authMiddleware.RequireRole(rbac.RoleCollector, rbac.RoleAdmin, rbac.RoleOwner), orderHandler.Collect)
 
 				orders.POST("/:id/payments", orderHandler.RecordPayment)
 				orders.GET("/:id/payments", orderHandler.ListPayments)
