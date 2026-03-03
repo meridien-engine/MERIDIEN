@@ -27,6 +27,7 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
     final state = ref.watch(membershipProvider);
     final currentRole = ref.watch(currentUserRoleProvider);
     final isOwner = currentRole == MeridienRole.owner;
+    final canChangeRole = isOwner || currentRole == MeridienRole.admin;
 
     ref.listen<MembershipState>(membershipProvider, (_, next) {
       if (next.error != null) {
@@ -109,7 +110,7 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
               return _MemberCard(
                 member: member,
                 isOwner: isOwner,
-                onChangeRole: isOwner && !member.isOwner
+                onChangeRole: canChangeRole && !member.isOwner
                     ? () => _showRoleDialog(context, member)
                     : null,
                 onRemove: isOwner && !member.isOwner

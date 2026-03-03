@@ -3,20 +3,32 @@ import '../../features/auth/providers/auth_provider.dart';
 
 /// MERIDIEN RBAC roles as defined in the backend
 enum MeridienRole {
-  operator,
-  collector,
   owner,
+  admin,
+  manager,
+  operator,
+  cashier,
+  collector,
+  viewer,
 }
 
 extension MeridienRoleExt on MeridienRole {
   String get value {
     switch (this) {
-      case MeridienRole.operator:
-        return 'operator';
-      case MeridienRole.collector:
-        return 'collector';
       case MeridienRole.owner:
         return 'owner';
+      case MeridienRole.admin:
+        return 'admin';
+      case MeridienRole.manager:
+        return 'manager';
+      case MeridienRole.operator:
+        return 'operator';
+      case MeridienRole.cashier:
+        return 'cashier';
+      case MeridienRole.collector:
+        return 'collector';
+      case MeridienRole.viewer:
+        return 'viewer';
     }
   }
 }
@@ -24,12 +36,20 @@ extension MeridienRoleExt on MeridienRole {
 MeridienRole? _parseRole(String? raw) {
   if (raw == null) return null;
   switch (raw.toLowerCase()) {
-    case 'operator':
-      return MeridienRole.operator;
-    case 'collector':
-      return MeridienRole.collector;
     case 'owner':
       return MeridienRole.owner;
+    case 'admin':
+      return MeridienRole.admin;
+    case 'manager':
+      return MeridienRole.manager;
+    case 'operator':
+      return MeridienRole.operator;
+    case 'cashier':
+      return MeridienRole.cashier;
+    case 'collector':
+      return MeridienRole.collector;
+    case 'viewer':
+      return MeridienRole.viewer;
     default:
       return null;
   }
@@ -58,6 +78,7 @@ extension RoleCheck on WidgetRef {
   MeridienRole? get userRole => watch(currentUserRoleProvider);
 
   bool get isOwner => userRole == MeridienRole.owner;
+  bool get isAdmin => userRole == MeridienRole.admin;
   bool get isOperator => userRole == MeridienRole.operator;
   bool get isCollector => userRole == MeridienRole.collector;
 

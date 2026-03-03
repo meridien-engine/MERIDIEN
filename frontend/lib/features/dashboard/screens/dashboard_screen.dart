@@ -136,6 +136,12 @@ class DashboardScreen extends ConsumerWidget {
                       color: Colors.deepOrange,
                       onTap: () => context.push('/branches'),
                     ),
+                    _QuickActionCard(
+                      icon: Icons.manage_accounts_rounded,
+                      label: context.loc.members,
+                      color: Colors.purple,
+                      onTap: () => context.push('/businesses/${business.id}/members'),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 32),
