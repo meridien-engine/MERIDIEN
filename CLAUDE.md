@@ -184,9 +184,9 @@ draft → pending → confirmed → processing → shipped → delivered
 ## Documentation
 
 ### Quick Reference
-- [Getting Started](GETTING-STARTED.md) - Setup guide
-- [Project Status](PROJECT-STATUS.md) - Current status
-- [Implementation Checklist](IMPLEMENTATION-CHECKLIST.md) - Phase tracking
+- [Getting Started](docs/GETTING-STARTED.md) - Setup guide
+- [Project Status](docs/PROJECT-STATUS.md) - Current status
+- [Architecture](docs/ARCHITECTURE.md) - Decisions and schema
 
 ### Core Docs
 - [Brand Guidelines](docs/MERIDIEN-BRAND.md)

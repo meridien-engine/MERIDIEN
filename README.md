@@ -205,9 +205,10 @@ flutter pub run build_runner build --delete-conflicting-outputs
 
 ## Documentation
 
-- [Project Status](PROJECT-STATUS.md) — Progress, roadmap, known gaps
-- [Getting Started](GETTING-STARTED.md) — Detailed setup guide
-- [API Documentation](backend/API-DOCUMENTATION.md) — Full endpoint reference
+- [Project Status](docs/PROJECT-STATUS.md) — Progress, roadmap, known gaps
+- [Architecture](docs/ARCHITECTURE.md) — Decisions, schema, auth flow
+- [Getting Started](docs/GETTING-STARTED.md) — Detailed setup guide
+- [API Documentation](docs/api/API-DOCUMENTATION.md) — Full endpoint reference
 - [Development Rules](docs/DEVELOPMENT-RULES.md) — Coding standards
 - [Brand Guidelines](docs/MERIDIEN-BRAND.md) — Visual identity
 
