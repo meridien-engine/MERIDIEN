@@ -49,6 +49,7 @@ func main() {
 	// Initialize repositories
 	userRepo := repositories.NewUserRepository(database.DB)
 	businessRepo := repositories.NewBusinessRepository(database.DB)
+	branchRepo := repositories.NewBranchRepository(database.DB)
 	customerRepo := repositories.NewCustomerRepository(database.DB)
 	productRepo := repositories.NewProductRepository(database.DB)
 	categoryRepo := repositories.NewCategoryRepository(database.DB)
@@ -74,7 +75,8 @@ func main() {
 
 	// Initialize services
 	authService := services.NewAuthService(userRepo, businessRepo, jwtManager, tokenBlacklist)
-	businessService := services.NewBusinessService(businessRepo)
+	businessService := services.NewBusinessService(businessRepo, branchRepo)
+	branchService := services.NewBranchService(branchRepo)
 	membershipService := services.NewMembershipService(joinReqRepo, invitationRepo, businessRepo, userRepo)
 	customerService := services.NewCustomerService(customerRepo)
 	productService := services.NewProductService(productRepo, categoryRepo)
@@ -95,6 +97,7 @@ func main() {
 	locationHandler := handlers.NewLocationHandler(locationService)
 	posHandler := handlers.NewPOSHandler(posService)
 	storeHandler := handlers.NewStoreHandler(storeService)
+	branchHandler := handlers.NewBranchHandler(branchService)
 
 	// Initialize middleware
 	authMiddleware := middleware.NewAuthMiddleware(jwtManager, tokenBlacklist)
@@ -112,6 +115,7 @@ func main() {
 		businessHandler,
 		storeHandler,
 		membershipHandler,
+		branchHandler,
 		authMiddleware,
 		authRateLimiter,
 	)

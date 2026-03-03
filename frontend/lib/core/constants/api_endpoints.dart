@@ -73,6 +73,13 @@ class ApiEndpoints {
       '/businesses/$businessId/members/$userId';
   static String businessBySlug(String slug) => '/businesses/slug/$slug';
 
+  // Branch Endpoints
+  static const String branches = '/branches';
+  static String branchById(String id) => '/branches/$id';
+  static String businessBranches(String businessId) => '/businesses/$businessId/branches';
+  static String branchUsers(String branchId) => '/branches/$branchId/users';
+  static String branchUserById(String branchId, String userId) => '/branches/$branchId/users/$userId';
+
   // POS Endpoints
   static const String posSessions = '/pos/sessions';
   static const String posCurrentSession = '/pos/sessions/current';

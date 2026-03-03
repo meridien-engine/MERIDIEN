@@ -30,6 +30,7 @@ func Setup(
 	businessHandler *handlers.BusinessHandler,
 	storeHandler *handlers.StoreHandler,
 	membershipHandler *handlers.MembershipHandler,
+	branchHandler *handlers.BranchHandler,
 	authMiddleware *middleware.AuthMiddleware,
 	authRateLimiter rateLimiterMiddleware,
 ) *gin.Engine {
@@ -201,6 +202,21 @@ func Setup(
 			protected.GET("/businesses/:id/members", authMiddleware.RequireRole(rbac.RoleAdmin, rbac.RoleOwner), membershipHandler.GetMembers)
 			protected.PATCH("/businesses/:id/members/:userId", authMiddleware.RequireRole(rbac.RoleAdmin, rbac.RoleOwner), membershipHandler.UpdateMemberRole)
 			protected.DELETE("/businesses/:id/members/:userId", authMiddleware.RequireRole(rbac.RoleOwner), membershipHandler.RemoveMember)
+
+			// Branch routes (nested under /businesses/:id/branches for create/list)
+			protected.POST("/businesses/:id/branches", authMiddleware.RequireRole(rbac.RoleAdmin, rbac.RoleOwner), branchHandler.CreateBranch)
+			protected.GET("/businesses/:id/branches", branchHandler.ListBranches)
+
+			// Branch routes (standalone, scoped via JWT business_id)
+			branches := protected.Group("/branches")
+			{
+				branches.GET("/:id", branchHandler.GetBranch)
+				branches.PUT("/:id", authMiddleware.RequireRole(rbac.RoleAdmin, rbac.RoleOwner), branchHandler.UpdateBranch)
+				branches.DELETE("/:id", authMiddleware.RequireRole(rbac.RoleOwner), branchHandler.DeleteBranch)
+				branches.GET("/:id/users", authMiddleware.RequireRole(rbac.RoleAdmin, rbac.RoleOwner), branchHandler.ListAccess)
+				branches.POST("/:id/users", authMiddleware.RequireRole(rbac.RoleAdmin, rbac.RoleOwner), branchHandler.GrantAccess)
+				branches.DELETE("/:id/users/:userId", authMiddleware.RequireRole(rbac.RoleOwner), branchHandler.RevokeAccess)
+			}
 		}
 	}
 

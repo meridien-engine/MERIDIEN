@@ -1,0 +1,4 @@
+BEGIN;
+DROP TABLE IF EXISTS user_branch_access;
+DROP TABLE IF EXISTS branches;
+COMMIT;

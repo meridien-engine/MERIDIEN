@@ -17,7 +17,8 @@ import '../features/orders/screens/order_list_screen.dart';
 import '../features/orders/screens/order_detail_screen.dart';
 import '../features/orders/screens/create_order_screen.dart';
 import '../features/locations/screens/location_management_screen.dart';
-import '../features/stores/screens/store_management_screen.dart';
+import '../features/branches/screens/branch_management_screen.dart';
+import '../features/branches/screens/branch_access_screen.dart';
 import '../features/couriers/screens/courier_management_screen.dart';
 import '../features/couriers/screens/courier_reconciliation_screen.dart';
 import '../features/pos/screens/pos_session_gate_screen.dart';
@@ -213,11 +214,19 @@ final routerProvider = Provider<GoRouter>((ref) {
         },
       ),
 
-      // ── Stores ────────────────────────────────────────────────────────────
+      // ── Branches ──────────────────────────────────────────────────────────
       GoRoute(
-        path: '/stores',
-        name: 'stores',
-        builder: (context, state) => const StoreManagementScreen(),
+        path: '/branches',
+        name: 'branches',
+        builder: (context, state) => const BranchManagementScreen(),
+      ),
+      GoRoute(
+        path: '/branches/:id/access',
+        name: 'branch-access',
+        builder: (context, state) {
+          final id = state.pathParameters['id']!;
+          return BranchAccessScreen(branchId: id);
+        },
       ),
 
       // ── Settings ──────────────────────────────────────────────────────────

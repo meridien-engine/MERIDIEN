@@ -9,6 +9,7 @@ import '../repositories/courier_repository.dart';
 import '../repositories/pos_repository.dart';
 import '../repositories/store_repository.dart';
 import '../repositories/membership_repository.dart';
+import '../repositories/branch_repository.dart';
 import 'dio_provider.dart';
 
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
@@ -59,4 +60,9 @@ final storeRepositoryProvider = Provider<StoreRepository>((ref) {
 final membershipRepositoryProvider = Provider<MembershipRepository>((ref) {
   final dio = ref.watch(dioProvider);
   return MembershipRepository(dio);
+});
+
+final branchRepositoryProvider = Provider<BranchRepository>((ref) {
+  final dio = ref.watch(dioProvider);
+  return BranchRepository(dio);
 });

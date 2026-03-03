@@ -209,6 +209,27 @@ class AppLocalizations {
   String get clearFilters => translate('clearFilters');
   String get applyFilters => translate('applyFilters');
 
+  // Branches
+  String get branches => translate('branches');
+  String get addBranch => translate('addBranch');
+  String get editBranch => translate('editBranch');
+  String get deleteBranch => translate('deleteBranch');
+  String get branchName => translate('branchName');
+  String get mainBranch => translate('mainBranch');
+  String get branchStatus => translate('branchStatus');
+  String get noBranchesYet => translate('noBranchesYet');
+  String get noBranchesDesc => translate('noBranchesDesc');
+  String get branchCreated => translate('branchCreated');
+  String get branchUpdated => translate('branchUpdated');
+  String get branchDeleted => translate('branchDeleted');
+  String get cannotDeleteMainBranch => translate('cannotDeleteMainBranch');
+  String get branchAccess => translate('branchAccess');
+  String get grantAccess => translate('grantAccess');
+  String get revokeAccess => translate('revokeAccess');
+  String get accessGranted => translate('accessGranted');
+  String get accessRevoked => translate('accessRevoked');
+  String get noUsersWithAccess => translate('noUsersWithAccess');
+
   // Stores
   String get stores => translate('stores');
   String get addStore => translate('addStore');
@@ -479,6 +500,27 @@ const Map<String, String> _enTranslations = {
   'clearFilters': 'Clear Filters',
   'applyFilters': 'Apply Filters',
 
+  // Branches
+  'branches': 'Branches',
+  'addBranch': 'Add Branch',
+  'editBranch': 'Edit Branch',
+  'deleteBranch': 'Delete Branch',
+  'branchName': 'Branch Name',
+  'mainBranch': 'Main',
+  'branchStatus': 'Branch Status',
+  'noBranchesYet': 'No branches yet',
+  'noBranchesDesc': 'Add your first branch to get started.',
+  'branchCreated': 'Branch created successfully',
+  'branchUpdated': 'Branch updated successfully',
+  'branchDeleted': 'Branch deleted',
+  'cannotDeleteMainBranch': 'Cannot delete the main branch',
+  'branchAccess': 'Branch Access',
+  'grantAccess': 'Grant Access',
+  'revokeAccess': 'Revoke Access',
+  'accessGranted': 'Access granted successfully',
+  'accessRevoked': 'Access revoked',
+  'noUsersWithAccess': 'No users have access to this branch',
+
   // Stores
   'stores': 'Stores',
   'addStore': 'Add Store',
@@ -748,6 +790,27 @@ const Map<String, String> _arTranslations = {
   'filters': 'الفلاتر',
   'clearFilters': 'مسح الفلاتر',
   'applyFilters': 'تطبيق الفلاتر',
+
+  // Branches
+  'branches': 'الفروع',
+  'addBranch': 'إضافة فرع',
+  'editBranch': 'تعديل فرع',
+  'deleteBranch': 'حذف فرع',
+  'branchName': 'اسم الفرع',
+  'mainBranch': 'رئيسي',
+  'branchStatus': 'حالة الفرع',
+  'noBranchesYet': 'لا توجد فروع بعد',
+  'noBranchesDesc': 'أضف فرعك الأول للبدء.',
+  'branchCreated': 'تم إنشاء الفرع بنجاح',
+  'branchUpdated': 'تم تحديث الفرع بنجاح',
+  'branchDeleted': 'تم حذف الفرع',
+  'cannotDeleteMainBranch': 'لا يمكن حذف الفرع الرئيسي',
+  'branchAccess': 'صلاحيات الفرع',
+  'grantAccess': 'منح الصلاحية',
+  'revokeAccess': 'سحب الصلاحية',
+  'accessGranted': 'تم منح الصلاحية بنجاح',
+  'accessRevoked': 'تم سحب الصلاحية',
+  'noUsersWithAccess': 'لا يوجد مستخدمون لديهم صلاحية على هذا الفرع',
 
   // Stores
   'stores': 'المتاجر',

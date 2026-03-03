@@ -2,6 +2,7 @@ package services
 
 import (
 	"errors"
+	"log"
 	"regexp"
 	"strings"
 
@@ -13,11 +14,12 @@ import (
 // BusinessService handles business management logic
 type BusinessService struct {
 	businessRepo *repositories.BusinessRepository
+	branchRepo   *repositories.BranchRepository
 }
 
 // NewBusinessService creates a new business service instance
-func NewBusinessService(businessRepo *repositories.BusinessRepository) *BusinessService {
-	return &BusinessService{businessRepo: businessRepo}
+func NewBusinessService(businessRepo *repositories.BusinessRepository, branchRepo *repositories.BranchRepository) *BusinessService {
+	return &BusinessService{businessRepo: businessRepo, branchRepo: branchRepo}
 }
 
 // CreateBusinessRequest represents a business creation request
@@ -90,6 +92,17 @@ func (s *BusinessService) CreateBusiness(userID uuid.UUID, req *CreateBusinessRe
 
 	if err := s.businessRepo.Create(business); err != nil {
 		return nil, errors.New("failed to create business")
+	}
+
+	// Auto-create the main branch for every new business
+	mainBranch := &models.Branch{
+		BusinessID: business.ID,
+		Name:       "Main Branch",
+		IsMain:     true,
+		Status:     "active",
+	}
+	if err := s.branchRepo.Create(mainBranch); err != nil {
+		log.Printf("warning: auto-create main branch failed for business %s: %v", business.ID, err)
 	}
 
 	// Add creator as owner member
