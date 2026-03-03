@@ -80,6 +80,11 @@ class ApiEndpoints {
   static String branchUsers(String branchId) => '/branches/$branchId/users';
   static String branchUserById(String branchId, String userId) => '/branches/$branchId/users/$userId';
 
+  // Branch Inventory Endpoints
+  static String branchProducts(String branchId) => '/branches/$branchId/products';
+  static String branchProductById(String branchId, String productId) =>
+      '/branches/$branchId/products/$productId';
+
   // POS Endpoints
   static const String posSessions = '/pos/sessions';
   static const String posCurrentSession = '/pos/sessions/current';

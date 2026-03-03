@@ -31,6 +31,7 @@ func Setup(
 	storeHandler *handlers.StoreHandler,
 	membershipHandler *handlers.MembershipHandler,
 	branchHandler *handlers.BranchHandler,
+	branchInventoryHandler *handlers.BranchInventoryHandler,
 	authMiddleware *middleware.AuthMiddleware,
 	authRateLimiter rateLimiterMiddleware,
 ) *gin.Engine {
@@ -216,6 +217,12 @@ func Setup(
 				branches.GET("/:id/users", authMiddleware.RequireRole(rbac.RoleAdmin, rbac.RoleOwner), branchHandler.ListAccess)
 				branches.POST("/:id/users", authMiddleware.RequireRole(rbac.RoleAdmin, rbac.RoleOwner), branchHandler.GrantAccess)
 				branches.DELETE("/:id/users/:userId", authMiddleware.RequireRole(rbac.RoleOwner), branchHandler.RevokeAccess)
+
+				// Branch inventory routes
+				branches.GET("/:id/products", branchInventoryHandler.List)
+				branches.POST("/:id/products/:productId", authMiddleware.RequireRole(rbac.RoleAdmin, rbac.RoleOwner), branchInventoryHandler.Activate)
+				branches.PUT("/:id/products/:productId", authMiddleware.RequireRole(rbac.RoleAdmin, rbac.RoleOwner), branchInventoryHandler.Update)
+				branches.DELETE("/:id/products/:productId", authMiddleware.RequireRole(rbac.RoleAdmin, rbac.RoleOwner), branchInventoryHandler.Deactivate)
 			}
 		}
 	}

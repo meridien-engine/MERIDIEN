@@ -10,6 +10,7 @@ import '../repositories/pos_repository.dart';
 import '../repositories/store_repository.dart';
 import '../repositories/membership_repository.dart';
 import '../repositories/branch_repository.dart';
+import '../repositories/branch_inventory_repository.dart';
 import 'dio_provider.dart';
 
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
@@ -65,4 +66,10 @@ final membershipRepositoryProvider = Provider<MembershipRepository>((ref) {
 final branchRepositoryProvider = Provider<BranchRepository>((ref) {
   final dio = ref.watch(dioProvider);
   return BranchRepository(dio);
+});
+
+final branchInventoryRepositoryProvider =
+    Provider<BranchInventoryRepository>((ref) {
+  final dio = ref.watch(dioProvider);
+  return BranchInventoryRepository(dio);
 });

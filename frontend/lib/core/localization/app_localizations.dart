@@ -311,6 +311,19 @@ class AppLocalizations {
   String get change => translate('change');
   String get retry => translate('retry');
   String get anErrorOccurred => translate('anErrorOccurred');
+
+  // Branch Inventory
+  String get branchInventory => translate('branchInventory');
+  String get activateProduct => translate('activateProduct');
+  String get stockQuantity => translate('stockQuantity');
+  String get priceOverride => translate('priceOverride');
+  String get noInventoryYet => translate('noInventoryYet');
+  String get deactivateProduct => translate('deactivateProduct');
+  String get effectivePrice => translate('effectivePrice');
+  String get updated => translate('updated');
+  String get deleted => translate('deleted');
+  String get optional => translate('optional');
+  String get noResults => translate('noResults');
 }
 
 /// English translations
@@ -520,6 +533,19 @@ const Map<String, String> _enTranslations = {
   'accessGranted': 'Access granted successfully',
   'accessRevoked': 'Access revoked',
   'noUsersWithAccess': 'No users have access to this branch',
+
+  // Branch Inventory
+  'branchInventory': 'Branch Inventory',
+  'activateProduct': 'Activate Product',
+  'stockQuantity': 'Stock Quantity',
+  'priceOverride': 'Price Override',
+  'noInventoryYet': 'No products in this branch yet',
+  'deactivateProduct': 'Remove from Branch',
+  'effectivePrice': 'Effective Price',
+  'updated': 'Updated successfully',
+  'deleted': 'Deleted successfully',
+  'optional': 'Optional',
+  'noResults': 'No results found',
 
   // Stores
   'stores': 'Stores',
@@ -811,6 +837,19 @@ const Map<String, String> _arTranslations = {
   'accessGranted': 'تم منح الصلاحية بنجاح',
   'accessRevoked': 'تم سحب الصلاحية',
   'noUsersWithAccess': 'لا يوجد مستخدمون لديهم صلاحية على هذا الفرع',
+
+  // Branch Inventory
+  'branchInventory': 'مخزون الفرع',
+  'activateProduct': 'تفعيل منتج',
+  'stockQuantity': 'كمية المخزون',
+  'priceOverride': 'تجاوز السعر',
+  'noInventoryYet': 'لا توجد منتجات في هذا الفرع بعد',
+  'deactivateProduct': 'إزالة من الفرع',
+  'effectivePrice': 'السعر الفعلي',
+  'updated': 'تم التحديث بنجاح',
+  'deleted': 'تم الحذف بنجاح',
+  'optional': 'اختياري',
+  'noResults': 'لا توجد نتائج',
 
   // Stores
   'stores': 'المتاجر',

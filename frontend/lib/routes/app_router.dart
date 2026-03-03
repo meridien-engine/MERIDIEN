@@ -19,6 +19,8 @@ import '../features/orders/screens/create_order_screen.dart';
 import '../features/locations/screens/location_management_screen.dart';
 import '../features/branches/screens/branch_management_screen.dart';
 import '../features/branches/screens/branch_access_screen.dart';
+import '../features/branches/screens/branch_inventory_screen.dart';
+import '../features/branches/screens/activate_product_screen.dart';
 import '../features/couriers/screens/courier_management_screen.dart';
 import '../features/couriers/screens/courier_reconciliation_screen.dart';
 import '../features/pos/screens/pos_session_gate_screen.dart';
@@ -226,6 +228,24 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           final id = state.pathParameters['id']!;
           return BranchAccessScreen(branchId: id);
+        },
+      ),
+      GoRoute(
+        path: '/branches/:id/inventory',
+        name: 'branch-inventory',
+        builder: (context, state) {
+          final id = state.pathParameters['id']!;
+          final branchName = state.extra as String? ?? '';
+          return BranchInventoryScreen(branchId: id, branchName: branchName);
+        },
+      ),
+      GoRoute(
+        path: '/branches/:id/inventory/activate',
+        name: 'activate-product',
+        builder: (context, state) {
+          final id = state.pathParameters['id']!;
+          final branchName = state.extra as String? ?? '';
+          return ActivateProductScreen(branchId: id, branchName: branchName);
         },
       ),
 

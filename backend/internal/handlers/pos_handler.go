@@ -15,11 +15,12 @@ import (
 // POSHandler handles POS HTTP requests
 type POSHandler struct {
 	posService *services.POSService
+	invService *services.BranchInventoryService
 }
 
 // NewPOSHandler creates a new POS handler
-func NewPOSHandler(posService *services.POSService) *POSHandler {
-	return &POSHandler{posService: posService}
+func NewPOSHandler(posService *services.POSService, invService *services.BranchInventoryService) *POSHandler {
+	return &POSHandler{posService: posService, invService: invService}
 }
 
 // ── Request structs ──────────────────────────────────────────────────────────
@@ -209,7 +210,8 @@ func (h *POSHandler) ListSessions(c *gin.Context) {
 	utils.PaginatedSuccessResponse(c, sessions, total, page, perPage)
 }
 
-// LookupProduct handles GET /api/v1/products/lookup?q=xxx
+// LookupProduct handles GET /api/v1/products/lookup?q=xxx[&branch_id=xxx]
+// When branch_id is provided the search is scoped to that branch's active inventory.
 func (h *POSHandler) LookupProduct(c *gin.Context) {
 	businessID, err := middleware.GetBusinessID(c)
 	if err != nil {
@@ -223,6 +225,23 @@ func (h *POSHandler) LookupProduct(c *gin.Context) {
 		return
 	}
 
+	// Branch-scoped lookup (POS with branch context)
+	if branchIDStr := c.Query("branch_id"); branchIDStr != "" {
+		branchID, err := uuid.Parse(branchIDStr)
+		if err != nil {
+			utils.ErrorResponse(c, http.StatusBadRequest, "Invalid branch_id")
+			return
+		}
+		inv, err := h.invService.LookupForPOS(query, businessID, branchID)
+		if err != nil {
+			utils.NotFoundResponse(c, "Product not found in branch inventory")
+			return
+		}
+		utils.SuccessResponse(c, http.StatusOK, "Product found", inv)
+		return
+	}
+
+	// Fallback: business-wide lookup (backwards compatible)
 	product, err := h.posService.LookupProduct(query, businessID)
 	if err != nil {
 		utils.NotFoundResponse(c, "Product not found")

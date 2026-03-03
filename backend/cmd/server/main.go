@@ -50,6 +50,7 @@ func main() {
 	userRepo := repositories.NewUserRepository(database.DB)
 	businessRepo := repositories.NewBusinessRepository(database.DB)
 	branchRepo := repositories.NewBranchRepository(database.DB)
+	branchInventoryRepo := repositories.NewBranchInventoryRepository(database.DB)
 	customerRepo := repositories.NewCustomerRepository(database.DB)
 	productRepo := repositories.NewProductRepository(database.DB)
 	categoryRepo := repositories.NewCategoryRepository(database.DB)
@@ -77,6 +78,7 @@ func main() {
 	authService := services.NewAuthService(userRepo, businessRepo, jwtManager, tokenBlacklist)
 	businessService := services.NewBusinessService(businessRepo, branchRepo)
 	branchService := services.NewBranchService(branchRepo)
+	branchInventoryService := services.NewBranchInventoryService(branchInventoryRepo, branchRepo, productRepo)
 	membershipService := services.NewMembershipService(joinReqRepo, invitationRepo, businessRepo, userRepo)
 	customerService := services.NewCustomerService(customerRepo)
 	productService := services.NewProductService(productRepo, categoryRepo)
@@ -95,9 +97,10 @@ func main() {
 	orderHandler := handlers.NewOrderHandler(orderService)
 	reportHandler := handlers.NewReportHandler(reportService)
 	locationHandler := handlers.NewLocationHandler(locationService)
-	posHandler := handlers.NewPOSHandler(posService)
+	posHandler := handlers.NewPOSHandler(posService, branchInventoryService)
 	storeHandler := handlers.NewStoreHandler(storeService)
 	branchHandler := handlers.NewBranchHandler(branchService)
+	branchInventoryHandler := handlers.NewBranchInventoryHandler(branchInventoryService)
 
 	// Initialize middleware
 	authMiddleware := middleware.NewAuthMiddleware(jwtManager, tokenBlacklist)
@@ -116,6 +119,7 @@ func main() {
 		storeHandler,
 		membershipHandler,
 		branchHandler,
+		branchInventoryHandler,
 		authMiddleware,
 		authRateLimiter,
 	)

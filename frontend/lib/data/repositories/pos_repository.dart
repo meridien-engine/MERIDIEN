@@ -74,11 +74,13 @@ class PosRepository {
     }
   }
 
-  Future<ProductModel> lookupProduct(String query) async {
+  Future<ProductModel> lookupProduct(String query, {String? branchId}) async {
     try {
+      final params = <String, dynamic>{'q': query};
+      if (branchId != null) params['branch_id'] = branchId;
       final response = await _dio.get(
         ApiEndpoints.productLookup,
-        queryParameters: {'q': query},
+        queryParameters: params,
       );
       final data = response.data['data'] as Map<String, dynamic>;
       return ProductModel.fromJson(data);

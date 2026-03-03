@@ -134,6 +134,10 @@ class _BranchManagementScreenState
                 onDelete: () => _confirmDelete(context, branch),
                 onManageAccess: () =>
                     context.push('/branches/${branch.id}/access'),
+                onInventory: () => context.push(
+                  '/branches/${branch.id}/inventory',
+                  extra: branch.name,
+                ),
               );
             },
           ),
@@ -255,12 +259,14 @@ class _BranchTile extends StatelessWidget {
   final VoidCallback onEdit;
   final VoidCallback onDelete;
   final VoidCallback onManageAccess;
+  final VoidCallback onInventory;
 
   const _BranchTile({
     required this.branch,
     required this.onEdit,
     required this.onDelete,
     required this.onManageAccess,
+    required this.onInventory,
   });
 
   @override
@@ -334,6 +340,11 @@ class _BranchTile extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             _StatusChip(status: branch.status),
+            IconButton(
+              tooltip: context.loc.branchInventory,
+              icon: const Icon(Icons.inventory_2_rounded, size: 18),
+              onPressed: onInventory,
+            ),
             IconButton(
               tooltip: context.loc.branchAccess,
               icon: const Icon(Icons.people_outline_rounded, size: 18),
