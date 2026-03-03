@@ -24,37 +24,27 @@
 
 ---
 
-### 🚧 Phase 2 — Join Requests & Invitations
+### ✅ Phase 2 — Join Requests & Invitations (COMPLETE)
 
-> **Goal:** Allow users to find and join businesses they don't own, and allow owners/admins to invite users by email.
+| Area | Status |
+|---|---|
+| Migration 000010 — `role`/`reviewed_by`/`reviewed_at` on `join_requests`, `status` on `invitations` | ✅ |
+| `GET /businesses/slug/:slug` — lookup business for join request | ✅ |
+| `POST /join-requests`, `GET /join-requests` | ✅ |
+| `GET/POST /businesses/:id/join-requests` (list, approve, reject) | ✅ |
+| `POST /businesses/:id/invitations`, `GET /businesses/:id/invitations` | ✅ |
+| `GET /invitations/:token`, `POST /invitations/:token/accept` | ✅ |
+| `GET/PATCH/DELETE /businesses/:id/members` | ✅ |
+| Flutter: `JoinRequestModel`, `InvitationModel`, `MemberModel` (Freezed) | ✅ |
+| Flutter: `MembershipRepository` (Dio, 13 endpoints) | ✅ |
+| Flutter: `MembershipNotifier` + `MembershipState` (Riverpod) | ✅ |
+| Flutter: `FindBusinessScreen`, `MyJoinRequestsScreen` | ✅ |
+| Flutter: `JoinRequestsScreen` (admin approve/reject) | ✅ |
+| Flutter: `MembersScreen` (list, change role, remove) | ✅ |
+| Flutter: `InviteUserScreen`, `AcceptInvitationScreen` | ✅ |
+| Localization: EN + AR for all membership strings | ✅ |
 
-#### Backend
-
-- [ ] `join_requests` table migration
-  - Fields: `id`, `user_id`, `business_id`, `message`, `role`, `status` (pending/approved/rejected), `reviewed_by`, `reviewed_at`, `created_at`
-- [ ] `invitations` table migration
-  - Fields: `id`, `business_id`, `email`, `role`, `token` (secure random), `invited_by`, `status` (pending/accepted/expired), `expires_at`, `created_at`
-- [ ] `GET /businesses/slug/:slug` — lookup business for join request
-- [ ] `POST /join-requests` — submit join request `{ slug, message?, role? }`
-- [ ] `GET /businesses/:id/join-requests` — pending list (admin+)
-- [ ] `POST /businesses/:id/join-requests/:reqId/approve` — `{ role }`
-- [ ] `POST /businesses/:id/join-requests/:reqId/reject`
-- [ ] `POST /businesses/:id/invitations` — send invite `{ email, role }`
-- [ ] `GET /invitations/:token` — validate token (public, no auth)
-- [ ] `POST /invitations/:token/accept` — accept invite (authenticated user)
-
-#### Frontend
-
-- [ ] `JoinRequestModel` + `InvitationModel` (Freezed)
-- [ ] `JoinRequestRepository` + `InvitationRepository` (Dio)
-- [ ] Update `NoBusinessScreen` — add "Find & join a business" option
-- [ ] `FindBusinessScreen` — search by slug, show details, submit join request
-- [ ] `PendingApprovalScreen` — shown after submitting join request
-- [ ] `JoinRequestsScreen` — admin view, list pending, approve/reject with role picker
-- [ ] `InviteUserScreen` — email + role picker, send invite
-- [ ] `MembersScreen` — list current members, change role, remove
-- [ ] Invitation accept flow — deep link or token entry screen
-- [ ] Localization: EN + AR for all new strings
+---
 
 ---
 
@@ -130,6 +120,53 @@
 - [ ] `FulfillmentBranchPicker` — shown when moving order to shipped/processing
 - [ ] Show fulfillment branch on order detail screen
 - [ ] Localization: EN + AR
+
+---
+
+## Tests
+
+### ✅ Written & Passing
+
+| File | Tests |
+|---|---|
+| `backend/internal/auth/roles_test.go` | All 7 role constants correct, all distinct, owner ≠ admin |
+| `backend/internal/utils/jwt_test.go` | Generic token valid, scoped token valid, wrong secret rejected, unique JTI, refresh preserves type |
+| `backend/internal/middleware/auth_middleware_test.go` | RequireRole — allowed/denied/owner-bypass, all new roles (admin/manager/cashier/viewer), missing context → 403, RequireAuth/RequireGenericAuth reject missing header |
+| `backend/internal/handlers/membership_handler_test.go` | Join request RBAC (admin+), invitation RBAC (admin+), member list (admin+), remove member (owner-only), owner bypasses all |
+| `backend/internal/handlers/order_handler_test.go` | Operator can ship, collector cannot ship, owner bypasses all |
+
+### 📋 Tests Still To Write
+
+#### Backend — Unit
+
+- [ ] `utils/jwt_test.go` — expired token returns error
+- [ ] `utils/jwt_test.go` — tampered token (modified payload) returns error
+- [ ] `services/membership_service_test.go` — `SubmitJoinRequest` rejects duplicate pending request (mock repos)
+- [ ] `services/membership_service_test.go` — `ApproveJoinRequest` rejects wrong business ID
+- [ ] `services/membership_service_test.go` — `AcceptInvitation` rejects expired token
+- [ ] `services/membership_service_test.go` — `RemoveMember` rejects when target is owner
+- [ ] `services/membership_service_test.go` — `UpdateMemberRole` rejects when target is owner
+
+#### Backend — Integration (requires DB)
+
+- [ ] `integration/rls_test.go` — update from `tenant_id` → `business_id` / `app.current_business`
+- [ ] `integration/auth_flow_test.go` — full two-step login: register → login (generic JWT) → use-business (scoped JWT) → access protected route
+- [ ] `integration/membership_test.go` — submit join request → approve → user appears in member list
+- [ ] `integration/invitation_test.go` — send invitation → validate token → accept → user appears in member list
+- [ ] `integration/membership_test.go` — remove owner returns 400/403
+
+#### Frontend — Unit
+
+- [ ] `membership_provider_test.dart` — `loadMyJoinRequests` sets state correctly on success and error
+- [ ] `membership_provider_test.dart` — `submitJoinRequest` sets successMessage on success
+- [ ] `membership_repository_test.dart` — `lookupBySlug` returns BusinessModel on 200, throws on 404
+
+#### Frontend — Widget
+
+- [ ] `find_business_screen_test.dart` — search field renders, shows result card after lookup
+- [ ] `members_screen_test.dart` — shows member list, owner row has no remove button
+- [ ] `join_requests_screen_test.dart` — pending requests show Approve/Reject buttons, reviewed ones don't
+- [ ] `accept_invitation_screen_test.dart` — invalid token shows error body, valid token shows invitation card
 
 ---
 
