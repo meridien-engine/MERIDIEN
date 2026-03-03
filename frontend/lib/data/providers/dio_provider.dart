@@ -31,11 +31,21 @@ final dioProvider = Provider<Dio>((ref) {
         return handler.next(options);
       },
       onError: (error, handler) async {
-        // Handle 401 Unauthorized - token expired
+        // Only clear session on token-level 401s (expired/invalid/revoked token).
+        // Authorization failures from business-context checks (e.g. missing
+        // business_id in context) should NOT wipe the scoped token.
         if (error.response?.statusCode == 401) {
-          final storage = ref.read(storageServiceProvider);
-          await storage.clearAll();
-          // Navigation to login will be handled by router
+          final body = error.response?.data;
+          final errorMsg = (body is Map ? body['error'] ?? '' : '').toString().toLowerCase();
+          final isTokenError = errorMsg.contains('token') ||
+              errorMsg.contains('expired') ||
+              errorMsg.contains('invalid') ||
+              errorMsg.contains('unauthorized');
+          if (isTokenError) {
+            final storage = ref.read(storageServiceProvider);
+            await storage.clearAll();
+            // Navigation to login will be handled by router
+          }
         }
         return handler.next(error);
       },

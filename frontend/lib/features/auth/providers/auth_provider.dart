@@ -26,7 +26,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
         state = const AuthState.loading();
         final user = await _authRepository.getCurrentUser();
         final businessId = _storageService.getBusinessId();
-        final role = _storageService.getRole() ?? 'user';
+        String? storedRole = _storageService.getRole();
 
         if (businessId == null) {
           // Scoped token but no business id — shouldn't happen, recover
@@ -38,6 +38,27 @@ class AuthNotifier extends StateNotifier<AuthState> {
         final scopedToken = await _storageService.getToken();
         final businesses = await _authRepository.getUserBusinesses(
             scopedToken ?? '');
+
+        // Role missing from storage — recover by re-scoping the token
+        if (storedRole == null || storedRole.isEmpty) {
+          final genericToken = await _storageService.getGenericToken();
+          if (genericToken != null) {
+            try {
+              final scoped =
+                  await _authRepository.useBusiness(genericToken, businessId);
+              await _storageService.saveToken(scoped.token);
+              await _storageService.saveRole(scoped.role);
+              storedRole = scoped.role;
+            } catch (_) {
+              await logout();
+              return;
+            }
+          } else {
+            await logout();
+            return;
+          }
+        }
+        final role = storedRole;
 
         final business = businesses.isNotEmpty
             ? businesses.firstWhere((b) => b.id == businessId,
