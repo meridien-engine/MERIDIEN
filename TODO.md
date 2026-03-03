@@ -48,34 +48,50 @@
 
 ---
 
-### 📋 Phase 3 — Branches
+### ✅ Phase 3 — Branches (COMPLETE)
 
 > **Goal:** Multi-branch support. Single-branch businesses get a silent main branch; multi-branch get full branch management.
 
 #### Backend
 
-- [ ] `branches` table migration
-  - Fields: `id`, `business_id`, `name`, `address`, `city`, `phone`, `is_main`, `status`, `created_at`, `updated_at`, `deleted_at`
-- [ ] `user_branch_access` table migration
-  - Fields: `id`, `user_id`, `branch_id`, `granted_by`, `created_at`, UNIQUE(user_id, branch_id)
-- [ ] Auto-create `main` branch on `POST /businesses`
-- [ ] `POST /businesses/:id/branches` — create branch
-- [ ] `GET /businesses/:id/branches` — list branches
-- [ ] `GET /branches/:id` — get branch details
-- [ ] `PUT /branches/:id` — update branch
-- [ ] `POST /branches/:id/users` — grant user access `{ userId }`
-- [ ] `DELETE /branches/:id/users/:userId` — revoke access
-- [ ] Scoped JWT: add `branch_id` when single-branch business (auto-select)
+- [x] Migration 000011 — `branches` table (RLS, business_id scoped) + `user_branch_access` (no RLS)
+- [x] `Branch` + `UserBranchAccess` models (`backend/internal/models/branch.go`)
+- [x] `BranchRepository` — CRUD + access management
+- [x] `BranchService` — business logic, main-branch delete guard
+- [x] `BranchHandler` — 8 HTTP endpoints
+- [x] Auto-create "Main Branch" (is_main=true) on `POST /businesses`
+- [x] `POST /businesses/:id/branches` — create branch (admin+)
+- [x] `GET /businesses/:id/branches` — list branches
+- [x] `GET /branches/:id` — get branch details
+- [x] `PUT /branches/:id` — update branch (admin+)
+- [x] `DELETE /branches/:id` — delete branch, owner only, rejects main branch
+- [x] `POST /branches/:id/users` — grant user access (admin+)
+- [x] `DELETE /branches/:id/users/:userId` — revoke access (owner only)
+- [x] `GET /branches/:id/users` — list users with access (admin+)
 
 #### Frontend
 
-- [ ] `BranchModel` (Freezed) + `BranchRepository`
-- [ ] `BranchListScreen` — list all branches for business
-- [ ] `CreateBranchScreen` — name, address, city, phone
-- [ ] `BranchDetailScreen` — edit branch info
-- [ ] `BranchAccessScreen` — assign/revoke user access per branch
-- [ ] POS: `BranchPickerScreen` — shown before POS if multi-branch
-- [ ] Localization: EN + AR
+- [x] `BranchModel`, `CreateBranchRequest`, `UpdateBranchRequest`, `BranchUserModel` (Freezed)
+- [x] `BranchRepository` (Dio, all 8 endpoints)
+- [x] `BranchNotifier` / `branchProvider` (Riverpod)
+- [x] `BranchManagementScreen` — list, create, edit, delete, main badge
+- [x] `BranchAccessScreen` — grant/revoke user access per branch
+- [x] Router: `/branches`, `/branches/:id/access`
+- [x] Dashboard: "Branches" quick-action card (deepOrange, account_tree_rounded)
+- [x] Localization: EN + AR for all branch strings (20 keys)
+- [ ] POS: `BranchPickerScreen` — shown before POS if multi-branch (Phase 4)
+
+---
+
+### ✅ Product Module Fixes (COMPLETE)
+
+| Area | Status |
+|---|---|
+| Migration 000012 — replace `UNIQUE(business_id, sku/barcode/slug)` with partial indexes that exclude empty strings | ✅ |
+| `product_service.go` — slug now gets UUID suffix to guarantee uniqueness across Arabic/non-ASCII names | ✅ |
+| Product list screen — switched from `GridView` (card) to `ListView` (tile), no image dependency | ✅ |
+| Seed script — 100 Arabic hardware products across 8 categories (hand tools, power tools, electrical, plumbing, etc.) | ✅ |
+| Dashboard — removed "Stores" quick-action card (superseded by Branches) | ✅ |
 
 ---
 

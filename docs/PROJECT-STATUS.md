@@ -1,7 +1,7 @@
 # Project Status
 
-**Last Updated:** March 2, 2026
-**Current Phase:** Phase 2 — Join Requests & Invitations (active)
+**Last Updated:** March 3, 2026
+**Current Phase:** Phase 4 — Branch Inventory (next)
 
 ---
 
@@ -53,7 +53,7 @@
 
 ---
 
-## Phase 2 — Join Requests & Invitations 🚧
+## Phase 2 — Join Requests & Invitations ✅
 
 **Goal:** Allow users to find and join businesses, and allow owners/admins to invite users by email.
 
@@ -61,54 +61,78 @@
 
 | Task | Status |
 |---|---|
-| Migration: `join_requests` table | ❌ |
-| Migration: `invitations` table | ❌ |
-| `GET /businesses/slug/:slug` — lookup by slug | ❌ |
-| `POST /join-requests` — submit join request | ❌ |
-| `GET /businesses/:id/join-requests` — pending list (admin+) | ❌ |
-| `POST /businesses/:id/join-requests/:reqId/approve` | ❌ |
-| `POST /businesses/:id/join-requests/:reqId/reject` | ❌ |
-| `POST /businesses/:id/invitations` — send invite by email | ❌ |
-| `GET /invitations/:token` — validate token (public) | ❌ |
-| `POST /invitations/:token/accept` — accept invite | ❌ |
+| Migration: `join_requests` table | ✅ |
+| Migration: `invitations` table | ✅ |
+| `GET /businesses/slug/:slug` — lookup by slug | ✅ |
+| `POST /join-requests` — submit join request | ✅ |
+| `GET /businesses/:id/join-requests` — pending list (admin+) | ✅ |
+| `POST /businesses/:id/join-requests/:reqId/approve` | ✅ |
+| `POST /businesses/:id/join-requests/:reqId/reject` | ✅ |
+| `POST /businesses/:id/invitations` — send invite by email | ✅ |
+| `GET /invitations/:token` — validate token (public) | ✅ |
+| `POST /invitations/:token/accept` — accept invite | ✅ |
 
 ### Frontend
 
 | Task | Status |
 |---|---|
-| `JoinRequestModel` + `InvitationModel` (Freezed) | ❌ |
-| `JoinRequestRepository` + `InvitationRepository` | ❌ |
-| Update `NoBusinessScreen` — add "Find & join" option | ❌ |
-| `FindBusinessScreen` — search by slug, submit join request | ❌ |
-| `PendingApprovalScreen` — after submitting join request | ❌ |
-| `JoinRequestsScreen` — admin view, approve/reject with role picker | ❌ |
-| `InviteUserScreen` — email + role picker | ❌ |
-| `MembersScreen` — list members, change role, remove | ❌ |
-| Invitation accept flow (token entry or deep link) | ❌ |
-| Localization: EN + AR for all new strings | ❌ |
+| `JoinRequestModel` + `InvitationModel` (Freezed) | ✅ |
+| `JoinRequestRepository` + `InvitationRepository` | ✅ |
+| `FindBusinessScreen` — search by slug, submit join request | ✅ |
+| `MyJoinRequestsScreen` — user's own requests | ✅ |
+| `JoinRequestsScreen` — admin approve/reject | ✅ |
+| `InviteUserScreen` — email + role picker | ✅ |
+| `MembersScreen` — list members, change role, remove | ✅ |
+| `AcceptInvitationScreen` — accept via token | ✅ |
+| Localization: EN + AR for all membership strings | ✅ |
 
 ---
 
-## Phase 3 — Branches 📋
+## Phase 3 — Branches ✅
 
-**Goal:** Multi-store access control. Single-branch businesses get a silent main store; multi-branch get full branch management.
+**Goal:** Multi-branch support. Single-branch businesses get a silent main branch; multi-branch get full branch management.
+
+### Backend
 
 | Task | Status |
 |---|---|
-| Migration: `user_branch_access` table | ❌ |
-| Auto-create main store on `POST /businesses` | ❌ |
-| `POST/GET /businesses/:id/branches` | ❌ |
-| `GET/PUT /branches/:id` | ❌ |
-| `POST /branches/:id/users` — grant access | ❌ |
-| `DELETE /branches/:id/users/:userId` — revoke | ❌ |
-| Flutter: `BranchListScreen`, `CreateBranchScreen`, `BranchAccessScreen` | ❌ |
-| POS: `BranchPickerScreen` (multi-branch only) | ❌ |
+| Migration 000011 — `branches` table (RLS) + `user_branch_access` | ✅ |
+| `Branch` + `UserBranchAccess` models | ✅ |
+| `BranchRepository`, `BranchService`, `BranchHandler` | ✅ |
+| Auto-create "Main Branch" on `POST /businesses` | ✅ |
+| `POST/GET /businesses/:id/branches` | ✅ |
+| `GET/PUT/DELETE /branches/:id` | ✅ |
+| `GET/POST /branches/:id/users`, `DELETE /branches/:id/users/:userId` | ✅ |
+
+### Frontend
+
+| Task | Status |
+|---|---|
+| `BranchModel`, `CreateBranchRequest`, `UpdateBranchRequest`, `BranchUserModel` (Freezed) | ✅ |
+| `BranchRepository` (Dio) | ✅ |
+| `BranchNotifier` / `branchProvider` (Riverpod) | ✅ |
+| `BranchManagementScreen` — list, create, edit, delete, main badge | ✅ |
+| `BranchAccessScreen` — grant/revoke user access | ✅ |
+| Router: `/branches`, `/branches/:id/access` | ✅ |
+| Dashboard: "Branches" card (deepOrange) | ✅ |
+| Localization: EN + AR (20 keys) | ✅ |
+| POS: `BranchPickerScreen` (multi-branch) | 📋 Phase 4 |
+
+### Product Module Fixes
+
+| Task | Status |
+|---|---|
+| Migration 000012 — partial unique indexes for SKU/barcode (allow empty) | ✅ |
+| `product_service.go` — UUID suffix on slug for non-ASCII name uniqueness | ✅ |
+| Product list — `ListView` tiles (was `GridView` cards), image-free | ✅ |
+| Dashboard — removed redundant "Stores" card | ✅ |
+| Seed script — 100 Arabic hardware products (8 categories) | ✅ |
 
 ---
 
-## Phase 4 — Branch Inventory 📋
+## Phase 4 — Branch Inventory 📋 (Next)
 
-**Goal:** Stock and product activation managed per store.
+**Goal:** Stock and product activation managed per branch.
 
 | Task | Status |
 |---|---|
@@ -117,6 +141,7 @@
 | `POST/PUT/DELETE /branches/:id/products/:productId` | ❌ |
 | Update POS product lookup to use `branch_inventory` | ❌ |
 | Flutter: `BranchInventoryScreen`, `ActivateProductScreen` | ❌ |
+| POS: `BranchPickerScreen` | ❌ |
 
 ---
 
@@ -147,13 +172,20 @@ migrations applied:
   000007 — POS sessions; order_type, customer_name; nullable customer_id
   000008 — tenants→businesses; business_id across 9 tables; user_business_memberships; business_categories
   000009 — stores table with RLS
+  000010 — join_requests + invitations; role/reviewed_by/reviewed_at columns
+  000011 — branches table (RLS) + user_branch_access
+  000012 — partial unique indexes for products (sku, barcode, slug) — allows empty values
 
 tables:
   users                    — global, no business_id
   businesses               — multi-business root
   business_categories      — predefined system list
   user_business_memberships — user ↔ business with role
-  stores                   — physical locations per business
+  join_requests            — user-initiated business join requests
+  invitations              — owner/admin email invitations
+  stores                   — physical locations per business (legacy, superseded by branches in UI)
+  branches                 — business branches with RLS
+  user_branch_access       — user ↔ branch access grants
   customers                — CRM, business_id scoped
   product_categories       — business_id scoped
   products                 — business catalog, business_id scoped
@@ -173,11 +205,11 @@ All tables (except `users`, `business_categories`): `id (UUID)`, `business_id`, 
 ## Code Metrics (approximate)
 
 ```
-Backend (Go):       ~11,000 LOC · 45+ files
-Frontend (Flutter): ~7,500 LOC · 40+ files (excluding generated)
-API Endpoints:      ~38
-Database Tables:    15
-Migrations:         9
+Backend (Go):       ~13,500 LOC · 55+ files
+Frontend (Flutter): ~9,500 LOC · 55+ files (excluding generated)
+API Endpoints:      ~50
+Database Tables:    19
+Migrations:         12
 Automated Tests:    14 RBAC unit tests + 1 RLS integration test
 ```
 
