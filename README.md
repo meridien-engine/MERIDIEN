@@ -11,6 +11,11 @@ Enterprise SaaS platform for retail operations and inventory management. Built w
 
 ---
 
+> **This repository is superseded by [meridien-engine](https://github.com/meridien-engine/meridien-engine).**
+> It is kept as a reference only and is no longer actively maintained.
+
+
+
 ## What It Does
 
 MERIDIEN manages the full retail operations cycle across isolated business tenants:
